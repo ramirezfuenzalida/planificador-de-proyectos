@@ -3081,28 +3081,29 @@ h1, h2, h3, .brand h1 {
 .reports-table .text-red { color: #ef4444; font-weight: 600; }
 
 .progress-mini-bar {
-  width: 100px;
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
+  width: 80px;
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 6px;
   position: relative;
-  overflow: hidden;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  margin-right: 40px; /* Space for the percentage text */
 }
 
 .progress-mini-fill {
   height: 100%;
-  background: var(--primary);
-  border-radius: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--accent-color));
+  border-radius: 6px;
 }
 
 .progress-mini-bar span {
   position: absolute;
-  right: -45px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
+  left: calc(100% + 8px);
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #000000; /* Negro para visibilidad */
 }
 
 .no-data-notice-premium {
