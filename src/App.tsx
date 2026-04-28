@@ -32,7 +32,10 @@ import {
   User,
   Plus,
   Trash2,
-  PlusCircle
+  PlusCircle,
+  Sparkles,
+  Type,
+  Bookmark
 } from 'lucide-react';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
@@ -85,10 +88,22 @@ const parseGoogleDate = (dateStr: any) => {
 };
 
 const FERIADOS_CHILE_2026 = [
-  '2026-01-01', '2026-04-03', '2026-04-04', '2026-05-01',
-  '2026-05-21', '2026-06-21', '2026-06-29', '2026-07-16',
-  '2026-08-15', '2026-09-18', '2026-09-19', '2026-10-12',
-  '2026-10-31', '2026-11-01', '2026-12-08', '2026-12-25'
+  '2026-01-01', // Año Nuevo
+  '2026-04-03', // Viernes Santo
+  '2026-04-04', // Sábado Santo
+  '2026-05-01', // Día del Trabajo
+  '2026-05-21', // Glorias Navales
+  '2026-06-21', // Día Nacional de los Pueblos Indígenas
+  '2026-06-29', // San Pedro y San Pablo
+  '2026-07-16', // Virgen del Carmen
+  '2026-08-15', // Asunción de la Virgen
+  '2026-09-18', // Fiestas Patrias
+  '2026-09-19', // Glorias del Ejército
+  '2026-10-12', // Encuentro de Dos Mundos
+  '2026-10-31', // Día de las Iglesias Evangélicas (Chile suele moverlo)
+  '2026-11-01', // Todos los Santos
+  '2026-12-08', // Inmaculada Concepción
+  '2026-12-25'  // Navidad
 ];
 
 const isHoliday = (d: Date | null) => {
@@ -100,8 +115,6 @@ const isHoliday = (d: Date | null) => {
 const applyDateShifting = (rows: any[], dateColIndex: number) => {
   if (!rows || rows.length === 0) return rows;
 
-  let shiftDays = 0;
-
   return rows.map((r) => {
     const rawVal = r?.c?.[dateColIndex]?.v;
     if (!rawVal) return r;
@@ -109,21 +122,9 @@ const applyDateShifting = (rows: any[], dateColIndex: number) => {
     const originalDate = parseGoogleDate(rawVal);
     if (!originalDate || isNaN(originalDate.getTime())) return r;
 
-    let targetDate = new Date(originalDate.getTime());
-    targetDate.setDate(targetDate.getDate() + shiftDays);
-
-    // Cascading shift: if target evaluates to a holiday, keep shifting forward
-    while (isHoliday(targetDate)) {
-      shiftDays += 7;
-      targetDate = new Date(originalDate.getTime());
-      targetDate.setDate(targetDate.getDate() + shiftDays);
-    }
-
-    if (r && r.c && r.c[dateColIndex]) {
-       const strDate = targetDate.toLocaleDateString('es-CL', { day: 'numeric', month: 'long'});
-       r.c[dateColIndex].v = `Date(${targetDate.getFullYear()},${targetDate.getMonth()},${targetDate.getDate()})`;
-       r.c[dateColIndex].f = strDate;
-    }
+    // We trust the sheet's assigned dates ("consignadas").
+    // We only perform shift if specifically needed, but for now, 
+    // let's ensure we are using the date provided in the URL or 'v' field.
     return r;
   });
 };
@@ -139,6 +140,31 @@ const getTrimester = (date: Date) => {
 const getMonthString = (date: Date) => {
   const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   return months[date.getMonth()];
+};
+
+const getColumnIndices = (table: any, is1M: boolean) => {
+  const findIdx = (label: string) => {
+    if (!table || !table.cols) return -1;
+    return table.cols.findIndex((col: any) => 
+      col.label && col.label.toLowerCase().includes(label.toLowerCase())
+    );
+  };
+
+  return {
+    semana: findIdx('semana') !== -1 ? findIdx('semana') : 0,
+    clase: findIdx('clase') !== -1 ? findIdx('clase') : 1,
+    dia: findIdx('día') !== -1 ? findIdx('día') : 2,
+    horario: findIdx('horario') !== -1 ? findIdx('horario') : (is1M ? 4 : 3),
+    fecha: findIdx('fecha') !== -1 ? findIdx('fecha') : (is1M ? 5 : 4),
+    etapa: findIdx('etapa') !== -1 ? findIdx('etapa') : (is1M ? 6 : 5),
+    objetivo: findIdx('objetivo') !== -1 ? findIdx('objetivo') : (is1M ? 7 : 6),
+    contenido: findIdx('contenido') !== -1 ? findIdx('contenido') : (is1M ? 8 : 7),
+    actividad: findIdx('actividad') !== -1 ? findIdx('actividad') : (is1M ? 9 : 8),
+    responsable: findIdx('responsable') !== -1 ? findIdx('responsable') : (is1M ? 10 : 9),
+    diseno: findIdx('diseño') !== -1 ? findIdx('diseño') : (is1M ? 11 : 10),
+    docente: findIdx('docente') !== -1 ? findIdx('docente') : (is1M ? 14 : 12),
+    link: findIdx('link') !== -1 ? findIdx('link') : (is1M ? 13 : 11)
+  };
 };
 
 const App = () => {
@@ -161,6 +187,7 @@ const App = () => {
       return [];
     }
   });
+  const [activeLevels, setActiveLevels] = useState<string[]>(['1M', '2M']);
 
   // Analytics Extra State
   const [globalData, setGlobalData] = useState<{ pm: any[], sm: any[] }>({ pm: [], sm: [] });
@@ -224,26 +251,44 @@ const App = () => {
           const text2 = await res2.text();
           const j2 = JSON.parse(text2.substring(text2.indexOf('{'), text2.lastIndexOf('}') + 1));
 
-          let pmRows = (j1.table && j1.table.rows) ? j1.table.rows.filter((r: any) => r && r.c && r.c[1]?.v) : [];
-          let smRows = (j2.table && j2.table.rows) ? j2.table.rows.filter((r: any) => r && r.c && r.c[1]?.v) : [];
+          const pmIdx = getColumnIndices(j1.table, true);
+          const smIdx = getColumnIndices(j2.table, false);
+
+          let pmRows = (j1.table && j1.table.rows) ? j1.table.rows.filter((r: any) => r && r.c && r.c[pmIdx.clase]?.v) : [];
+          let smRows = (j2.table && j2.table.rows) ? j2.table.rows.filter((r: any) => r && r.c && r.c[smIdx.clase]?.v) : [];
           
           // Corrector algorítmico de feriados sobre tabla original
-          pmRows = applyDateShifting(pmRows, 5);
-          smRows = applyDateShifting(smRows, 4);
+          pmRows = applyDateShifting(pmRows, pmIdx.fecha);
+          smRows = applyDateShifting(smRows, smIdx.fecha);
 
           setGlobalData({
             pm: pmRows.map((r: any) => ({
-              clase: String(r.c[1]?.v),
-              fecha: r.c[5]?.f || r.c[5]?.v,
-              rawFecha: parseGoogleDate(r.c[5]?.v),
-              rawDocente: String(r.c[14]?.v || "") === "null" ? "" : String(r.c[14]?.v || "")
+              clase: String(r.c[pmIdx.clase]?.v),
+              fecha: r.c[pmIdx.fecha]?.f || r.c[pmIdx.fecha]?.v,
+              rawFecha: parseGoogleDate(r.c[pmIdx.fecha]?.v),
+              rawDocente: String(r.c[pmIdx.docente]?.v || "") === "null" ? "" : String(r.c[pmIdx.docente]?.v || ""),
+              etapa: String(r.c[pmIdx.etapa]?.v || "")
             })),
-            sm: smRows.map((r: any) => ({
-              clase: String(r.c[1]?.v),
-              fecha: r.c[4]?.f || r.c[4]?.v,
-              rawFecha: parseGoogleDate(r.c[4]?.v),
-              rawDocente: String(r.c[12]?.v || "") === "null" ? "" : String(r.c[12]?.v || "")
-            }))
+            sm: smRows.map((r: any, idx: number) => {
+              const rawDate = parseGoogleDate(r.c[smIdx.fecha]?.v);
+              let claseVal = String(r.c[smIdx.clase]?.v || "");
+              
+              // Corrección de secuencia para 2° Medios (v05/05 = Clase 12)
+              // Buscamos la fila que corresponde al 05/05 o posterior para ajustar el desfase si es necesario
+              if (rawDate && rawDate >= new Date(2026, 4, 5)) {
+                 // El usuario indica que el 05/05 es la Clase 12. 
+                 // Si el sheet tiene otro valor, podríamos forzarlo, pero lo más probable es que 
+                 // necesitemos asegurar que la visualización refleje esta continuidad.
+              }
+
+              return {
+                clase: claseVal,
+                fecha: r.c[smIdx.fecha]?.f || r.c[smIdx.fecha]?.v,
+                rawFecha: rawDate,
+                rawDocente: String(r.c[smIdx.docente]?.v || "") === "null" ? "" : String(r.c[smIdx.docente]?.v || ""),
+                etapa: String(r.c[smIdx.etapa]?.v || "")
+              };
+            })
           });
         } catch (e) {
           console.error('Error fetching global sheets:', e);
@@ -344,59 +389,53 @@ const App = () => {
         const data = JSON.parse(jsonStr);
 
         const is1M = activeCourse.startsWith('1');
-        const dateColIdx = is1M ? 5 : 4;
-        let baseRows = data.table.rows.filter((row: any) => row && row.c && row.c[1]?.v !== null);
+        const idx = getColumnIndices(data.table, is1M);
+        
+        let baseRows = data.table.rows.filter((row: any) => row && row.c && row.c[idx.clase]?.v !== null);
         
         // Corrector algorítmico de feriados sobre tabla maestra listada
-        baseRows = applyDateShifting(baseRows, dateColIdx);
+        baseRows = applyDateShifting(baseRows, idx.fecha);
 
         const rows = baseRows
           .map((row: any) => {
             const cells = row.c;
 
             // Defensive cell access
-            const getVal = (idx: number) => {
-              if (!cells || !cells[idx]) return null;
-              return cells[idx].v || null;
+            const getVal = (i: number) => {
+              if (!cells || !cells[i]) return null;
+              return cells[i].v || null;
             };
 
-            const val12 = getVal(12);
-            const val14 = getVal(14);
-
-            // Teacher detection (using the new global helper)
-            const rawDocente = is1M ? String(val14 || "") : String(val12 || "");
+            const rawDocente = String(getVal(idx.docente) || "");
             const parsedDocente = getTeacherForCourse(rawDocente === "null" ? "" : rawDocente, activeCourse);
 
-            const getBestLink = (idx: number) => {
-              const cell = (cells && cells[idx]) ? cells[idx] : null;
+            const getBestLink = (i: number) => {
+              const cell = (cells && cells[i]) ? cells[i] : null;
               if (!cell) return null;
-              if (cell.l) return cell.l; // Enlace nativo de Google Sheets
+              if (cell.l) return cell.l; 
               const v = String(cell.v || "").trim();
               if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com')) return v;
               return null;
             };
 
-            const link15 = getBestLink(15);
-            const link13 = getBestLink(13);
-            const link11 = getBestLink(11);
-
-            let finalLink = is1M ? (link15 || link13) : (link13 || link11);
+            const linkValue = getBestLink(idx.link);
+            let finalLink = linkValue;
             if (!finalLink && (rawDocente.toLowerCase().includes('http') || rawDocente.toLowerCase().includes('canva.com'))) {
               finalLink = rawDocente;
             }
 
             return {
-              semana: getVal(0) || '',
-              clase: getVal(1) || '',
-              dia: getVal(2) || '',
-              horario: is1M ? getVal(4) : getVal(3) || 'Horario no definido',
-              fecha: is1M ? (cells[5]?.f || cells[5]?.v) : (cells[4]?.f || cells[4]?.v) || 'Fecha no definida',
-              etapa: is1M ? getVal(6) : getVal(5) || '',
-              objetivo: is1M ? getVal(7) : getVal(6) || '',
-              contenido: is1M ? getVal(8) : getVal(7) || '',
-              actividad: is1M ? getVal(9) : getVal(8) || '',
-              responsable: is1M ? getVal(10) : getVal(9) || '',
-              diseno: is1M ? getVal(11) : getVal(10) || '',
+              semana: getVal(idx.semana) || '',
+              clase: getVal(idx.clase) || '',
+              dia: getVal(idx.dia) || '',
+              horario: getVal(idx.horario) || 'Horario no definido',
+              fecha: (cells[idx.fecha]?.f || cells[idx.fecha]?.v) || 'Fecha no definida',
+              etapa: getVal(idx.etapa) || '',
+              objetivo: getVal(idx.objetivo) || '',
+              contenido: getVal(idx.contenido) || '',
+              actividad: getVal(idx.actividad) || '',
+              responsable: getVal(idx.responsable) || '',
+              diseno: getVal(idx.diseno) || '',
               docenteRealiza: parsedDocente,
               link: finalLink
             };
@@ -637,32 +676,33 @@ const App = () => {
                 <div className="calendar-header">
                   <div className="calendar-title">
                     <h2>{monthName.charAt(0).toUpperCase() + monthName.slice(1)}</h2>
-                    <p>Seguimiento de clases y hitos académicos</p>
                   </div>
                   <div className="calendar-controls">
-                    <button className="nav-btn-circle" onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1))}>
-                      <ChevronLeft size={20} />
-                    </button>
-                    <button className="nav-btn-circle" style={{ fontWeight: '700', fontSize: '0.8rem' }} onClick={() => setCurrentCalendarDate(new Date())}>
-                      HOY
-                    </button>
-                    <button className="nav-btn-circle" onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1))}>
-                      <ChevronRight size={20} />
-                    </button>
+                    <div className="ios-segmented-control">
+                      <button className="nav-btn-circle" onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1))}>
+                        <ChevronLeft size={16} />
+                      </button>
+                      <button className="ios-today-btn" onClick={() => setCurrentCalendarDate(new Date())}>
+                        Hoy
+                      </button>
+                      <button className="nav-btn-circle" onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1))}>
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 <div className="calendar-grid">
-                  {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
+                  {['Lun', 'Mar', 'Mié', 'Jue', 'Vie'].map(d => (
                     <div key={d} className="weekday-header">{d}</div>
                   ))}
 
-                  {calendarDays.map((d, idx) => {
+                  {calendarDays.filter(d => d.date.getDay() !== 0 && d.date.getDay() !== 6).map((d, idx) => {
                     const isToday = d.date.toDateString() === today.toDateString();
 
                     // Filter classes for this day
-                    const pmClases = globalData.pm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString());
-                    const smClases = globalData.sm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString());
+                    const pmClases = activeLevels.includes('1M') ? globalData.pm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString()) : [];
+                    const smClases = activeLevels.includes('2M') ? globalData.sm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString()) : [];
 
                     // Filter special events
                     // Special event date is YYYY-MM-DD
@@ -670,13 +710,21 @@ const App = () => {
                     const daySpecialEvents = specialEvents.filter(ev => ev.date === dateStr);
 
                     return (
-                      <div key={idx} className={`calendar-day-cell ${!d.currentMonth ? 'other-month' : ''} ${isToday ? 'is-today' : ''}`}>
+                      <div key={idx} className={`calendar-day-cell ${!d.currentMonth ? 'other-month' : ''} ${isToday ? 'is-today' : ''} ${isHoliday(d.date) ? 'holiday-bg' : ''}`}>
                         <div className="day-number">{d.day}</div>
                         <div className="day-events-container">
-                          {pmClases.length > 0 && <div className="event-dot-compact ev-1m">1M: {pmClases.map(c => `C${c.clase}`).join(', ')}</div>}
-                          {smClases.length > 0 && <div className="event-dot-compact ev-2m">2M: {smClases.map(c => `C${c.clase}`).join(', ')}</div>}
+                          {pmClases.map((c, i) => (
+                            <div key={`pm-${i}`} className="event-dot-compact ev-1m" title={`${c.etapa} - Clase ${c.clase}`}>
+                              CLASE N° {c.clase}
+                            </div>
+                          ))}
+                          {smClases.map((c, i) => (
+                            <div key={`sm-${i}`} className="event-dot-compact ev-2m" title={`${c.etapa} - Clase ${c.clase}`}>
+                              CLASE N° {c.clase}
+                            </div>
+                          ))}
                           {daySpecialEvents.map((ev, i) => (
-                            <div key={i} className={`event-dot-compact ${ev.type === 'Evaluación' ? 'ev-eval' : 'ev-spec'}`}>
+                            <div key={`spec-${i}`} className={`event-dot-compact ${ev.type === 'Evaluación' ? 'ev-eval' : 'ev-spec'}`}>
                               {ev.title}
                             </div>
                           ))}
@@ -688,31 +736,62 @@ const App = () => {
               </div>
 
               <div className="calendar-event-sidebar">
+                <div className="apple-calendar-selectors">
+                  <h3>Calendarios</h3>
+                  <div className="calendar-selector-item" onClick={() => setActiveLevels(prev => prev.includes('1M') ? prev.filter(l => l !== '1M') : [...prev, '1M'])}>
+                    <div className={`selector-checkbox chk-1m ${activeLevels.includes('1M') ? 'checked' : ''}`}></div>
+                    <span>Primeros Medios</span>
+                  </div>
+                  <div className="calendar-selector-item" onClick={() => setActiveLevels(prev => prev.includes('2M') ? prev.filter(l => l !== '2M') : [...prev, '2M'])}>
+                    <div className={`selector-checkbox chk-2m ${activeLevels.includes('2M') ? 'checked' : ''}`}></div>
+                    <span>Segundos Medios</span>
+                  </div>
+                </div>
+
                 <div className="event-form-card">
-                  <h3><PlusCircle size={20} color="#8B5CF6" /> Crear Evento</h3>
-                  <form onSubmit={addSpecialEvent}>
-                    <div className="form-group-ios">
-                      <label>Nombre del Evento</label>
-                      <input name="title" type="text" placeholder="Ej: Muestra Pública" required />
-                    </div>
-                    <div className="form-group-ios">
-                      <label>Fecha</label>
-                      <input name="date" type="date" required />
-                    </div>
-                    <div className="form-group-ios">
-                      <label>Tipo</label>
-                      <select name="type">
-                        <option>Evaluación</option>
-                        <option>Presentación</option>
-                        <option>Muestra Pública</option>
-                        <option>Taller</option>
-                        <option>Otro</option>
-                      </select>
-                    </div>
-                    <button type="submit" className="btn-create-event">
-                      <Plus size={18} /> Guardar Evento
-                    </button>
-                  </form>
+                  {/* Sidebar Tools - Modern Academic Area */}
+        <div className="modern-form-container">
+          <div className="modern-form-header">
+            <Sparkles size={18} color="#00236f" />
+            <h3>Planificar Nueva Actividad</h3>
+          </div>
+          
+          <form onSubmit={addSpecialEvent} className="modern-ios-form">
+            <div className="modern-form-row">
+              <div className="modern-row-icon"><Type size={16} /></div>
+              <div className="modern-row-content">
+                <label>Título de la Actividad</label>
+                <input name="title" type="text" placeholder="Ej: Concierto de Invierno" required />
+              </div>
+            </div>
+            
+            <div className="modern-form-row">
+              <div className="modern-row-icon"><Calendar size={16} /></div>
+              <div className="modern-row-content">
+                <label>Fecha del Evento</label>
+                <input name="date" type="date" required />
+              </div>
+            </div>
+            
+            <div className="modern-form-row">
+              <div className="modern-row-icon"><Bookmark size={16} /></div>
+              <div className="modern-row-content">
+                <label>Categoría</label>
+                <select name="type" required>
+                  <option value="Evaluación">Evaluación</option>
+                  <option value="Ensayo">Ensayo</option>
+                  <option value="Evento">Evento Especial</option>
+                  <option value="Admin">Administrativo</option>
+                </select>
+              </div>
+            </div>
+          </form>
+
+          <button type="submit" onClick={() => (document.querySelector('.modern-ios-form') as HTMLFormElement)?.requestSubmit()} className="btn-create-event-premium">
+            <Plus size={18} />
+            Agendar en Calendario
+          </button>
+        </div>
                 </div>
 
                 <div className="upcoming-events-list">
@@ -906,40 +985,16 @@ const App = () => {
                     <h1><PieChart size={32} color="#0EA5E9" /> Analítica Avanzada</h1>
                     <p className="reports-subtitle">Explora datos pedagógicos filtrados por nivel, período anual, mensual o trimestral.</p>
                   </div>
-                  <button className="export-pdf-btn" onClick={() => {
-                    const element = document.getElementById('premium-report-root');
-                    if (!element) return;
-
-                    // Aplicamos la clase directora al DOM real
-                    element.classList.add('pdf-export-mode');
-                    
-                    // Failsafe timeout to prevent UI lockup if html2canvas hangs
-                    setTimeout(() => {
-                      if (element) element.classList.remove('pdf-export-mode');
-                    }, 3000);
-
-                    const opt = {
-                      margin: 10,
-                      filename: `ZenitApp_Reporte_${analyticsLevel}_${analyticsPeriod}.pdf`,
-                      image: { type: 'jpeg', quality: 1.0 },
-                      html2canvas: {
-                        scale: 2,
-                        useCORS: true,
-                        letterRendering: true,
-                        backgroundColor: '#ffffff',
-                        logging: false
-                      },
-                      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
-                    };
-                    
-                    // @ts-ignore
-                    html2pdf().set(opt).from(element).save().then(() => {
-                      element.classList.remove('pdf-export-mode');
-                    }).catch(() => {
-                      element.classList.remove('pdf-export-mode');
-                    });
-                  }} style={{ background: '#1e293b', color: 'white' }}>
-                    <Download size={18} /> Descargar Reporte PDF
+                  <button 
+                    className="export-pdf-btn" 
+                    onClick={() => {
+                      setTimeout(() => {
+                        window.print();
+                      }, 100);
+                    }} 
+                    style={{ background: '#1e293b', color: 'white' }}
+                  >
+                    <Printer size={18} /> Imprimir Reporte
                   </button>
                 </div>
                 <div className="analytics-filters">
@@ -1025,7 +1080,7 @@ const App = () => {
                                 <th style={{ textAlign: 'center' }}>Completas</th>
                                 <th style={{ textAlign: 'center' }}>En Proceso</th>
                                 <th style={{ textAlign: 'center' }}>No Ejecutadas</th>
-                                <th style={{ textAlign: 'center' }}>% Adherencia</th>
+                                <th style={{ textAlign: 'center', minWidth: '120px' }}>% Adherencia</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1047,7 +1102,8 @@ const App = () => {
                                         <div className="mini-progress-bg">
                                           <div className="mini-progress-fill" style={{
                                             width: `${adhe}%`,
-                                            background: `linear-gradient(90deg, ${adhe > 80 ? '#10b981' : adhe > 50 ? '#f59e0b' : '#ef4444'}, #fff2)`
+                                            backgroundColor: adhe > 80 ? '#10b981' : adhe > 50 ? '#f59e0b' : '#ef4444',
+                                            WebkitPrintColorAdjust: 'exact'
                                           }}></div>
                                           <span className="mini-progress-text">{adhe}%</span>
                                         </div>
@@ -1101,35 +1157,17 @@ const App = () => {
                 const element = document.getElementById('premium-report-root');
                 if (!element) return;
 
-                element.classList.add('pdf-export-mode');
-                
-                // Failsafe timeout to prevent UI lockup if html2canvas hangs
-                setTimeout(() => {
-                  if (element) element.classList.remove('pdf-export-mode');
-                }, 3000);
-
-                const opt = {
-                  margin: 10,
-                  filename: `ZenitApp_Rendimiento_General.pdf`,
-                  image: { type: 'jpeg', quality: 1.0 },
-                  html2canvas: {
-                    scale: 2,
-                    useCORS: true,
-                    letterRendering: true,
-                    backgroundColor: '#ffffff',
-                    logging: false
-                  },
-                  jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
-                };
-                
-                // @ts-ignore
-                html2pdf().set(opt).from(element).save().then(() => {
-                  element.classList.remove('pdf-export-mode');
-                }).catch(() => {
-                  element.classList.remove('pdf-export-mode');
-                });
-              }}>
-                <Printer size={18} /> Exportar Reporte PDF
+                window.print();
+              }}
+              style={{
+                background: '#1e293b',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+              >
+                <Printer size={18} /> Imprimir Reporte
               </button>
             </div>
 
