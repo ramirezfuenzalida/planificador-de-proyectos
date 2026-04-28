@@ -857,11 +857,11 @@ h1, h2, h3, .brand h1 {
 
 /* Content Area */
 .content-area {
-  padding: 0 3rem 3rem 3rem;
+  padding: 0 3rem 6rem 3rem; /* Increased bottom padding for scrolling */
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 100%;
+  min-height: calc(100vh - 100px);
 }
 
 /* Blue Banner */
@@ -1283,8 +1283,11 @@ h1, h2, h3, .brand h1 {
   .sidebar-footer-container {
     padding: 1.5rem;
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 1rem));
-    background: rgba(255, 255, 255, 0.03);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: #1e1b4b; /* Solid dark background for visibility */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    bottom: 0;
+    width: 100%;
   }
 
   .mobile-nav-header {
@@ -2250,7 +2253,7 @@ h1, h2, h3, .brand h1 {
 }
 
 .modal-content-premium {
-  background: white;
+  background: #FFFFFF !important; /* Force solid white */
   width: 100%;
   max-width: 600px;
   border-radius: 32px;
@@ -2598,10 +2601,56 @@ h1, h2, h3, .brand h1 {
    REPORTS / SUMMARY VIEW
 ----------------------------------- */
 .reports-view-modern {
-  padding: 2rem;
+  padding: 1.5rem;
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   animation: fadeIn 0.4s ease;
+}
+
+@media (max-width: 768px) {
+  .reports-header-glass {
+    padding: 1.5rem;
+    border-radius: 20px;
+  }
+  
+  .reports-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  .reports-header-title-box h1 {
+    font-size: 1.75rem;
+  }
+
+  .stats-grid-glass {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card-premium {
+    padding: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 2.2rem;
+  }
+  
+  .charts-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .reports-details-card {
+    padding: 1rem;
+    border-radius: 20px;
+  }
+
+  .reports-table-container {
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
 }
 
 .reports-header-glass {
