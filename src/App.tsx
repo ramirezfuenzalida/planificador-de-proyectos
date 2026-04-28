@@ -662,7 +662,7 @@ const App = () => {
         </div>
 
         <div className="sidebar-version">
-          ExeApp versión 1.0.01
+          ExeApp versión 1.0.02
         </div>
       </aside>
 
@@ -1430,10 +1430,10 @@ const App = () => {
 
             <div className="modal-body-content">
               {/* Registration Controls - Moved UP for visibility */}
-              <div className="registration-controls" style={{ marginBottom: '2rem', background: '#f8fafc', padding: '1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                   <Sparkles size={18} color="var(--primary)" /> 
-                   Asignar Estado de la Clase
+              <div className="registration-controls" style={{ marginBottom: '2rem', background: '#f8fafc', padding: '1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+                <h4 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#1e293b', fontSize: '1.1rem' }}>
+                   <Sparkles size={20} color="var(--primary)" /> 
+                   Registro de Ejecución
                 </h4>
                 <div className="status-button-row">
                   <button className="status-reg-btn red" onClick={() => handleRegisterStatus('red')}>

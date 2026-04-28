@@ -73,13 +73,15 @@ h1, h2, h3, .brand h1 {
   background: linear-gradient(165deg, #0F172A 0%, #1E1B4B 50%, #2E1065 100%);
   display: flex;
   flex-direction: column;
-  padding: 2.5rem 1.5rem;
+  padding: 2rem 1.25rem;
   flex-shrink: 0;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 50;
   position: relative;
   box-shadow: 20px 0 80px rgba(0, 0, 0, 0.3);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
+  height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar::before {
@@ -728,7 +730,7 @@ h1, h2, h3, .brand h1 {
 }
 
 .premium-sidebar-profile {
-  margin-top: auto;
+  margin-top: 2rem; /* Reduced from auto to handle version at bottom */
   padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px);
@@ -748,25 +750,23 @@ h1, h2, h3, .brand h1 {
 }
 
 .premium-avatar-box {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   background: white; 
-  border-radius: 50%; 
+  border-radius: 14px; /* More modern than circle for this logo */
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  overflow: hidden; /* Esto obliga a que CUALQUIER imagen cuadrada se vuelva un círculo */
-  border: 2px solid white; /* Margen blanco limpio exterior */
+  overflow: hidden;
+  border: 2px solid white;
 }
 
 .premium-avatar-box img {
-  width: 100%;
-  height: 100%;
+  width: 90%;
+  height: 90%;
   object-fit: contain; 
-  transform: scale(0.9); /* Aleja un poco el logo para que no se corte por el círculo */
-  border-radius: 50%; 
 }
 
 .premium-profile-info {
@@ -1255,15 +1255,20 @@ h1, h2, h3, .brand h1 {
     position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
     z-index: 100;
     transform: translateX(-100%);
-    width: 280px; /* Slightly narrower for mobile */
+    width: 280px;
+    padding-bottom: 2rem;
   }
 
   .sidebar.open {
     transform: translateX(0);
-    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+  }
+
+  .nav-menu {
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
   }
 
   .mobile-nav-header {
@@ -1422,11 +1427,11 @@ h1, h2, h3, .brand h1 {
 }
 
 .sidebar-version {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  color: rgba(255, 255, 255, 0.3);
+  margin-top: auto; /* Push everything else up */
+  padding: 1rem 1rem 0.5rem 1rem;
+  color: rgba(255, 255, 255, 0.25);
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
   font-family: 'Manrope', sans-serif;
   letter-spacing: 0.05em;
@@ -2327,10 +2332,11 @@ h1, h2, h3, .brand h1 {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  max-height: 55vh;
+  max-height: 70vh; /* Increased for better visibility */
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+  scrollbar-color: var(--primary-light) transparent;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .modal-body-content::-webkit-scrollbar {
@@ -2364,21 +2370,23 @@ h1, h2, h3, .brand h1 {
 }
 
 .info-box-premium {
-  background: rgba(0, 0, 0, 0.03);
+  background: white;
   padding: 1.5rem;
   border-radius: 20px;
-  border: 1px dashed rgba(0, 0, 0, 0.1);
-  font-size: 0.95rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  font-size: 1rem;
   color: var(--text-primary);
-  line-height: 1.6;
+  line-height: 1.7;
   font-weight: 500;
   margin-top: 0.5rem;
+  position: relative;
 }
 
-.info-box-premium.objetivo { background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.1); }
-.info-box-premium.contenido { background: rgba(59, 130, 246, 0.04); border-color: rgba(59, 130, 246, 0.2); }
-.info-box-premium.actividad { background: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.2); }
-.info-box-premium.diseno { background: rgba(124, 58, 237, 0.04); border-color: rgba(124, 58, 237, 0.2); }
+.info-box-premium.objetivo { border-left: 5px solid #64748b; background: #f8fafc; }
+.info-box-premium.contenido { border-left: 5px solid #3b82f6; background: #f0f7ff; }
+.info-box-premium.actividad { border-left: 5px solid #10b981; background: #f0fdf4; }
+.info-box-premium.diseno { border-left: 5px solid #8b5cf6; background: #f5f3ff; }
 
 .registration-controls h4 {
   font-size: 1rem;
