@@ -1,0 +1,1495 @@
+import { useState, useEffect } from 'react';
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  Users,
+  PieChart,
+  Calendar,
+  Clock,
+  MessageSquare,
+  Link2,
+  X,
+  Target,
+  BookOpen,
+  ClipboardList,
+  MonitorPlay,
+  Printer,
+  Download,
+  BarChart2,
+  TrendingUp,
+  Palette,
+  LayoutGrid,
+  ClipboardCheck,
+  Book,
+  GraduationCap,
+  Settings,
+  HelpCircle,
+  LogOut,
+  User,
+  Plus,
+  Trash2,
+  PlusCircle
+} from 'lucide-react';
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
+
+import './App.css';
+
+type Course = '1 Medio A' | '1 Medio B' | '1 Medio C' | '1 Medio D' |
+  '2 Medio A' | '2 Medio B' | '2 Medio C' | '2 Medio D' | 'Resumen';
+
+const courses1M: Course[] = ['1 Medio A', '1 Medio B', '1 Medio C', '1 Medio D'];
+const courses2M: Course[] = ['2 Medio A', '2 Medio B', '2 Medio C', '2 Medio D'];
+const classesList = Array.from({ length: 32 }, (_, i) => `Clase ${i + 1}`);
+
+// Initial DB state for all courses and classes
+const initialDbState: Record<string, Record<string, 'completa' | 'pendiente' | 'no-realizada' | null>> = {};
+[...courses1M, ...courses2M].forEach(course => {
+  initialDbState[course] = {};
+  classesList.forEach(cls => {
+    initialDbState[course][cls] = null;
+  });
+});
+
+const ensureHttps = (url: any) => {
+  if (!url) return '#';
+  const strUrl = String(url).trim();
+  if (strUrl === '#' || strUrl === '') return '#';
+  if (strUrl.startsWith('http://') || strUrl.startsWith('https://')) return strUrl;
+  // Si parece una URL (tiene punto y no espacios) pero le falta el protocolo
+  if (strUrl.includes('.') && !strUrl.includes(' ')) return `https://${strUrl}`;
+  return '#';
+};
+
+const getCourseColorClass = (courseName: string | null) => {
+  if (!courseName) return '';
+  if (courseName.endsWith('A')) return 'letter-a';
+  if (courseName.endsWith('B')) return 'letter-b';
+  if (courseName.endsWith('C')) return 'letter-c';
+  if (courseName.endsWith('D')) return 'letter-d';
+  return '';
+};
+
+const parseGoogleDate = (dateStr: any) => {
+  if (!dateStr) return null;
+  // Soporta Date(2026,4,1) y Date(2026,4,1,0,0,0)
+  const match = String(dateStr).match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
+  if (match) {
+    return new Date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
+  }
+  return null;
+};
+
+const FERIADOS_CHILE_2026 = [
+  '2026-01-01', '2026-04-03', '2026-04-04', '2026-05-01',
+  '2026-05-21', '2026-06-21', '2026-06-29', '2026-07-16',
+  '2026-08-15', '2026-09-18', '2026-09-19', '2026-10-12',
+  '2026-10-31', '2026-11-01', '2026-12-08', '2026-12-25'
+];
+
+const isHoliday = (d: Date | null) => {
+  if (!d || isNaN(d.getTime())) return false;
+  const str = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return FERIADOS_CHILE_2026.includes(str);
+};
+
+const applyDateShifting = (rows: any[], dateColIndex: number) => {
+  if (!rows || rows.length === 0) return rows;
+
+  let shiftDays = 0;
+
+  return rows.map((r) => {
+    const rawVal = r?.c?.[dateColIndex]?.v;
+    if (!rawVal) return r;
+
+    const originalDate = parseGoogleDate(rawVal);
+    if (!originalDate || isNaN(originalDate.getTime())) return r;
+
+    let targetDate = new Date(originalDate.getTime());
+    targetDate.setDate(targetDate.getDate() + shiftDays);
+
+    // Cascading shift: if target evaluates to a holiday, keep shifting forward
+    while (isHoliday(targetDate)) {
+      shiftDays += 7;
+      targetDate = new Date(originalDate.getTime());
+      targetDate.setDate(targetDate.getDate() + shiftDays);
+    }
+
+    if (r && r.c && r.c[dateColIndex]) {
+       const strDate = targetDate.toLocaleDateString('es-CL', { day: 'numeric', month: 'long'});
+       r.c[dateColIndex].v = `Date(${targetDate.getFullYear()},${targetDate.getMonth()},${targetDate.getDate()})`;
+       r.c[dateColIndex].f = strDate;
+    }
+    return r;
+  });
+};
+
+const getTrimester = (date: Date) => {
+  const m = date.getMonth();
+  if (m >= 2 && m <= 4) return 'Trimestre 1';
+  if (m >= 5 && m <= 7) return 'Trimestre 2';
+  if (m >= 8 && m <= 11) return 'Trimestre 3';
+  return 'Verano';
+};
+
+const getMonthString = (date: Date) => {
+  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  return months[date.getMonth()];
+};
+
+const App = () => {
+  const [view, setView] = useState<'courses' | 'classes' | 'reports' | 'analytics' | 'calendar'>('courses');
+  const [activeCourse, setActiveCourse] = useState<string | null>(null);
+  const [sheetData, setSheetData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [is1MedioExpanded, setIs1MedioExpanded] = useState(true);
+  const [is2MedioExpanded, setIs2MedioExpanded] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Calendar States
+  const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
+  const [specialEvents, setSpecialEvents] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('zenit_special_events');
+      return (saved && saved !== 'undefined') ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  // Analytics Extra State
+  const [globalData, setGlobalData] = useState<{ pm: any[], sm: any[] }>({ pm: [], sm: [] });
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsLevel, setAnalyticsLevel] = useState('All');
+  const [analyticsPeriod, setAnalyticsPeriod] = useState('Anual');
+  const [analyticsSubPeriod, setAnalyticsSubPeriod] = useState('Todos');
+
+  // Registration States
+  const [selectedClass, setSelectedClass] = useState<any | null>(null);
+  const [registrations, setRegistrations] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem('zenit_registrations');
+      return (saved && saved !== 'undefined') ? JSON.parse(saved) : {};
+    } catch (e) {
+      console.error('Error loading registrations:', e);
+      return {};
+    }
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [lastRegisteredColor, setLastRegisteredColor] = useState<string | null>(null);
+
+  // Observation States
+  const [observations, setObservations] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem('zenit_observations');
+      return (saved && saved !== 'undefined') ? JSON.parse(saved) : {};
+    } catch (e) {
+      console.error('Error loading observations:', e);
+      return {};
+    }
+  });
+  const [showObservationInput, setShowObservationInput] = useState(false);
+
+  // Sync to local storage
+  useEffect(() => {
+    localStorage.setItem('zenit_registrations', JSON.stringify(registrations));
+  }, [registrations]);
+
+  useEffect(() => {
+    localStorage.setItem('zenit_observations', JSON.stringify(observations));
+  }, [observations]);
+
+  useEffect(() => {
+    localStorage.setItem('zenit_special_events', JSON.stringify(specialEvents));
+  }, [specialEvents]);
+
+  const PRIMERO_MEDIO_SHEET = '1i3s_Qwcw0tJv9hxfIrWsrPMhztB5lv88NcAa0aOQwcc';
+  const SEGUNDO_MEDIO_SHEET = '1kagImj0aUR4iaGFwUSUji0RhtOzKcr2JlEMWKHAX7Fo';
+
+  useEffect(() => {
+    if ((view === 'analytics' || view === 'reports' || view === 'calendar') && globalData.pm.length === 0) {
+      const fetchGlobal = async () => {
+        setAnalyticsLoading(true);
+        try {
+          const res1 = await fetch(`https://docs.google.com/spreadsheets/d/${PRIMERO_MEDIO_SHEET}/gviz/tq?tqx=out:json&gid=1238478499`);
+          const text1 = await res1.text();
+          const j1 = JSON.parse(text1.substring(text1.indexOf('{'), text1.lastIndexOf('}') + 1));
+
+          const res2 = await fetch(`https://docs.google.com/spreadsheets/d/${SEGUNDO_MEDIO_SHEET}/gviz/tq?tqx=out:json`);
+          const text2 = await res2.text();
+          const j2 = JSON.parse(text2.substring(text2.indexOf('{'), text2.lastIndexOf('}') + 1));
+
+          let pmRows = (j1.table && j1.table.rows) ? j1.table.rows.filter((r: any) => r && r.c && r.c[1]?.v) : [];
+          let smRows = (j2.table && j2.table.rows) ? j2.table.rows.filter((r: any) => r && r.c && r.c[1]?.v) : [];
+          
+          // Corrector algorítmico de feriados sobre tabla original
+          pmRows = applyDateShifting(pmRows, 5);
+          smRows = applyDateShifting(smRows, 4);
+
+          setGlobalData({
+            pm: pmRows.map((r: any) => ({
+              clase: String(r.c[1]?.v),
+              fecha: r.c[5]?.f || r.c[5]?.v,
+              rawFecha: parseGoogleDate(r.c[5]?.v),
+              rawDocente: String(r.c[14]?.v || "") === "null" ? "" : String(r.c[14]?.v || "")
+            })),
+            sm: smRows.map((r: any) => ({
+              clase: String(r.c[1]?.v),
+              fecha: r.c[4]?.f || r.c[4]?.v,
+              rawFecha: parseGoogleDate(r.c[4]?.v),
+              rawDocente: String(r.c[12]?.v || "") === "null" ? "" : String(r.c[12]?.v || "")
+            }))
+          });
+        } catch (e) {
+          console.error('Error fetching global sheets:', e);
+        } finally {
+          setAnalyticsLoading(false);
+        }
+      };
+      fetchGlobal();
+    }
+  }, [view, globalData.pm.length]);
+
+  const getTeacherForCourse = (raw: string, courseName: string | null) => {
+    if (!raw || !courseName) return raw;
+    const parts_course = courseName.split(' ');
+    const tag = (parts_course[0] + 'M' + parts_course[parts_course.length - 1]).toUpperCase();
+    const tags = ['1MA', '1MB', '1MC', '1MD', '2MA', '2MB', '2MC', '2MD', 'RESUMEN'];
+    const regex = new RegExp(`(${tags.join('|')})`, 'gi');
+    if (!new RegExp(tag, 'i').test(raw)) {
+      if (raw.toLowerCase().includes('http') || raw.toLowerCase().includes('canva.com')) return '';
+      return raw;
+    }
+    const parts = raw.split(regex);
+    for (let i = 1; i < parts.length; i += 2) {
+      if (parts[i].toUpperCase() === tag) {
+        let content = parts[i + 1] || '';
+        content = content.replace(/^[:\s\\-]+/, '').trim();
+        content = content.replace(/[\s/|;,\-]+$/, '').trim();
+        content = content.replace(/\s*\/\s*/g, ' / ').trim();
+        if (content.toLowerCase().includes('http') || content.toLowerCase().includes('canva.com')) return '';
+        return content;
+      }
+    }
+    return raw;
+  };
+
+  // Calendar Helper Logic
+  const getCalendarDays = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const startDay = new Date(year, month, 1).getDay();
+    const firstDayIndex = startDay === 0 ? 6 : startDay - 1; // Adjust to Monday = 0
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days = [];
+
+    // Previous month days
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    for (let i = firstDayIndex; i > 0; i--) {
+      days.push({ day: prevMonthLastDay - i + 1, currentMonth: false, date: new Date(year, month, 0 - i + 1) });
+    }
+
+    // Current month days
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({ day: i, currentMonth: true, date: new Date(year, month, i) });
+    }
+
+    // Next month padding to fill grid (usually 42 cells)
+    const remaining = 42 - days.length;
+    for (let i = 1; i <= remaining; i++) {
+      days.push({ day: i, currentMonth: false, date: new Date(year, month + 1, i) });
+    }
+
+    return days;
+  };
+
+  const addSpecialEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const newEv = {
+      id: Date.now(),
+      title: formData.get('title'),
+      date: formData.get('date'), // "YYYY-MM-DD"
+      type: formData.get('type')
+    };
+    setSpecialEvents([...specialEvents, newEv]);
+    form.reset();
+  };
+
+  const deleteSpecialEvent = (id: number) => {
+    setSpecialEvents(specialEvents.filter(ev => ev.id !== id));
+  };
+
+  // Fetch Sheets Data based on active course
+  useEffect(() => {
+    if (!activeCourse) return;
+
+    const fetchSheetsInfo = async (isInitialFetch = false) => {
+      if (isInitialFetch) setLoading(true);
+      try {
+        const sheetId = activeCourse.startsWith('1') ? PRIMERO_MEDIO_SHEET : SEGUNDO_MEDIO_SHEET;
+        const url = activeCourse.startsWith('1')
+          ? `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=1238478499`
+          : `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+        const res = await fetch(url);
+        const text = await res.text();
+        const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+        const data = JSON.parse(jsonStr);
+
+        const is1M = activeCourse.startsWith('1');
+        const dateColIdx = is1M ? 5 : 4;
+        let baseRows = data.table.rows.filter((row: any) => row && row.c && row.c[1]?.v !== null);
+        
+        // Corrector algorítmico de feriados sobre tabla maestra listada
+        baseRows = applyDateShifting(baseRows, dateColIdx);
+
+        const rows = baseRows
+          .map((row: any) => {
+            const cells = row.c;
+
+            // Defensive cell access
+            const getVal = (idx: number) => {
+              if (!cells || !cells[idx]) return null;
+              return cells[idx].v || null;
+            };
+
+            const val12 = getVal(12);
+            const val14 = getVal(14);
+
+            // Teacher detection (using the new global helper)
+            const rawDocente = is1M ? String(val14 || "") : String(val12 || "");
+            const parsedDocente = getTeacherForCourse(rawDocente === "null" ? "" : rawDocente, activeCourse);
+
+            const getBestLink = (idx: number) => {
+              const cell = (cells && cells[idx]) ? cells[idx] : null;
+              if (!cell) return null;
+              if (cell.l) return cell.l; // Enlace nativo de Google Sheets
+              const v = String(cell.v || "").trim();
+              if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com')) return v;
+              return null;
+            };
+
+            const link15 = getBestLink(15);
+            const link13 = getBestLink(13);
+            const link11 = getBestLink(11);
+
+            let finalLink = is1M ? (link15 || link13) : (link13 || link11);
+            if (!finalLink && (rawDocente.toLowerCase().includes('http') || rawDocente.toLowerCase().includes('canva.com'))) {
+              finalLink = rawDocente;
+            }
+
+            return {
+              semana: getVal(0) || '',
+              clase: getVal(1) || '',
+              dia: getVal(2) || '',
+              horario: is1M ? getVal(4) : getVal(3) || 'Horario no definido',
+              fecha: is1M ? (cells[5]?.f || cells[5]?.v) : (cells[4]?.f || cells[4]?.v) || 'Fecha no definida',
+              etapa: is1M ? getVal(6) : getVal(5) || '',
+              objetivo: is1M ? getVal(7) : getVal(6) || '',
+              contenido: is1M ? getVal(8) : getVal(7) || '',
+              actividad: is1M ? getVal(9) : getVal(8) || '',
+              responsable: is1M ? getVal(10) : getVal(9) || '',
+              diseno: is1M ? getVal(11) : getVal(10) || '',
+              docenteRealiza: parsedDocente,
+              link: finalLink
+            };
+          });
+
+        setSheetData(prevData => {
+          if (JSON.stringify(prevData) === JSON.stringify(rows)) return prevData;
+          return rows;
+        });
+      } catch (err) {
+        console.error('Error fetching sheet data:', err);
+        if (isInitialFetch) showToast('Error al conectar con Google Sheets');
+      } finally {
+        if (isInitialFetch) setLoading(false);
+      }
+    };
+
+    // Hacer la primera búsqueda con bloqueador de carga
+    fetchSheetsInfo(true);
+
+    // Sistema de actualización oculta en tiempo real cada 3 segundos
+    const syncInterval = setInterval(() => {
+      fetchSheetsInfo(false);
+    }, 3000);
+
+    return () => clearInterval(syncInterval);
+  }, [activeCourse]);
+
+  // Keep modal data universally in sync with sheet modifications
+  useEffect(() => {
+    if (selectedClass && sheetData.length > 0) {
+      const updatedClassInfo = sheetData.find(c => c.clase === selectedClass.clase);
+      if (updatedClassInfo && JSON.stringify(updatedClassInfo) !== JSON.stringify(selectedClass)) {
+        setSelectedClass(updatedClassInfo);
+      }
+    }
+  }, [sheetData]);
+
+  const handleCourseSelect = (courseName: string) => {
+    setActiveCourse(courseName);
+    setView('classes');
+    setIsMobileSidebarOpen(false);
+  };
+
+  const handleBackToCourses = () => {
+    setView('courses');
+    setActiveCourse(null);
+    setSelectedClass(null);
+  };
+
+  const handleClassClick = (session: any) => {
+    setSelectedClass(session);
+  };
+
+  const handleRegisterStatus = (statusColor: string) => {
+    if (!selectedClass || !activeCourse) return;
+
+    const registrationId = `${activeCourse}-${selectedClass.clase}`;
+
+    if (statusColor === '') {
+      setRegistrations(prev => {
+        const next = { ...prev };
+        delete next[registrationId];
+        return next;
+      });
+      showToast("Estado de la clase restablecido.");
+      setSelectedClass(null);
+      return;
+    }
+
+    setRegistrations(prev => ({
+      ...prev,
+      [registrationId]: statusColor
+    }));
+
+    setLastRegisteredColor(statusColor);
+    setShowSuccess(true);
+
+    // Auto-close success and modal after short delay
+    setTimeout(() => {
+      setShowSuccess(false);
+      setSelectedClass(null);
+      setLastRegisteredColor(null);
+    }, 2000);
+  };
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  return (
+    <div className="app-window relative">
+      {/* Mobile Dark Overlay */}
+      <div
+        className={`sidebar-overlay ${isMobileSidebarOpen ? 'open' : ''}`}
+        onClick={() => setIsMobileSidebarOpen(false)}
+      ></div>
+
+      {/* Sidebar - Cosmic Design */}
+      <aside className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
+        <div className="brand" onClick={handleBackToCourses} style={{ cursor: 'pointer' }}>
+          <div className="brand-logo-circle">
+            <img src="/zenit_app_icon.png" alt="ZenitApp Logo" className="brand-logo-img" />
+          </div>
+          <div className="brand-info">
+            <div className="brand-title-container">
+              <h1>ZenitApp</h1>
+              <ChevronDown size={14} className="brand-chevron" />
+            </div>
+            <span className="brand-tagline">Seguimiento de Proyectos</span>
+          </div>
+        </div>
+
+        <div className="nav-menu">
+          <div className="nav-section-header">GENERAL</div>
+
+          <div className={`nav-item-modern ${view === 'courses' ? 'active' : ''}`}
+            onClick={handleBackToCourses}>
+            <div className="nav-item-left">
+              <LayoutGrid size={18} className="icon-sky" />
+              <span>Cursos</span>
+            </div>
+          </div>
+
+          <div
+            className={`nav-item-modern ${view === 'analytics' ? 'active' : ''}`}
+            onClick={() => { setView('analytics'); setIsMobileSidebarOpen(false); }}
+          >
+            <div className="nav-item-left">
+              <TrendingUp size={18} className="icon-blue" />
+              <span>Analítica Avanzada</span>
+            </div>
+          </div>
+
+          <div
+            className={`nav-item-modern ${view === 'calendar' ? 'active' : ''}`}
+            onClick={() => { setView('calendar'); setIsMobileSidebarOpen(false); }}
+          >
+            <div className="nav-item-left">
+              <Calendar size={18} className="icon-pink" />
+              <span>Calendario Académico</span>
+            </div>
+          </div>
+
+          <div className={`nav-item-modern ${view === 'reports' ? 'active' : ''}`}
+            onClick={() => { setView('reports'); setActiveCourse(null); setIsMobileSidebarOpen(false); }}>
+            <div className="nav-item-left">
+              <ClipboardCheck size={18} className="icon-emerald" />
+              <span>Reportes</span>
+            </div>
+          </div>
+
+          <div className="nav-section-header" style={{ marginTop: '1.5rem' }}>NIVELES</div>
+
+          <div className="accordion-content expanded">
+            <div
+              className="sidebar-category-modern"
+              onClick={() => setIs1MedioExpanded(!is1MedioExpanded)}
+            >
+              <div className="nav-item-left">
+                <Book size={18} className="icon-pink" />
+                <span>Primeros Medios</span>
+              </div>
+              {is1MedioExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </div>
+
+            {is1MedioExpanded && courses1M.map((course) => (
+              <div
+                key={course}
+                className={`sub-nav-item-modern ${activeCourse === course ? 'active' : ''}`}
+                onClick={() => handleCourseSelect(course)}
+              >
+                <span>{course}</span>
+              </div>
+            ))}
+
+            <div
+              className="sidebar-category-modern"
+              onClick={() => setIs2MedioExpanded(!is2MedioExpanded)}
+              style={{ marginTop: '0.5rem' }}
+            >
+              <div className="nav-item-left">
+                <GraduationCap size={18} className="icon-amber" />
+                <span>Segundos Medios</span>
+              </div>
+              {is2MedioExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </div>
+
+            {is2MedioExpanded && courses2M.map((course) => (
+              <div
+                key={course}
+                className={`sub-nav-item-modern ${activeCourse === course ? 'active' : ''}`}
+                onClick={() => handleCourseSelect(course)}
+              >
+                <span>{course}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="nav-section-header" style={{ marginTop: '1.5rem' }}>AYUDA</div>
+          <div className="nav-item-modern">
+            <div className="nav-item-left">
+              <Settings size={18} className="icon-gray" />
+              <span>Ajustes</span>
+            </div>
+          </div>
+          <div className="nav-item-modern">
+            <div className="nav-item-left">
+              <HelpCircle size={18} className="icon-gray" />
+              <span>Soporte</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="premium-sidebar-profile">
+          <div className="premium-avatar-box">
+            <img src="/logo-liceo.png" alt="Liceo Logo" />
+          </div>
+          <div className="premium-profile-info">
+            <span className="premium-profile-name">Liceo Bicentenario</span>
+            <span className="premium-profile-role">Administrador</span>
+          </div>
+          <LogOut size={16} className="logout-icon" style={{ marginLeft: 'auto', opacity: 0.5 }} />
+        </div>
+      </aside>
+
+      {/* Main Board */}
+      <div className="main-board">
+        {view === 'calendar' ? (() => {
+          const calendarDays = getCalendarDays(currentCalendarDate);
+          const monthName = currentCalendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+          const today = new Date();
+
+          return (
+            <div className="calendar-view-premium">
+              <div className="calendar-main-card">
+                <div className="calendar-header">
+                  <div className="calendar-title">
+                    <h2>{monthName.charAt(0).toUpperCase() + monthName.slice(1)}</h2>
+                    <p>Seguimiento de clases y hitos académicos</p>
+                  </div>
+                  <div className="calendar-controls">
+                    <button className="nav-btn-circle" onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1))}>
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button className="nav-btn-circle" style={{ fontWeight: '700', fontSize: '0.8rem' }} onClick={() => setCurrentCalendarDate(new Date())}>
+                      HOY
+                    </button>
+                    <button className="nav-btn-circle" onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1))}>
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="calendar-grid">
+                  {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
+                    <div key={d} className="weekday-header">{d}</div>
+                  ))}
+
+                  {calendarDays.map((d, idx) => {
+                    const isToday = d.date.toDateString() === today.toDateString();
+
+                    // Filter classes for this day
+                    const pmClases = globalData.pm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString());
+                    const smClases = globalData.sm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString());
+
+                    // Filter special events
+                    // Special event date is YYYY-MM-DD
+                    const dateStr = `${d.date.getFullYear()}-${String(d.date.getMonth() + 1).padStart(2, '0')}-${String(d.date.getDate()).padStart(2, '0')}`;
+                    const daySpecialEvents = specialEvents.filter(ev => ev.date === dateStr);
+
+                    return (
+                      <div key={idx} className={`calendar-day-cell ${!d.currentMonth ? 'other-month' : ''} ${isToday ? 'is-today' : ''}`}>
+                        <div className="day-number">{d.day}</div>
+                        <div className="day-events-container">
+                          {pmClases.length > 0 && <div className="event-dot-compact ev-1m">1M: {pmClases.map(c => `C${c.clase}`).join(', ')}</div>}
+                          {smClases.length > 0 && <div className="event-dot-compact ev-2m">2M: {smClases.map(c => `C${c.clase}`).join(', ')}</div>}
+                          {daySpecialEvents.map((ev, i) => (
+                            <div key={i} className={`event-dot-compact ${ev.type === 'Evaluación' ? 'ev-eval' : 'ev-spec'}`}>
+                              {ev.title}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="calendar-event-sidebar">
+                <div className="event-form-card">
+                  <h3><PlusCircle size={20} color="#8B5CF6" /> Crear Evento</h3>
+                  <form onSubmit={addSpecialEvent}>
+                    <div className="form-group-ios">
+                      <label>Nombre del Evento</label>
+                      <input name="title" type="text" placeholder="Ej: Muestra Pública" required />
+                    </div>
+                    <div className="form-group-ios">
+                      <label>Fecha</label>
+                      <input name="date" type="date" required />
+                    </div>
+                    <div className="form-group-ios">
+                      <label>Tipo</label>
+                      <select name="type">
+                        <option>Evaluación</option>
+                        <option>Presentación</option>
+                        <option>Muestra Pública</option>
+                        <option>Taller</option>
+                        <option>Otro</option>
+                      </select>
+                    </div>
+                    <button type="submit" className="btn-create-event">
+                      <Plus size={18} /> Guardar Evento
+                    </button>
+                  </form>
+                </div>
+
+                <div className="upcoming-events-list">
+                  <h3>Próximos Hitos</h3>
+                  {specialEvents.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', marginTop: '2rem' }}>
+                      No hay eventos especiales creados aún.
+                    </p>
+                  ) : (
+                    specialEvents
+                      .sort((a, b) => a.date.localeCompare(b.date))
+                      .map(ev => (
+                        <div key={ev.id} className="event-item-ios">
+                          <div className="event-item-info">
+                            <h4>{ev.title}</h4>
+                            <span>{ev.date} • {ev.type}</span>
+                          </div>
+                          <Trash2 size={16} className="btn-delete-event" onClick={() => deleteSpecialEvent(ev.id)} />
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })() : view === 'analytics' ? (() => {
+          let targetCourses: string[] = [];
+          if (analyticsLevel === 'All') targetCourses = [...courses1M, ...courses2M];
+          else if (analyticsLevel === '1 Medios') targetCourses = [...courses1M];
+          else if (analyticsLevel === '2 Medios') targetCourses = [...courses2M];
+          else targetCourses = [analyticsLevel];
+
+          // Stats and Teacher tracking
+          let aggregatedStats = { realizadas: 0, incompletas: 0, noRealizadas: 0, total: 0 };
+          let teacherStats: Record<string, { realizadas: number, incompletas: number, noRealizadas: number, total: number }> = {};
+
+          targetCourses.forEach(course => {
+            const levelData = course.startsWith('1') ? globalData.pm : globalData.sm;
+            levelData.forEach((clase: any) => {
+              const parsedDate = parseGoogleDate(clase.fecha);
+              let shouldInclude = false;
+
+              if (analyticsPeriod === 'Anual') {
+                shouldInclude = true;
+              } else if (analyticsPeriod === 'Trimestral' && parsedDate) {
+                if (analyticsSubPeriod === 'Todos' || getTrimester(parsedDate) === analyticsSubPeriod) {
+                  shouldInclude = true;
+                }
+              } else if (analyticsPeriod === 'Mensual' && parsedDate) {
+                if (analyticsSubPeriod === 'Todos' || getMonthString(parsedDate) === analyticsSubPeriod) {
+                  shouldInclude = true;
+                }
+              }
+
+              if (shouldInclude) {
+                aggregatedStats.total++;
+                const status = registrations[`${course}-${clase.clase}`];
+
+                // Track stats by teacher
+                const docName = getTeacherForCourse(clase.rawDocente, course) || "Sin Asignar";
+                if (!teacherStats[docName]) teacherStats[docName] = { realizadas: 0, incompletas: 0, noRealizadas: 0, total: 0 };
+                teacherStats[docName].total++;
+
+                if (status === 'green') {
+                  aggregatedStats.realizadas++;
+                  teacherStats[docName].realizadas++;
+                } else if (status === 'yellow') {
+                  aggregatedStats.incompletas++;
+                  teacherStats[docName].incompletas++;
+                } else if (status === 'red') {
+                  aggregatedStats.noRealizadas++;
+                  teacherStats[docName].noRealizadas++;
+                } else {
+                  // Count as pending (if not marked) but for teacher stats we might want to see them as "no realizadas" or just "pending"
+                  // User said "completas, por completar y no realizadas"
+                  // "green" = completa, "yellow" = por completar (incompleta), "red" = no realizada.
+                }
+              }
+            });
+          });
+
+          const getSafePercentage = (val: number) => {
+            if (!aggregatedStats.total || aggregatedStats.total === 0) return 0;
+            return Math.round((val / aggregatedStats.total) * 100);
+          };
+
+          const chartsUI = aggregatedStats.total > 0 ? (
+            <div className="charts-container">
+              <div className="chart-card">
+                <div className="chart-title">
+                  <BarChart2 size={20} color="#8B5CF6" />
+                  Panorama de Realización
+                </div>
+
+                <div className="stacked-bar-container">
+                  {aggregatedStats.realizadas > 0 && (
+                    <div className="stacked-segment bg-success" style={{ width: `${getSafePercentage(aggregatedStats.realizadas)}%` }}>
+                      {getSafePercentage(aggregatedStats.realizadas)}%
+                    </div>
+                  )}
+                  {aggregatedStats.incompletas > 0 && (
+                    <div className="stacked-segment bg-warning" style={{ width: `${getSafePercentage(aggregatedStats.incompletas)}%` }}>
+                      {getSafePercentage(aggregatedStats.incompletas)}%
+                    </div>
+                  )}
+                  {aggregatedStats.noRealizadas > 0 && (
+                    <div className="stacked-segment bg-danger" style={{ width: `${getSafePercentage(aggregatedStats.noRealizadas)}%` }}>
+                      {getSafePercentage(aggregatedStats.noRealizadas)}%
+                    </div>
+                  )}
+                </div>
+
+                <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                  Gráfico de acumulación mostrando el porcentaje exacto de adherencia al plan de estudios para el período y curso seleccionado.
+                </p>
+              </div>
+
+              <div className="chart-card">
+                <div className="chart-title" style={{ justifyContent: 'center' }}>
+                  <PieChart size={20} color="#0EA5E9" />
+                  Distribución Global
+                </div>
+
+                <div className="doughnut-wrapper" style={{
+                  background: `conic-gradient(
+                      #10b981 0% ${getSafePercentage(aggregatedStats.realizadas)}%,
+                      #f59e0b ${getSafePercentage(aggregatedStats.realizadas)}% ${getSafePercentage(aggregatedStats.realizadas + aggregatedStats.incompletas)}%,
+                      #ef4444 ${getSafePercentage(aggregatedStats.realizadas + aggregatedStats.incompletas)}% ${getSafePercentage(aggregatedStats.realizadas + aggregatedStats.incompletas + aggregatedStats.noRealizadas)}%,
+                      #e2e8f0 ${getSafePercentage(aggregatedStats.realizadas + aggregatedStats.incompletas + aggregatedStats.noRealizadas)}% 100%
+                    )`
+                }}>
+                  <div className="doughnut-inner">
+                    {getSafePercentage(aggregatedStats.realizadas)}%
+                    <span>Completas</span>
+                  </div>
+                </div>
+
+                <div className="chart-legend">
+                  <div className="legend-item">
+                    <div><span className="legend-dot" style={{ background: '#10b981' }}></span>Completadas</div>
+                    <span>{aggregatedStats.realizadas}</span>
+                  </div>
+                  <div className="legend-item">
+                    <div><span className="legend-dot" style={{ background: '#f59e0b' }}></span>En Proceso</div>
+                    <span>{aggregatedStats.incompletas}</span>
+                  </div>
+                  <div className="legend-item">
+                    <div><span className="legend-dot" style={{ background: '#ef4444' }}></span>Pendientes</div>
+                    <span>{aggregatedStats.noRealizadas + (aggregatedStats.total - aggregatedStats.realizadas - aggregatedStats.incompletas - aggregatedStats.noRealizadas)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="no-data-notice-premium">
+              <AlertCircle size={40} />
+              <p>No hay registros que coincidan con los filtros seleccionados.</p>
+            </div>
+          );
+
+          return (
+            <div className="reports-view-modern" id="premium-report-root">
+              {/* Print Only Header */}
+              <div className="print-report-header" id="premium-report-element">
+                <div className="print-header-top">
+                  <div className="print-institution">
+                    <div className="print-inst-text">
+                      <span className="inst-name">Liceo Bicentenario de Excelencia</span>
+                      <span className="inst-sub">UNIDAD DE SEGUIMIENTO PEDAGÓGICO</span>
+                    </div>
+                  </div>
+                  <div className="print-brand-box">
+                    <span>ZenitApp</span>
+                  </div>
+                </div>
+
+                <div className="print-report-main-title">
+                  <h1>Reporte Ejecutivo de Gestión Curricular</h1>
+                  <div className="print-report-pills">
+                    <span className="print-pill">Nivel: {analyticsLevel}</span>
+                    <span className="print-pill">Período: {analyticsPeriod}</span>
+                    {analyticsSubPeriod !== 'Todos' && <span className="print-pill">{analyticsSubPeriod}</span>}
+                  </div>
+                  <p className="print-gen-date">Documento generado el {new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+              </div>
+
+              <div className="reports-header-glass">
+                <div className="reports-header-top">
+                  <div className="reports-header-title-box">
+                    <h1><PieChart size={32} color="#0EA5E9" /> Analítica Avanzada</h1>
+                    <p className="reports-subtitle">Explora datos pedagógicos filtrados por nivel, período anual, mensual o trimestral.</p>
+                  </div>
+                  <button className="export-pdf-btn" onClick={() => {
+                    const element = document.getElementById('premium-report-root');
+                    if (!element) return;
+
+                    // Aplicamos la clase directora al DOM real
+                    element.classList.add('pdf-export-mode');
+                    
+                    // Failsafe timeout to prevent UI lockup if html2canvas hangs
+                    setTimeout(() => {
+                      if (element) element.classList.remove('pdf-export-mode');
+                    }, 3000);
+
+                    const opt = {
+                      margin: 10,
+                      filename: `ZenitApp_Reporte_${analyticsLevel}_${analyticsPeriod}.pdf`,
+                      image: { type: 'jpeg', quality: 1.0 },
+                      html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        letterRendering: true,
+                        backgroundColor: '#ffffff',
+                        logging: false
+                      },
+                      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+                    };
+                    
+                    // @ts-ignore
+                    html2pdf().set(opt).from(element).save().then(() => {
+                      element.classList.remove('pdf-export-mode');
+                    }).catch(() => {
+                      element.classList.remove('pdf-export-mode');
+                    });
+                  }} style={{ background: '#1e293b', color: 'white' }}>
+                    <Download size={18} /> Descargar Reporte PDF
+                  </button>
+                </div>
+                <div className="analytics-filters">
+                  <select value={analyticsLevel} onChange={e => setAnalyticsLevel(e.target.value)} className="analytics-select">
+                    <option value="All">Todos los Niveles</option>
+                    <option value="1 Medios">Primeros Medios (General)</option>
+                    <option value="2 Medios">Segundos Medios (General)</option>
+                    {courses1M.map(c => <option key={c} value={c}>{c}</option>)}
+                    {courses2M.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+
+                  <select value={analyticsPeriod} onChange={e => { setAnalyticsPeriod(e.target.value); setAnalyticsSubPeriod('Todos'); }} className="analytics-select">
+                    <option value="Anual">Anual Total</option>
+                    <option value="Trimestral">Trimestral</option>
+                    <option value="Mensual">Mensual</option>
+                  </select>
+
+                  {analyticsPeriod === 'Trimestral' && (
+                    <select value={analyticsSubPeriod} onChange={e => setAnalyticsSubPeriod(e.target.value)} className="analytics-select">
+                      <option value="Todos">Todos los Trimestres</option>
+                      <option value="Trimestre 1">Trimestre 1</option>
+                      <option value="Trimestre 2">Trimestre 2</option>
+                      <option value="Trimestre 3">Trimestre 3</option>
+                    </select>
+                  )}
+
+                  {analyticsPeriod === 'Mensual' && (
+                    <select value={analyticsSubPeriod} onChange={e => setAnalyticsSubPeriod(e.target.value)} className="analytics-select">
+                      <option value="Todos">Todos los Meses</option>
+                      {['Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {analyticsLoading ? (
+                <div className="loading-state-cosmic">
+                  <div className="cosmic-spinner"></div>
+                  <p>Sincronizando registros matriciales de Google Sheets...</p>
+                  <p style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '0.5rem' }}>Esto permite calcular el desempeño por cada docente.</p>
+                </div>
+              ) : (
+                <>
+                  {aggregatedStats.total > 0 ? (
+                    <>
+                      <div className="stats-grid-glass" style={{ marginTop: '2rem' }}>
+                        <div className="stat-card-premium stat-blue">
+                          <div className="stat-icon-wrapper"><TrendingUp size={28} /></div>
+                          <div className="stat-title">Clases Auditadas (Contexto actual)</div>
+                          <div className="stat-value">{aggregatedStats.total}</div>
+                        </div>
+                        <div className="stat-card-premium stat-green">
+                          <div className="stat-icon-wrapper"><CheckCircle2 size={28} /></div>
+                          <div className="stat-title">Clases Realizadas</div>
+                          <div className="stat-value">{aggregatedStats.realizadas}</div>
+                        </div>
+                        <div className="stat-card-premium stat-yellow">
+                          <div className="stat-icon-wrapper"><AlertCircle size={28} /></div>
+                          <div className="stat-title">Clases Incompletas</div>
+                          <div className="stat-value">{aggregatedStats.incompletas}</div>
+                        </div>
+                        <div className="stat-card-premium stat-red">
+                          <div className="stat-icon-wrapper"><XCircle size={28} /></div>
+                          <div className="stat-title">No Realizadas</div>
+                          <div className="stat-value">{aggregatedStats.noRealizadas}</div>
+                        </div>
+                      </div>
+
+                      {chartsUI}
+
+                      {/* Teacher Breakdown Section */}
+                      <div className="reports-details-card" style={{ marginTop: '2rem' }}>
+                        <div className="section-title-premium">
+                          <Users size={22} color="#0EA5E9" />
+                          <h3>Desempeño Pedagógico por Docente</h3>
+                        </div>
+                        <div className="reports-table-container">
+                          <table className="reports-table">
+                            <thead>
+                              <tr>
+                                <th>Docente</th>
+                                <th style={{ textAlign: 'center' }}>Asignadas</th>
+                                <th style={{ textAlign: 'center' }}>Completas</th>
+                                <th style={{ textAlign: 'center' }}>En Proceso</th>
+                                <th style={{ textAlign: 'center' }}>No Ejecutadas</th>
+                                <th style={{ textAlign: 'center' }}>% Adherencia</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Object.entries(teacherStats)
+                                .sort((a, b) => b[1].total - a[1].total)
+                                .map(([name, stats]) => {
+                                  const adhe = stats.total > 0 ? Math.round((stats.realizadas / stats.total) * 100) : 0;
+                                  return (
+                                    <tr key={name}>
+                                      <td className="docente-name-cell">
+                                        <div className="docente-avatar">{name.charAt(0)}</div>
+                                        <span>{name}</span>
+                                      </td>
+                                      <td style={{ textAlign: 'center', fontWeight: '600' }}>{stats.total}</td>
+                                      <td style={{ textAlign: 'center', color: '#10b981', fontWeight: '500' }}>{stats.realizadas}</td>
+                                      <td style={{ textAlign: 'center', color: '#f59e0b', fontWeight: '500' }}>{stats.incompletas}</td>
+                                      <td style={{ textAlign: 'center', color: '#ef4444', fontWeight: '500' }}>{stats.noRealizadas}</td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        <div className="mini-progress-bg">
+                                          <div className="mini-progress-fill" style={{
+                                            width: `${adhe}%`,
+                                            background: `linear-gradient(90deg, ${adhe > 80 ? '#10b981' : adhe > 50 ? '#f59e0b' : '#ef4444'}, #fff2)`
+                                          }}></div>
+                                          <span className="mini-progress-text">{adhe}%</span>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="print-signatures-box" style={{ display: 'none' }}>
+                        <div className="signature-line">
+                          <div className="line-dash"></div>
+                          <span>Firma Director(a)</span>
+                          <span className="signature-sub">Liceo Bicentenario de Excelencia</span>
+                        </div>
+                        <div className="signature-line">
+                          <div className="line-dash"></div>
+                          <span>Firma Coordinación UTP</span>
+                          <span className="signature-sub">Unidad Técnica Pedagógica</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="no-data-notice-premium" style={{ marginTop: '4rem' }}>
+                      <AlertCircle size={48} color="#94a3b8" />
+                      <h3>Sin Datos en la Selección</h3>
+                      <p>No se encontraron registros de clases para los filtros aplicados. Verifique el período o el nivel seleccionado.</p>
+                      <button className="back-btn" onClick={() => { setAnalyticsLevel('All'); setAnalyticsPeriod('Anual'); }} style={{ marginTop: '1rem', border: '1px solid #e2e8f0' }}>
+                        Restablecer Filtros
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+              <div className="print-footer">
+                © {new Date().getFullYear()} Liceo Bicentenario de Excelencia de Vallenar - Unidad de Innovación Pedagógica - ZenitApp Professional v1.5
+              </div>
+            </div>
+          );
+        })() : view === 'reports' ? (
+          <div className="reports-view-modern">
+            <div className="reports-header-glass">
+              <div className="reports-header-title-box">
+                <h1><BarChart2 size={32} color="#8B5CF6" /> Rendimiento General</h1>
+                <p className="reports-subtitle">Datos procesados en tiempo real basados en los registros de avance curricular.</p>
+              </div>
+              <button className="export-pdf-btn" onClick={() => {
+                const element = document.getElementById('premium-report-root');
+                if (!element) return;
+
+                element.classList.add('pdf-export-mode');
+                
+                // Failsafe timeout to prevent UI lockup if html2canvas hangs
+                setTimeout(() => {
+                  if (element) element.classList.remove('pdf-export-mode');
+                }, 3000);
+
+                const opt = {
+                  margin: 10,
+                  filename: `ZenitApp_Rendimiento_General.pdf`,
+                  image: { type: 'jpeg', quality: 1.0 },
+                  html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true,
+                    backgroundColor: '#ffffff',
+                    logging: false
+                  },
+                  jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+                };
+                
+                // @ts-ignore
+                html2pdf().set(opt).from(element).save().then(() => {
+                  element.classList.remove('pdf-export-mode');
+                }).catch(() => {
+                  element.classList.remove('pdf-export-mode');
+                });
+              }}>
+                <Printer size={18} /> Exportar Reporte PDF
+              </button>
+            </div>
+
+            <div className="stats-grid-glass">
+              {(() => {
+                const stats = Object.values(registrations).reduce((acc, curr) => {
+                  if (curr === 'green') acc.realizadas++;
+                  if (curr === 'yellow') acc.incompletas++;
+                  if (curr === 'red') acc.noRealizadas++;
+                  return acc;
+                }, { realizadas: 0, incompletas: 0, noRealizadas: 0 });
+                const total = stats.realizadas + stats.incompletas + stats.noRealizadas;
+
+                return (
+                  <>
+                    <div className="stat-card-premium stat-blue">
+                      <div className="stat-icon-wrapper"><TrendingUp size={28} /></div>
+                      <div className="stat-title">Clases Auditadas</div>
+                      <div className="stat-value">{total}</div>
+                    </div>
+                    <div className="stat-card-premium stat-green">
+                      <div className="stat-icon-wrapper"><CheckCircle2 size={28} /></div>
+                      <div className="stat-title">Clases Realizadas</div>
+                      <div className="stat-value">{stats.realizadas}</div>
+                    </div>
+                    <div className="stat-card-premium stat-yellow">
+                      <div className="stat-icon-wrapper"><AlertCircle size={28} /></div>
+                      <div className="stat-title">Clases Incompletas</div>
+                      <div className="stat-value">{stats.incompletas}</div>
+                    </div>
+                    <div className="stat-card-premium stat-red">
+                      <div className="stat-icon-wrapper"><XCircle size={28} /></div>
+                      <div className="stat-title">No Realizadas</div>
+                      <div className="stat-value">{stats.noRealizadas}</div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+
+
+            <div className="reports-details-card">
+              <h3><Users size={20} /> Desglose por Curso</h3>
+              <div className="reports-table-container">
+                <table className="reports-table">
+                  <thead>
+                    <tr>
+                      <th>Curso</th>
+                      <th>Total Auditadas</th>
+                      <th>Completas</th>
+                      <th>Incompletas</th>
+                      <th>No Realizadas</th>
+                      <th>% Avance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...courses1M, ...courses2M].map(course => {
+                      const courseStats = Object.keys(registrations)
+                        .filter(key => key.startsWith(course))
+                        .reduce((acc, key) => {
+                          const status = registrations[key];
+                          if (status === 'green') acc.realizadas++;
+                          else if (status === 'yellow') acc.incompletas++;
+                          else if (status === 'red') acc.noRealizadas++;
+                          acc.total++;
+                          return acc;
+                        }, { realizadas: 0, incompletas: 0, noRealizadas: 0, total: 0 });
+
+                      const progress = courseStats.total > 0 ? Math.round((courseStats.realizadas / courseStats.total) * 100) : 0;
+
+                      return (
+                        <tr key={course}>
+                          <td className="font-bold">{course}</td>
+                          <td>{courseStats.total}</td>
+                          <td className="text-green">{courseStats.realizadas}</td>
+                          <td className="text-yellow">{courseStats.incompletas}</td>
+                          <td className="text-red">{courseStats.noRealizadas}</td>
+                          <td>
+                            <div className="progress-mini-bar">
+                              <div className="progress-mini-fill" style={{ width: `${progress}%` }}></div>
+                              <span>{progress}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        ) : view === 'courses' ? (
+          <div className="course-grid">
+            {[
+              { id: 'letter-a', name: '1° Medio A', value: '1 Medio A', level: 'Primero Medio', icon: Users },
+              { id: 'letter-b', name: '1° Medio B', value: '1 Medio B', level: 'Primero Medio', icon: Users },
+              { id: 'letter-c', name: '1° Medio C', value: '1 Medio C', level: 'Primero Medio', icon: Users },
+              { id: 'letter-d', name: '1° Medio D', value: '1 Medio D', level: 'Primero Medio', icon: Users },
+              { id: 'letter-a', name: '2° Medio A', value: '2 Medio A', level: 'Segundo Medio', icon: Users },
+              { id: 'letter-b', name: '2° Medio B', value: '2 Medio B', level: 'Segundo Medio', icon: Users },
+              { id: 'letter-c', name: '2° Medio C', value: '2 Medio C', level: 'Segundo Medio', icon: Users },
+              { id: 'letter-d', name: '2° Medio D', value: '2 Medio D', level: 'Segundo Medio', icon: Users },
+            ].map((course, index) => (
+              <div
+                key={`${course.id}-${index}`}
+                className={`course-card-premium ${course.id}`}
+                onClick={() => handleCourseSelect(course.value)}
+              >
+                <div className="card-glass-overlay"></div>
+                <div className="card-icon">
+                  <course.icon size={28} />
+                </div>
+                <div className="card-content">
+                  <p>{course.level}</p>
+                  <h3>{course.name}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={`class-selection-view ${getCourseColorClass(activeCourse)}`}>
+            <div className="view-header">
+              <button className="back-btn" onClick={handleBackToCourses}>
+                <ChevronRight size={20} style={{ transform: 'rotate(180deg)' }} />
+                <span>Volver a Cursos</span>
+              </button>
+              <div className="current-context">
+                <p>Sesiones de seguimiento pedagógico</p>
+                <h2>{activeCourse}</h2>
+              </div>
+            </div>
+
+            <div className="class-grid-modern">
+              {sheetData.length > 0 ? (
+                sheetData.map((session, idx) => {
+                  const registrationId = `${activeCourse}-${session.clase || idx + 1}`;
+                  const registeredStatus = registrations[registrationId];
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`class-action-button ${registeredStatus ? `status-${registeredStatus}` : ''}`}
+                      onClick={() => handleClassClick(session)}
+                    >
+                      <div className="cab-accent-border"></div>
+
+                      <div className="cab-content-wrapper">
+                        <div className="cab-header-top">
+                          <span className="cab-number">#{session.clase || idx + 1}</span>
+                          {session.link && (
+                            <a
+                              href={ensureHttps(session.link)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="cab-link-btn"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Ver material adjunto"
+                            >
+                              <Link2 size={16} />
+                            </a>
+                          )}
+                        </div>
+
+                        <div className="cab-main">
+                          <span className="cab-label">Clase {session.clase || idx + 1}</span>
+                          <span className="cab-course">{activeCourse}</span>
+                          {registeredStatus && (
+                            <span className="cab-status-badge">
+                              {registeredStatus === 'green' ? '★ Clase Realizada' :
+                                registeredStatus === 'yellow' ? '⚠ Clase Incompleta' :
+                                  '✖ No Realizada'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="cab-footer">
+                        {session.docenteRealiza && (
+                          <div className="cab-footer-item docente-highlight">
+                            <User size={14} />
+                            <span>{session.docenteRealiza}</span>
+                          </div>
+                        )}
+                        <div className="cab-footer-item">
+                          <Calendar size={14} />
+                          <span>{session.dia}, {session.fecha}</span>
+                        </div>
+                        <div className="cab-footer-item">
+                          <Clock size={14} />
+                          <span>{session.horario}</span>
+                        </div>
+                      </div>
+                      <div className="cab-gloss-shimmer"></div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="loading-state-cosmic">
+                  <div className="cosmic-spinner"></div>
+                  <p>{loading ? 'Sincronizando con Google Sheets...' : 'No hay datos disponibles para este curso.'}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Detail Modal */}
+      {selectedClass && (
+        <div
+          className="modal-overlay-cosmic"
+          onClick={() => {
+            setSelectedClass(null);
+            setShowObservationInput(false);
+          }}
+        >
+          <div
+            className="modal-content-premium"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="modal-close-btn" onClick={() => {
+              setSelectedClass(null);
+              setShowObservationInput(false);
+            }}>
+              <X size={24} />
+            </button>
+
+            <div className="modal-header-main">
+              <span className="modal-badge-clase">Clase {selectedClass.clase}</span>
+              <h2>{activeCourse}</h2>
+              <div className="modal-header-logistics">
+                <span><Calendar size={16} /> {selectedClass.fecha}</span>
+                <span><Clock size={16} /> {selectedClass.dia} | {selectedClass.horario}</span>
+                {selectedClass.link && (
+                  <a
+                    href={ensureHttps(selectedClass.link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="modal-link-button-premium"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MonitorPlay size={18} strokeWidth={2.5} /> Presentación de la clase
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-body-content">
+              <div className="info-section-premium">
+                <h3><User size={18} color="#8B5CF6" /> Docente que Realiza la Clase</h3>
+                <div className="info-box-premium" style={{ borderLeft: '4px solid #8B5CF6', background: 'rgba(139, 92, 246, 0.05)', fontWeight: '700' }}>
+                  {selectedClass.docenteRealiza || 'No especificado'}
+                </div>
+              </div>
+
+              <div className="info-section-premium">
+                <h3><Users size={18} /> Docentes Responsables</h3>
+                <p>{selectedClass.responsable || 'No asignados'}</p>
+              </div>
+
+              <div className="info-section-premium">
+                <h3><Target size={18} /> Objetivo de la Clase</h3>
+                <div className="info-box-premium objetivo">
+                  {selectedClass.objetivo || 'Sin objetivo definido'}
+                </div>
+              </div>
+
+              <div className="info-section-premium">
+                <h3><BookOpen size={18} /> Contenido</h3>
+                <div className="info-box-premium contenido">
+                  {selectedClass.contenido || 'Sin contenido definido'}
+                </div>
+              </div>
+
+              <div className="info-section-premium">
+                <h3><ClipboardList size={18} /> Actividad</h3>
+                <div className="info-box-premium actividad">
+                  {selectedClass.actividad || 'Sin actividad definida'}
+                </div>
+              </div>
+
+              <div className="info-section-premium">
+                <h3><Palette size={18} /> Diseño de Material</h3>
+                <div className="info-box-premium diseno">
+                  {selectedClass.diseno || 'Sin especificaciones de diseño'}
+                </div>
+              </div>
+
+              <div className="info-section-premium">
+                <button
+                  className="obs-toggle-btn"
+                  onClick={() => setShowObservationInput(!showObservationInput)}
+                >
+                  <MessageSquare size={18} /> Crear Observación
+                </button>
+
+                {showObservationInput && (
+                  <div className="observation-container">
+                    <textarea
+                      className="observation-textarea"
+                      placeholder="Agrega notas, razones de no realización o datos relevantes sobre la sesión..."
+                      value={observations[`${activeCourse}-${selectedClass.clase}`] || ''}
+                      onChange={(e) => setObservations(prev => ({
+                        ...prev,
+                        [`${activeCourse}-${selectedClass.clase}`]: e.target.value
+                      }))}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="registration-controls">
+                <h4>Estado de Ejecución</h4>
+                <div className="status-button-row">
+                  <button className="status-reg-btn red" onClick={() => handleRegisterStatus('red')}>
+                    No Realizada
+                  </button>
+                  <button className="status-reg-btn yellow" onClick={() => handleRegisterStatus('yellow')}>
+                    Incompleta
+                  </button>
+                  <button className="status-reg-btn green" onClick={() => handleRegisterStatus('green')}>
+                    Realizada
+                  </button>
+                </div>
+                {registrations[`${activeCourse}-${selectedClass.clase}`] && (
+                  <button
+                    className="clear-status-btn"
+                    onClick={() => handleRegisterStatus('')}
+                  >
+                    <XCircle size={14} /> Revertir error / Limpiar estado
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Overlay */}
+      {showSuccess && (
+        <div className={`success-overlay-premium ${lastRegisteredColor}`}>
+          <div className="success-content-card">
+            <div className="success-icon-container">
+              <CheckCircle2 size={70} />
+            </div>
+            <h2>REGISTRO EXITOSO</h2>
+            <p>La información se ha sincronizado correctamente.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="toast-cosmic">
+          <CheckCircle2 size={18} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
