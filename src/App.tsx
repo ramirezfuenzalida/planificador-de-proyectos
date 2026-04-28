@@ -536,7 +536,15 @@ const App = () => {
 
       {/* Sidebar - Cosmic Design */}
       <aside className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
-        <div className="brand" onClick={handleBackToCourses} style={{ cursor: 'pointer' }}>
+        <div className="institution-header-premium">
+          <img src="/logo-liceo.png" alt="Liceo Logo" className="institution-logo-img" />
+          <div className="institution-meta">
+            <span className="inst-name">Liceo Bicentenario</span>
+            <span className="inst-admin">Administrador</span>
+          </div>
+        </div>
+
+        <div className="brand" onClick={handleBackToCourses} style={{ cursor: 'pointer', marginTop: '1rem' }}>
           <div className="brand-logo-circle">
             <img src="/zenit_app_icon.png" alt="ZenitApp Logo" className="brand-logo-img" />
           </div>
@@ -545,7 +553,7 @@ const App = () => {
               <h1>ZenitApp</h1>
               <ChevronDown size={14} className="brand-chevron" />
             </div>
-            <span className="brand-tagline">Seguimiento de Proyectos</span>
+            <span className="brand-tagline">Seguimiento Académico</span>
           </div>
         </div>
 
@@ -638,19 +646,8 @@ const App = () => {
         </div>
 
         <div className="sidebar-footer-container">
-          <div className="premium-sidebar-profile">
-            <div className="premium-avatar-box">
-              <img src="/logo-liceo.png" alt="Liceo Logo" />
-            </div>
-            <div className="premium-profile-info">
-              <span className="premium-profile-name">Liceo Bicentenario</span>
-              <span className="premium-profile-role">Administrador</span>
-            </div>
-            <LogOut size={16} className="logout-icon" style={{ marginLeft: 'auto', opacity: 0.5 }} />
-          </div>
-
           <div className="sidebar-version">
-            ExeApp versión 1.0.07
+            ExeApp versión 1.0.08
           </div>
         </div>
       </aside>
