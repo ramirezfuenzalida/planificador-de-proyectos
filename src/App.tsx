@@ -650,19 +650,21 @@ const App = () => {
           </div>
         </div>
 
-        <div className="premium-sidebar-profile">
-          <div className="premium-avatar-box">
-            <img src="/logo-liceo.png" alt="Liceo Logo" />
+        <div className="sidebar-footer-container">
+          <div className="premium-sidebar-profile">
+            <div className="premium-avatar-box">
+              <img src="/logo-liceo.png" alt="Liceo Logo" />
+            </div>
+            <div className="premium-profile-info">
+              <span className="premium-profile-name">Liceo Bicentenario</span>
+              <span className="premium-profile-role">Administrador</span>
+            </div>
+            <LogOut size={16} className="logout-icon" style={{ marginLeft: 'auto', opacity: 0.5 }} />
           </div>
-          <div className="premium-profile-info">
-            <span className="premium-profile-name">Liceo Bicentenario</span>
-            <span className="premium-profile-role">Administrador</span>
-          </div>
-          <LogOut size={16} className="logout-icon" style={{ marginLeft: 'auto', opacity: 0.5 }} />
-        </div>
 
-        <div className="sidebar-version">
-          ExeApp versión 1.0.03
+          <div className="sidebar-version">
+            ExeApp versión 1.0.04
+          </div>
         </div>
       </aside>
 
@@ -1398,9 +1400,11 @@ const App = () => {
           }}
         >
           <div
-            className="modal-content-premium"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Professional Sheet Handle for Mobile */}
+            <div className="modal-sheet-handle"></div>
+
             <button className="modal-close-btn" onClick={() => {
               setSelectedClass(null);
               setShowObservationInput(false);
