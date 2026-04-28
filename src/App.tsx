@@ -647,7 +647,7 @@ const App = () => {
           </div>
           
           <div className="sidebar-version">
-            ExeApp versión 1.0.17
+            ExeApp versión 1.0.18
           </div>
         </div>
       </aside>
@@ -1090,7 +1090,6 @@ const App = () => {
                                   return (
                                     <tr key={name}>
                                       <td className="docente-name-cell">
-                                        <div className="docente-avatar">{name.charAt(0)}</div>
                                         <span>{name}</span>
                                       </td>
                                       <td style={{ textAlign: 'center', fontWeight: '600' }}>{stats.total}</td>
