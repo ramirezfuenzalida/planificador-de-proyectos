@@ -647,7 +647,7 @@ const App = () => {
           </div>
           
           <div className="sidebar-version">
-            ExeApp versión 1.0.22
+            ExeApp versión 1.1.01
           </div>
         </div>
       </aside>
