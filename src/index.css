@@ -42,7 +42,7 @@ body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   background-color: var(--surface);
   display: flex;
-  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height */
   width: 100vw;
   overflow: hidden;
   padding: 0;
@@ -60,7 +60,7 @@ h1, h2, h3, .brand h1 {
 .app-window {
   display: flex;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height */
   background: var(--surface);
   overflow: hidden;
   position: relative;
@@ -857,7 +857,7 @@ h1, h2, h3, .brand h1 {
 
 /* Content Area */
 .content-area {
-  padding: 0 3rem 6rem 3rem; /* Increased bottom padding for scrolling */
+  padding: 0 3rem 12rem 3rem; /* Extreme bottom padding for mobile browser bars */
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1282,7 +1282,7 @@ h1, h2, h3, .brand h1 {
 
   .sidebar-footer-container {
     padding: 1.5rem;
-    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 1rem));
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 1.5rem)); /* Ultra clearance for browser bars */
     background: #1e1b4b; /* Solid dark background for visibility */
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     position: sticky;
@@ -1454,6 +1454,7 @@ h1, h2, h3, .brand h1 {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   margin-top: 0.75rem;
+  margin-bottom: 1rem; /* Extra push */
 }
 
 /* 

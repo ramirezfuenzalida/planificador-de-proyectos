@@ -635,19 +635,6 @@ const App = () => {
             ))}
           </div>
 
-          <div className="nav-section-header" style={{ marginTop: '1.5rem' }}>AYUDA</div>
-          <div className="nav-item-modern">
-            <div className="nav-item-left">
-              <Settings size={18} className="icon-gray" />
-              <span>Ajustes</span>
-            </div>
-          </div>
-          <div className="nav-item-modern">
-            <div className="nav-item-left">
-              <HelpCircle size={18} className="icon-gray" />
-              <span>Soporte</span>
-            </div>
-          </div>
         </div>
 
         <div className="sidebar-footer-container">
@@ -663,7 +650,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ExeApp versión 1.0.06
+            ExeApp versión 1.0.07
           </div>
         </div>
       </aside>
@@ -1386,6 +1373,9 @@ const App = () => {
                 </div>
               )}
             </div>
+
+            {/* Clear the mobile browser's bottom bar */}
+            <div className="mobile-bottom-spacer" style={{ height: '120px', width: '100%' }}></div>
           </div>
         )}
       </div>
