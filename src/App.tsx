@@ -636,20 +636,6 @@ const App = () => {
         </div>
 
         <div className="sidebar-footer-container">
-          <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', marginBottom: '1.5rem' }}>
-             <button 
-               onClick={() => {
-                 localStorage.setItem('zenit_mode', 'premium');
-                 window.dispatchEvent(new Event('zenit_mode_change'));
-               }} 
-               className="btn-create-event-premium"
-               style={{ width: '100%', cursor: 'pointer' }}
-             >
-               <Sparkles size={16} />
-               Probar Versión Premium
-             </button>
-          </div>
-
           <div className="institution-footer-card">
             <div className="inst-logo-box">
               <img src="/logo-liceo.png" alt="Liceo Logo" />
@@ -661,7 +647,7 @@ const App = () => {
           </div>
           
           <div className="sidebar-version">
-            ExeApp versión 1.1.0
+            ExeApp versión 1.0.12
           </div>
         </div>
       </aside>
