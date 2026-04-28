@@ -660,6 +660,10 @@ const App = () => {
           </div>
           <LogOut size={16} className="logout-icon" style={{ marginLeft: 'auto', opacity: 0.5 }} />
         </div>
+
+        <div className="sidebar-version">
+          ExeApp versión 1.0.01
+        </div>
       </aside>
 
       {/* Main Board */}
