@@ -647,7 +647,7 @@ const App = () => {
           </div>
           
           <div className="sidebar-version">
-            ExeApp versión 1.0.12
+            ExeApp versión 1.0.13
           </div>
         </div>
       </aside>
@@ -887,17 +887,17 @@ const App = () => {
 
                 <div className="stacked-bar-container">
                   {aggregatedStats.realizadas > 0 && (
-                    <div className="stacked-segment bg-success" style={{ width: `${getSafePercentage(aggregatedStats.realizadas)}%` }}>
+                    <div className="stacked-segment-premium" style={{ width: `${getSafePercentage(aggregatedStats.realizadas)}%`, background: 'linear-gradient(90deg, #059669, #10b981)' }}>
                       {getSafePercentage(aggregatedStats.realizadas)}%
                     </div>
                   )}
                   {aggregatedStats.incompletas > 0 && (
-                    <div className="stacked-segment bg-warning" style={{ width: `${getSafePercentage(aggregatedStats.incompletas)}%` }}>
+                    <div className="stacked-segment-premium" style={{ width: `${getSafePercentage(aggregatedStats.incompletas)}%`, background: 'linear-gradient(90deg, #d97706, #f59e0b)' }}>
                       {getSafePercentage(aggregatedStats.incompletas)}%
                     </div>
                   )}
                   {aggregatedStats.noRealizadas > 0 && (
-                    <div className="stacked-segment bg-danger" style={{ width: `${getSafePercentage(aggregatedStats.noRealizadas)}%` }}>
+                    <div className="stacked-segment-premium" style={{ width: `${getSafePercentage(aggregatedStats.noRealizadas)}%`, background: 'linear-gradient(90deg, #dc2626, #ef4444)' }}>
                       {getSafePercentage(aggregatedStats.noRealizadas)}%
                     </div>
                   )}
@@ -922,9 +922,9 @@ const App = () => {
                       #e2e8f0 ${getSafePercentage(aggregatedStats.realizadas + aggregatedStats.incompletas + aggregatedStats.noRealizadas)}% 100%
                     )`
                 }}>
-                  <div className="doughnut-inner">
-                    {getSafePercentage(aggregatedStats.realizadas)}%
-                    <span>Completas</span>
+                  <div className="doughnut-inner-premium">
+                    <span className="percentage-value">{getSafePercentage(aggregatedStats.realizadas)}%</span>
+                    <span className="percentage-label">ADHERENCIA</span>
                   </div>
                 </div>
 
