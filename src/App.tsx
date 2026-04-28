@@ -647,7 +647,7 @@ const App = () => {
           </div>
           
           <div className="sidebar-version">
-            ExeApp versión 1.0.18
+            ExeApp versión 1.0.19
           </div>
         </div>
       </aside>
@@ -955,26 +955,8 @@ const App = () => {
             <div className="reports-view-modern" id="premium-report-root">
               {/* Print Only Header */}
               <div className="print-report-header" id="premium-report-element">
-                <div className="print-header-top">
-                  <div className="print-institution">
-                    <div className="print-inst-text">
-                      <span className="inst-name">Liceo Bicentenario de Excelencia</span>
-                      <span className="inst-sub">UNIDAD DE SEGUIMIENTO PEDAGÓGICO</span>
-                    </div>
-                  </div>
-                  <div className="print-brand-box">
-                    <span>ZenitApp</span>
-                  </div>
-                </div>
-
-                <div className="print-report-main-title">
-                  <h1>Reporte Ejecutivo de Gestión Curricular</h1>
-                  <div className="print-report-pills">
-                    <span className="print-pill">Nivel: {analyticsLevel}</span>
-                    <span className="print-pill">Período: {analyticsPeriod}</span>
-                    {analyticsSubPeriod !== 'Todos' && <span className="print-pill">{analyticsSubPeriod}</span>}
-                  </div>
-                  <p className="print-gen-date">Documento generado el {new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                <div className="print-report-main-title" style={{ textAlign: 'center', width: '100%' }}>
+                  <h1 style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '2rem' }}>Reporte Ejecutivo de Gestión Curricular</h1>
                 </div>
               </div>
 
