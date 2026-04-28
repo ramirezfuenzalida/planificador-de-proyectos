@@ -647,7 +647,7 @@ const App = () => {
           </div>
           
           <div className="sidebar-version">
-            ExeApp versión 1.0.21
+            ExeApp versión 1.0.22
           </div>
         </div>
       </aside>
@@ -1189,6 +1189,11 @@ const App = () => {
                       <div className="stat-icon-wrapper"><XCircle size={28} /></div>
                       <div className="stat-title">No Realizadas</div>
                       <div className="stat-value">{stats.noRealizadas}</div>
+                    </div>
+                    <div className="stat-card-premium stat-purple" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', color: 'white' }}>
+                      <div className="stat-icon-wrapper" style={{ background: 'rgba(255,255,255,0.2)' }}><TrendingUp size={28} /></div>
+                      <div className="stat-title" style={{ opacity: 0.9 }}>% de Avance</div>
+                      <div className="stat-value" style={{ fontSize: '2.5rem' }}>{total > 0 ? Math.round((stats.realizadas / total) * 100) : 0}%</div>
                     </div>
                   </>
                 );
