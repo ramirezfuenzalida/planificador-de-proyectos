@@ -1376,6 +1376,49 @@ h1, h2, h3, .brand h1 {
   .stat-card-premium {
     padding: 1.5rem;
   }
+
+  /* Refined card padding and margins */
+  .course-cards-modern {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .course-card-m {
+    padding: 1.5rem;
+  }
+
+  .dashboard-header-modern {
+    padding: 2rem;
+  }
+
+  .dashboard-header-modern h2 {
+    font-size: 1.75rem;
+  }
+
+  .db-global-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .global-stat-box {
+    padding: 1.25rem;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .global-stat-box h2 {
+    font-size: 2rem;
+  }
+
+  .section-subtitle {
+    font-size: 1.25rem;
+  }
+
+  /* Adjusting common container paddings */
+  .blue-banner, .white-card, .chart-card, .float-card {
+    padding: 1.25rem;
+    border-radius: 20px;
+  }
 }
 
 .sidebar-version {
