@@ -647,7 +647,7 @@ const App = () => {
           </div>
           
           <div className="sidebar-version">
-            ExeApp versión 1.0.19
+            ExeApp versión 1.0.20
           </div>
         </div>
       </aside>
@@ -1382,7 +1382,10 @@ const App = () => {
             </button>
 
             <div className="modal-header-main">
-              <span className="modal-badge-clase">Clase {selectedClass.clase}</span>
+              <div className="modal-clase-highlight">
+                <span className="clase-label">CLASE</span>
+                <span className="clase-number">{selectedClass.clase}</span>
+              </div>
               <h2>{activeCourse}</h2>
               <div className="modal-header-logistics">
                 <span><Calendar size={16} /> {selectedClass.fecha}</span>
