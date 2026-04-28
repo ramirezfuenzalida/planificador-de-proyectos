@@ -18,7 +18,6 @@ import {
   ClipboardList,
   MonitorPlay,
   Printer,
-  Download,
   BarChart2,
   TrendingUp,
   Palette,
@@ -32,7 +31,6 @@ import {
   User,
   Plus,
   Trash2,
-  PlusCircle,
   Sparkles,
   Type,
   Bookmark
@@ -269,7 +267,7 @@ const App = () => {
               rawDocente: String(r.c[pmIdx.docente]?.v || "") === "null" ? "" : String(r.c[pmIdx.docente]?.v || ""),
               etapa: String(r.c[pmIdx.etapa]?.v || "")
             })),
-            sm: smRows.map((r: any, idx: number) => {
+            sm: smRows.map((r: any) => {
               const rawDate = parseGoogleDate(r.c[smIdx.fecha]?.v);
               let claseVal = String(r.c[smIdx.clase]?.v || "");
               
