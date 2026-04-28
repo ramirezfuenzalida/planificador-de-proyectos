@@ -730,7 +730,8 @@ h1, h2, h3, .brand h1 {
 }
 
 .premium-sidebar-profile {
-  margin-top: 2rem; /* Reduced from auto to handle version at bottom */
+  margin-top: auto; /* Push it to the bottom of the nav section */
+  margin-bottom: 0.5rem;
   padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px);
@@ -1259,7 +1260,7 @@ h1, h2, h3, .brand h1 {
     z-index: 100;
     transform: translateX(-100%);
     width: 280px;
-    padding-bottom: 2rem;
+    padding-bottom: env(safe-area-inset-bottom, 3rem); /* Added more padding for browser bars */
   }
 
   .sidebar.open {
@@ -1267,8 +1268,9 @@ h1, h2, h3, .brand h1 {
   }
 
   .nav-menu {
-    max-height: calc(100vh - 250px);
+    flex: 1;
     overflow-y: auto;
+    margin: 1rem 0;
   }
 
   .mobile-nav-header {
@@ -1427,8 +1429,9 @@ h1, h2, h3, .brand h1 {
 }
 
 .sidebar-version {
-  margin-top: auto; /* Push everything else up */
-  padding: 1rem 1rem 0.5rem 1rem;
+  margin-top: 1rem; 
+  margin-bottom: env(safe-area-inset-bottom, 1rem); /* Safe area support */
+  padding: 1rem;
   color: rgba(255, 255, 255, 0.25);
   font-size: 0.7rem;
   font-weight: 700;

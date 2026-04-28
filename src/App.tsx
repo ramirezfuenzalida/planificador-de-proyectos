@@ -172,7 +172,7 @@ const App = () => {
   const [sheetData, setSheetData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [is1MedioExpanded, setIs1MedioExpanded] = useState(true);
+  const [is1MedioExpanded, setIs1MedioExpanded] = useState(false);
   const [is2MedioExpanded, setIs2MedioExpanded] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -662,7 +662,7 @@ const App = () => {
         </div>
 
         <div className="sidebar-version">
-          ExeApp versión 1.0.02
+          ExeApp versión 1.0.03
         </div>
       </aside>
 
