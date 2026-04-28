@@ -647,7 +647,7 @@ const App = () => {
           </div>
           
           <div className="sidebar-version">
-            ExeApp versión 1.0.20
+            ExeApp versión 1.0.21
           </div>
         </div>
       </aside>
@@ -1127,7 +1127,14 @@ const App = () => {
             </div>
           );
         })() : view === 'reports' ? (
-          <div className="reports-view-modern">
+          <div className="reports-view-modern" id="premium-report-root">
+            {/* Print Only Header */}
+            <div className="print-report-header">
+              <div className="print-report-main-title" style={{ textAlign: 'center', width: '100%' }}>
+                <h1 style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '2rem' }}>Reporte General de Rendimiento Curricular</h1>
+              </div>
+            </div>
+
             <div className="reports-header-glass">
               <div className="reports-header-title-box">
                 <h1><BarChart2 size={32} color="#8B5CF6" /> Rendimiento General</h1>
