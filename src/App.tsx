@@ -533,15 +533,7 @@ const App = () => {
 
       {/* Sidebar - Cosmic Design */}
       <aside className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
-        <div className="institution-header-premium">
-          <img src="/logo-liceo.png" alt="Liceo Logo" className="institution-logo-img" />
-          <div className="institution-meta">
-            <span className="inst-name">Liceo Bicentenario</span>
-            <span className="inst-admin">Administrador</span>
-          </div>
-        </div>
-
-        <div className="brand" onClick={handleBackToCourses} style={{ cursor: 'pointer', marginTop: '1rem' }}>
+        <div className="brand" onClick={handleBackToCourses} style={{ cursor: 'pointer' }}>
           <div className="brand-logo-circle">
             <img src="/zenit_app_icon.png" alt="ZenitApp Logo" className="brand-logo-img" />
           </div>
@@ -643,8 +635,18 @@ const App = () => {
         </div>
 
         <div className="sidebar-footer-container">
+          <div className="institution-footer-card">
+            <div className="inst-logo-box">
+              <img src="/logo-liceo.png" alt="Liceo Logo" />
+            </div>
+            <div className="inst-info-box">
+              <span className="inst-name-small">Liceo Bicentenario</span>
+              <span className="inst-role-small">Administrador</span>
+            </div>
+          </div>
+          
           <div className="sidebar-version">
-            ExeApp versión 1.0.08
+            ExeApp versión 1.0.09
           </div>
         </div>
       </aside>
