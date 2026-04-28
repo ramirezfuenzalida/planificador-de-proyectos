@@ -26,6 +26,10 @@
   /* Specialized Depth */
   --shadow-premium: 0 10px 40px rgba(46, 16, 101, 0.1);
   --glass-sidebar-active: rgba(255, 255, 255, 0.12);
+
+  /* iPhone Safe Areas */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * {
@@ -3541,6 +3545,71 @@ h1, h2, h3, .brand h1 {
 
 @media (max-width: 1024px) {
   .calendar-view-premium { grid-template-columns: 1fr; }
+  
+  .sidebar {
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    z-index: 1000;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+  }
+  
+  .sidebar-overlay.open {
+    display: block;
+  }
+  
+  .mobile-nav-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: calc(var(--safe-area-top) + 1rem) 1.5rem 1rem 1.5rem;
+    background: white;
+    border-bottom: 1px solid #f1f5f9;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .mobile-menu-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: #f1f5f9;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .view-header {
+    padding-top: 1rem !important;
+  }
+  
+  /* Ajuste para iPhone 16 / Notch */
+  .app-window {
+    padding-top: 0;
+  }
+  
+  .sidebar {
+    padding-top: calc(var(--safe-area-top) + 2rem);
+    padding-bottom: calc(var(--safe-area-bottom) + 2rem);
+  }
 }
 
 /* PRINT STYLES - Executive Premium Report */
@@ -4132,3 +4201,38 @@ h1, h2, h3, .brand h1 {
   break-inside: avoid !important;
   page-break-inside: avoid !important;
 }
+
+.mobile-nav-header {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .mobile-nav-header {
+    display: flex;
+  }
+}
+
+/* Status Indicators for Class Cards */
+.class-action-button.status-green { border-color: #10b981 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2) !important; }
+.class-action-button.status-yellow { border-color: #f59e0b !important; box-shadow: 0 0 20px rgba(245, 158, 11, 0.2) !important; }
+.class-action-button.status-red { border-color: #ef4444 !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2) !important; }
+
+.cab-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+}
+
+.status-green .cab-status-badge { background: #10b981; color: white; }
+.status-yellow .cab-status-badge { background: #f59e0b; color: white; }
+.status-red .cab-status-badge { background: #ef4444; color: white; }
+
+.status-green .cab-number { background: #10b981 !important; color: white !important; }
+.status-yellow .cab-number { background: #f59e0b !important; color: white !important; }
+.status-red .cab-number { background: #ef4444 !important; color: white !important; }
+

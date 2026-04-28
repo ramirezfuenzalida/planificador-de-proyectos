@@ -33,7 +33,8 @@ import {
   Trash2,
   Sparkles,
   Type,
-  Bookmark
+  Bookmark,
+  Menu
 } from 'lucide-react';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
@@ -663,6 +664,16 @@ const App = () => {
 
       {/* Main Board */}
       <div className="main-board">
+        {/* Mobile Navbar Header */}
+        <div className="mobile-nav-header">
+          <button className="mobile-menu-btn" onClick={() => setIsMobileSidebarOpen(true)}>
+            <Menu size={24} />
+          </button>
+          <div className="mobile-header-text">
+            <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem' }}>ZenitApp</span>
+          </div>
+        </div>
+
         {view === 'calendar' ? (() => {
           const calendarDays = getCalendarDays(currentCalendarDate);
           const monthName = currentCalendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
@@ -1414,6 +1425,34 @@ const App = () => {
             </div>
 
             <div className="modal-body-content">
+              {/* Registration Controls - Moved UP for visibility */}
+              <div className="registration-controls" style={{ marginBottom: '2rem', background: '#f8fafc', padding: '1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
+                <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                   <Sparkles size={18} color="var(--primary)" /> 
+                   Asignar Estado de la Clase
+                </h4>
+                <div className="status-button-row">
+                  <button className="status-reg-btn red" onClick={() => handleRegisterStatus('red')}>
+                    No Realizada
+                  </button>
+                  <button className="status-reg-btn yellow" onClick={() => handleRegisterStatus('yellow')}>
+                    Incompleta
+                  </button>
+                  <button className="status-reg-btn green" onClick={() => handleRegisterStatus('green')}>
+                    Realizada
+                  </button>
+                </div>
+                {registrations[`${activeCourse}-${selectedClass.clase}`] && (
+                  <button
+                    className="clear-status-btn"
+                    onClick={() => handleRegisterStatus('')}
+                    style={{ marginTop: '1rem' }}
+                  >
+                    <XCircle size={14} /> Revertir / Limpiar
+                  </button>
+                )}
+              </div>
+
               <div className="info-section-premium">
                 <h3><User size={18} color="#8B5CF6" /> Docente que Realiza la Clase</h3>
                 <div className="info-box-premium" style={{ borderLeft: '4px solid #8B5CF6', background: 'rgba(139, 92, 246, 0.05)', fontWeight: '700' }}>
@@ -1477,27 +1516,6 @@ const App = () => {
                 )}
               </div>
 
-              <div className="registration-controls">
-                <h4>Estado de Ejecución</h4>
-                <div className="status-button-row">
-                  <button className="status-reg-btn red" onClick={() => handleRegisterStatus('red')}>
-                    No Realizada
-                  </button>
-                  <button className="status-reg-btn yellow" onClick={() => handleRegisterStatus('yellow')}>
-                    Incompleta
-                  </button>
-                  <button className="status-reg-btn green" onClick={() => handleRegisterStatus('green')}>
-                    Realizada
-                  </button>
-                </div>
-                {registrations[`${activeCourse}-${selectedClass.clase}`] && (
-                  <button
-                    className="clear-status-btn"
-                    onClick={() => handleRegisterStatus('')}
-                  >
-                    <XCircle size={14} /> Revertir error / Limpiar estado
-                  </button>
-                )}
               </div>
             </div>
           </div>
