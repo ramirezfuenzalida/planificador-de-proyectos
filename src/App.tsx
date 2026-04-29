@@ -739,7 +739,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.05
+            ZenitApp versión 1.1.06
           </div>
         </div>
       </aside>
@@ -1649,7 +1649,9 @@ const App = () => {
             <div className="class-grid-modern">
               {sheetData.length > 0 ? (
                 sheetData.map((session, idx) => {
-                  const registrationId = `${activeCourse}-${session.clase || idx + 1}`;
+                  const courseTag = getCourseTag(activeCourse);
+                  const clsId = String(session.clase || idx + 1).replace(/[^0-9]/g, '');
+                  const registrationId = `${courseTag}-${clsId}`;
                   const registeredStatus = registrations[registrationId];
 
                   return (
@@ -1766,14 +1768,14 @@ const App = () => {
                   <div className="registration-controls-v2">
                     <div className="status-button-grid-pro">
                       <button
-                        className={`status-btn-pro red ${registrations[`${getCourseTag(activeCourse)}-${selectedClass.clase}`] === 'red' ? 'active' : ''}`}
+                        className={`status-btn-pro red ${registrations[`${getCourseTag(activeCourse)}-${String(selectedClass.clase || "").replace(/[^0-9]/g, '')}`] === 'red' ? 'active' : ''}`}
                         onClick={() => handleRegisterStatus('red')}
                       >
                         <XCircle size={24} />
                         <span>NO REALIZADA</span>
                       </button>
                       <button
-                        className={`status-btn-pro yellow ${registrations[`${getCourseTag(activeCourse)}-${selectedClass.clase}`] === 'yellow' ? 'active' : ''}`}
+                        className={`status-btn-pro yellow ${registrations[`${getCourseTag(activeCourse)}-${String(selectedClass.clase || "").replace(/[^0-9]/g, '')}`] === 'yellow' ? 'active' : ''}`}
                         onClick={() => handleRegisterStatus('yellow')}
                       >
                         <AlertCircle size={24} />
