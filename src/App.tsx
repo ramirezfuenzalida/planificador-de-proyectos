@@ -160,7 +160,7 @@ const getColumnIndices = (table: any, is1M: boolean) => {
     responsable: findIdx('responsable') !== -1 ? findIdx('responsable') : (is1M ? 10 : 9),
     diseno: findIdx('diseño') !== -1 ? findIdx('diseño') : (is1M ? 11 : 10),
     docente: findIdx('docente') !== -1 ? findIdx('docente') : (is1M ? 14 : 12),
-    link: findIdx('link') !== -1 ? findIdx('link') : (findIdx('canva') !== -1 ? findIdx('canva') : (findIdx('presentación') !== -1 ? findIdx('presentación') : (is1M ? 13 : 11))),
+    link: findIdx('link') !== -1 ? findIdx('link') : (findIdx('canva') !== -1 ? findIdx('canva') : (findIdx('presentación') !== -1 ? findIdx('presentación') : (findIdx('material') !== -1 ? findIdx('material') : (is1M ? 13 : 11)))),
     sites: findIdx('sites') !== -1 ? findIdx('sites') : (findIdx('google sites') !== -1 ? findIdx('google sites') : -1)
   };
 };
@@ -1499,29 +1499,34 @@ const App = () => {
                     </div>
                   </div>
 
-                  {selectedClass.link && (
+                  {(selectedClass.link || selectedClass.sitesLink) && (
                     <div className="premium-card-section">
-                      <a
-                        href={ensureHttps(selectedClass.link)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="modal-link-button-v2"
-                      >
-                        <MonitorPlay size={20} /> Ver Presentación Digital
-                      </a>
-                    </div>
-                  )}
+                      <h4 className="section-header-modern"><Layout size={18} color="#8B5CF6" /> Materiales y Recursos</h4>
+                      <div className="materials-grid" style={{ display: 'grid', gap: '10px', marginTop: '10px' }}>
+                        {selectedClass.link && (
+                          <a
+                            href={ensureHttps(selectedClass.link)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="modal-link-button-v2"
+                            style={{ margin: 0 }}
+                          >
+                            <MonitorPlay size={20} /> Ver Presentación (Canva/Material)
+                          </a>
+                        )}
 
-                  {selectedClass.sitesLink && (
-                    <div className="premium-card-section">
-                      <a
-                        href={ensureHttps(selectedClass.sitesLink)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="modal-link-button-v2 sites-link"
-                      >
-                        <Globe size={20} /> Ir a Google Sites
-                      </a>
+                        {selectedClass.sitesLink && (
+                          <a
+                            href={ensureHttps(selectedClass.sitesLink)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="modal-link-button-v2 sites-link"
+                            style={{ margin: 0 }}
+                          >
+                            <Globe size={20} /> Ir a Google Sites
+                          </a>
+                        )}
+                      </div>
                     </div>
                   )}
 
