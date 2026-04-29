@@ -160,8 +160,8 @@ const getColumnIndices = (table: any, is1M: boolean) => {
     responsable: findIdx('responsable') !== -1 ? findIdx('responsable') : (is1M ? 10 : 9),
     diseno: findIdx('diseño') !== -1 ? findIdx('diseño') : (is1M ? 11 : 10),
     docente: findIdx('docente') !== -1 ? findIdx('docente') : (is1M ? 14 : 12),
-    link: findIdx('link') !== -1 ? findIdx('link') : (is1M ? 13 : 11),
-    sites: findIdx('sites') !== -1 ? findIdx('sites') : -1
+    link: findIdx('link') !== -1 ? findIdx('link') : (findIdx('canva') !== -1 ? findIdx('canva') : (findIdx('presentación') !== -1 ? findIdx('presentación') : (is1M ? 13 : 11))),
+    sites: findIdx('sites') !== -1 ? findIdx('sites') : (findIdx('google sites') !== -1 ? findIdx('google sites') : -1)
   };
 };
 
