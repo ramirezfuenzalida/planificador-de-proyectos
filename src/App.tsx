@@ -11,7 +11,6 @@ import {
   Calendar,
   Clock,
   MessageSquare,
-  Link2,
   X,
   Target,
   BookOpen,
@@ -142,10 +141,15 @@ const getMonthString = (date: Date) => {
 const getColumnIndices = (table: any, is1M: boolean) => {
   const findIdx = (label: string) => {
     if (!table || !table.cols) return -1;
-    return table.cols.findIndex((col: any) => 
+    return table.cols.findIndex((col: any) =>
       col.label && col.label.toLowerCase().includes(label.toLowerCase())
     );
   };
+
+  const canvaIdx = findIdx('canva');
+  const pptxIdx = findIdx('pptx');
+  const presIdx = findIdx('presentación');
+  const presIdx2 = findIdx('presentacion');
 
   return {
     semana: findIdx('semana') !== -1 ? findIdx('semana') : 0,
@@ -160,8 +164,10 @@ const getColumnIndices = (table: any, is1M: boolean) => {
     responsable: findIdx('responsable') !== -1 ? findIdx('responsable') : (is1M ? 10 : 9),
     diseno: findIdx('diseño') !== -1 ? findIdx('diseño') : (is1M ? 11 : 10),
     docente: findIdx('docente') !== -1 ? findIdx('docente') : (is1M ? 14 : 12),
-    link: findIdx('link') !== -1 ? findIdx('link') : (findIdx('canva') !== -1 ? findIdx('canva') : (findIdx('presentación') !== -1 ? findIdx('presentación') : (findIdx('material') !== -1 ? findIdx('material') : (is1M ? 13 : 11)))),
-    sites: findIdx('sites') !== -1 ? findIdx('sites') : (findIdx('google sites') !== -1 ? findIdx('google sites') : -1)
+    canva: canvaIdx !== -1 ? canvaIdx : (is1M ? 12 : 11),
+    pptx: pptxIdx !== -1 ? pptxIdx : (presIdx !== -1 ? presIdx : (presIdx2 !== -1 ? presIdx2 : (is1M ? 13 : -1))),
+    link: findIdx('link') !== -1 ? findIdx('link') : (canvaIdx !== -1 ? canvaIdx : (presIdx !== -1 ? presIdx : (presIdx2 !== -1 ? presIdx2 : (findIdx('material') !== -1 ? findIdx('material') : (is1M ? 12 : 11))))),
+    sites: findIdx('sites') !== -1 ? findIdx('sites') : (findIdx('google site') !== -1 ? findIdx('google site') : (findIdx('google sites') !== -1 ? findIdx('google sites') : -1))
   };
 };
 
@@ -197,16 +203,31 @@ const App = () => {
   // Registration States
   const [selectedClass, setSelectedClass] = useState<any | null>(null);
   const [registrations, setRegistrations] = useState<Record<string, string>>(() => {
-    try {
-      const saved = localStorage.getItem('zenit_registrations');
-      return (saved && saved !== 'undefined') ? JSON.parse(saved) : {};
-    } catch (e) {
-      console.error('Error loading registrations:', e);
-      return {};
+    const saved = localStorage.getItem('zenit_registrations_v1');
+    const base = saved ? JSON.parse(saved) : {};
+    
+    // Auto-populate first 9 classes if not present
+    const courses = ['1MA', '1MB', '1MC', '1MD', '2MA', '2MB', '2MC', '2MD'];
+    let changed = false;
+    courses.forEach(c => {
+      for (let i = 1; i <= 32; i++) {
+        const key = `${c}-${i}`;
+        if (!base[key] && i <= 9) {
+          base[key] = 'green';
+          changed = true;
+        }
+      }
+    });
+    
+    if (changed) {
+      localStorage.setItem('zenit_registrations_v1', JSON.stringify(base));
     }
+    
+    return base;
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastRegisteredColor, setLastRegisteredColor] = useState<string | null>(null);
+  const [successInfo, setSuccessInfo] = useState({ title: 'REGISTRO EXITOSO', sub: 'La información se ha sincronizado correctamente.' });
 
   // Observation States
   const [observations, setObservations] = useState<Record<string, string>>(() => {
@@ -218,11 +239,11 @@ const App = () => {
       return {};
     }
   });
-  const [showObservationInput, setShowObservationInput] = useState(false);
+  const [selectedCalendarDay, setSelectedCalendarDay] = useState<any | null>(null);
 
   // Sync to local storage
   useEffect(() => {
-    localStorage.setItem('zenit_registrations', JSON.stringify(registrations));
+    localStorage.setItem('zenit_registrations_v1', JSON.stringify(registrations));
   }, [registrations]);
 
   useEffect(() => {
@@ -243,48 +264,101 @@ const App = () => {
         try {
           const res1 = await fetch(`https://docs.google.com/spreadsheets/d/${PRIMERO_MEDIO_SHEET}/gviz/tq?tqx=out:json&gid=1238478499`);
           const text1 = await res1.text();
-          const j1 = JSON.parse(text1.substring(text1.indexOf('{'), text1.lastIndexOf('}') + 1));
+          const jsonStr1 = text1.substring(text1.indexOf('{'), text1.lastIndexOf('}') + 1);
+          const j1 = JSON.parse(jsonStr1);
 
-          const res2 = await fetch(`https://docs.google.com/spreadsheets/d/${SEGUNDO_MEDIO_SHEET}/gviz/tq?tqx=out:json`);
+          const res2 = await fetch(`https://docs.google.com/spreadsheets/d/${SEGUNDO_MEDIO_SHEET}/gviz/tq?tqx=out:json&gid=0`);
           const text2 = await res2.text();
-          const j2 = JSON.parse(text2.substring(text2.indexOf('{'), text2.lastIndexOf('}') + 1));
+          const jsonStr2 = text2.substring(text2.indexOf('{'), text2.lastIndexOf('}') + 1);
+          const j2 = JSON.parse(jsonStr2);
 
           const pmIdx = getColumnIndices(j1.table, true);
           const smIdx = getColumnIndices(j2.table, false);
 
           let pmRows = (j1.table && j1.table.rows) ? j1.table.rows.filter((r: any) => r && r.c && r.c[pmIdx.clase]?.v) : [];
           let smRows = (j2.table && j2.table.rows) ? j2.table.rows.filter((r: any) => r && r.c && r.c[smIdx.clase]?.v) : [];
-          
+
           // Corrector algorítmico de feriados sobre tabla original
           pmRows = applyDateShifting(pmRows, pmIdx.fecha);
           smRows = applyDateShifting(smRows, smIdx.fecha);
 
           setGlobalData({
-            pm: pmRows.map((r: any) => ({
-              clase: String(r.c[pmIdx.clase]?.v),
-              fecha: r.c[pmIdx.fecha]?.f || r.c[pmIdx.fecha]?.v,
-              rawFecha: parseGoogleDate(r.c[pmIdx.fecha]?.v),
-              rawDocente: String(r.c[pmIdx.docente]?.v || "") === "null" ? "" : String(r.c[pmIdx.docente]?.v || ""),
-              etapa: String(r.c[pmIdx.etapa]?.v || "")
-            })),
-            sm: smRows.map((r: any) => {
-              const rawDate = parseGoogleDate(r.c[smIdx.fecha]?.v);
-              let claseVal = String(r.c[smIdx.clase]?.v || "");
+            pm: pmRows.map((r: any) => {
+              const rawDate = parseGoogleDate(r.c[pmIdx.fecha]?.v);
+              const rawDocente = String(r.c[pmIdx.docente]?.v || "") === "null" ? "" : String(r.c[pmIdx.docente]?.v || "");
               
-              // Corrección de secuencia para 2° Medios (v05/05 = Clase 12)
-              // Buscamos la fila que corresponde al 05/05 o posterior para ajustar el desfase si es necesario
-              if (rawDate && rawDate >= new Date(2026, 4, 5)) {
-                 // El usuario indica que el 05/05 es la Clase 12. 
-                 // Si el sheet tiene otro valor, podríamos forzarlo, pero lo más probable es que 
-                 // necesitemos asegurar que la visualización refleje esta continuidad.
+              const getBestLink = (i: number) => {
+                const cell = (r.c && r.c[i]) ? r.c[i] : null;
+                if (!cell) return null;
+                if (cell.l) return cell.l;
+                const v = String(cell.v || "").trim();
+                if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com')) return v;
+                return null;
+              };
+
+              const linkValue = getBestLink(pmIdx.link);
+              let finalLink = linkValue;
+              if (!finalLink && (rawDocente.toLowerCase().includes('http') || rawDocente.toLowerCase().includes('canva.com'))) {
+                finalLink = rawDocente;
               }
 
               return {
-                clase: claseVal,
+                clase: String(r.c[pmIdx.clase]?.v),
+                fecha: r.c[pmIdx.fecha]?.f || r.c[pmIdx.fecha]?.v,
+                rawFecha: rawDate,
+                dia: String(r.c[pmIdx.dia]?.v || ""),
+                horario: String(r.c[pmIdx.horario]?.v || ""),
+                etapa: String(r.c[pmIdx.etapa]?.v || ""),
+                objetivo: String(r.c[pmIdx.objetivo]?.v || ""),
+                contenido: String(r.c[pmIdx.contenido]?.v || ""),
+                actividad: String(r.c[pmIdx.actividad]?.v || ""),
+                responsable: String(r.c[pmIdx.responsable]?.v || ""),
+                diseno: String(r.c[pmIdx.diseno]?.v || ""),
+                docenteRealiza: getTeacherForCourse(rawDocente, '1 Medio A'),
+                rawDocente: rawDocente, 
+                link: finalLink,
+                sitesLink: getBestLink(pmIdx.sites),
+                canvaLink: getBestLink(pmIdx.canva),
+                pptLink: pmIdx.pptx !== -1 ? getBestLink(pmIdx.pptx) : null
+              };
+            }),
+            sm: smRows.map((r: any) => {
+              const rawDate = parseGoogleDate(r.c[smIdx.fecha]?.v);
+              const rawDocente = String(r.c[smIdx.docente]?.v || "") === "null" ? "" : String(r.c[smIdx.docente]?.v || "");
+              
+              const getBestLink = (i: number) => {
+                const cell = (r.c && r.c[i]) ? r.c[i] : null;
+                if (!cell) return null;
+                if (cell.l) return cell.l;
+                const v = String(cell.v || "").trim();
+                if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com')) return v;
+                return null;
+              };
+
+              const linkValue = getBestLink(smIdx.link);
+              let finalLink = linkValue;
+              if (!finalLink && (rawDocente.toLowerCase().includes('http') || rawDocente.toLowerCase().includes('canva.com'))) {
+                finalLink = rawDocente;
+              }
+
+              return {
+                clase: String(r.c[smIdx.clase]?.v),
                 fecha: r.c[smIdx.fecha]?.f || r.c[smIdx.fecha]?.v,
                 rawFecha: rawDate,
-                rawDocente: String(r.c[smIdx.docente]?.v || "") === "null" ? "" : String(r.c[smIdx.docente]?.v || ""),
-                etapa: String(r.c[smIdx.etapa]?.v || "")
+                dia: String(r.c[smIdx.dia]?.v || ""),
+                horario: String(r.c[smIdx.horario]?.v || ""),
+                etapa: String(r.c[smIdx.etapa]?.v || ""),
+                objetivo: String(r.c[smIdx.objetivo]?.v || ""),
+                contenido: String(r.c[smIdx.contenido]?.v || ""),
+                actividad: String(r.c[smIdx.actividad]?.v || ""),
+                responsable: String(r.c[smIdx.responsable]?.v || ""),
+                diseno: String(r.c[smIdx.diseno]?.v || ""),
+                docenteRealiza: getTeacherForCourse(rawDocente, '2 Medio A'),
+                rawDocente: rawDocente,
+                link: finalLink,
+                sitesLink: getBestLink(smIdx.sites),
+                canvaLink: getBestLink(smIdx.canva),
+                pptLink: smIdx.pptx !== -1 ? getBestLink(smIdx.pptx) : null
               };
             })
           });
@@ -296,12 +370,19 @@ const App = () => {
       };
       fetchGlobal();
     }
-  }, [view, globalData.pm.length]);
+  }, [view]);
+
+  const getCourseTag = (courseName: string | null) => {
+    if (!courseName) return '';
+    if (courseName === 'Resumen') return 'RESUMEN';
+    const parts = courseName.split(' ');
+    // "1 Medio A" -> "1" + "M" + "A" = "1MA"
+    return (parts[0] + 'M' + parts[parts.length - 1]).toUpperCase();
+  };
 
   const getTeacherForCourse = (raw: string, courseName: string | null) => {
     if (!raw || !courseName) return raw;
-    const parts_course = courseName.split(' ');
-    const tag = (parts_course[0] + 'M' + parts_course[parts_course.length - 1]).toUpperCase();
+    const tag = getCourseTag(courseName);
     const tags = ['1MA', '1MB', '1MC', '1MD', '2MA', '2MB', '2MC', '2MD', 'RESUMEN'];
     const regex = new RegExp(`(${tags.join('|')})`, 'gi');
     if (!new RegExp(tag, 'i').test(raw)) {
@@ -388,9 +469,9 @@ const App = () => {
 
         const is1M = activeCourse.startsWith('1');
         const idx = getColumnIndices(data.table, is1M);
-        
+
         let baseRows = data.table.rows.filter((row: any) => row && row.c && row.c[idx.clase]?.v !== null);
-        
+
         // Corrector algorítmico de feriados sobre tabla maestra listada
         baseRows = applyDateShifting(baseRows, idx.fecha);
 
@@ -410,7 +491,7 @@ const App = () => {
             const getBestLink = (i: number) => {
               const cell = (cells && cells[i]) ? cells[i] : null;
               if (!cell) return null;
-              if (cell.l) return cell.l; 
+              if (cell.l) return cell.l;
               const v = String(cell.v || "").trim();
               if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com')) return v;
               return null;
@@ -436,7 +517,9 @@ const App = () => {
               diseno: getVal(idx.diseno) || '',
               docenteRealiza: parsedDocente,
               link: finalLink,
-              sitesLink: getBestLink(idx.sites)
+              sitesLink: getBestLink(idx.sites),
+              canvaLink: getBestLink(idx.canva),
+              pptLink: idx.pptx !== -1 ? getBestLink(idx.pptx) : null
             };
           });
 
@@ -493,7 +576,9 @@ const App = () => {
   const handleRegisterStatus = (statusColor: string) => {
     if (!selectedClass || !activeCourse) return;
 
-    const registrationId = `${activeCourse}-${selectedClass.clase}`;
+    const courseTag = getCourseTag(activeCourse);
+    const clsId = String(selectedClass.clase || "").replace(/[^0-9]/g, '');
+    const registrationId = `${courseTag}-${clsId}`;
 
     if (statusColor === '') {
       setRegistrations(prev => {
@@ -511,6 +596,10 @@ const App = () => {
       [registrationId]: statusColor
     }));
 
+    setSuccessInfo({
+      title: 'REGISTRO EXITOSO',
+      sub: 'El estado de la clase se ha actualizado correctamente.'
+    });
     setLastRegisteredColor(statusColor);
     setShowSuccess(true);
 
@@ -644,13 +733,13 @@ const App = () => {
               <img src="/logo-liceo.png" alt="Liceo Logo" />
             </div>
             <div className="inst-info-box">
-              <span className="inst-name-small">Liceo Bicentenario</span>
+              <span className="inst-name-small">Liceo William Taylor</span>
               <span className="inst-role-small">Administrador</span>
             </div>
           </div>
-          
+
           <div className="sidebar-version">
-            ExeApp versión 1.1.03
+            ZenitApp versión 1.1.05
           </div>
         </div>
       </aside>
@@ -681,63 +770,139 @@ const App = () => {
                   </div>
                   <div className="calendar-controls">
                     <div className="ios-segmented-control">
-                      <button className="nav-btn-circle" onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1))}>
+                      <button className="nav-btn-circle" onClick={() => { setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1)); setSelectedCalendarDay(null); }}>
                         <ChevronLeft size={16} />
                       </button>
-                      <button className="ios-today-btn" onClick={() => setCurrentCalendarDate(new Date())}>
+                      <button className="ios-today-btn" onClick={() => { setCurrentCalendarDate(new Date()); setSelectedCalendarDay(null); }}>
                         Hoy
                       </button>
-                      <button className="nav-btn-circle" onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1))}>
+                      <button className="nav-btn-circle" onClick={() => { setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1)); setSelectedCalendarDay(null); }}>
                         <ChevronRight size={16} />
                       </button>
                     </div>
                   </div>
                 </div>
 
-                <div className="calendar-grid">
-                  {['Lun', 'Mar', 'Mié', 'Jue', 'Vie'].map(d => (
-                    <div key={d} className="weekday-header">{d}</div>
-                  ))}
+                {!selectedCalendarDay ? (
+                  <div className="calendar-grid">
+                    {['Lun', 'Mar', 'Mié', 'Jue', 'Vie'].map(d => (
+                      <div key={d} className="weekday-header">{d}</div>
+                    ))}
 
-                  {calendarDays.filter(d => d.date.getDay() !== 0 && d.date.getDay() !== 6).map((d, idx) => {
-                    const isToday = d.date.toDateString() === today.toDateString();
+                    {calendarDays.filter(d => d.date.getDay() !== 0 && d.date.getDay() !== 6).map((d, idx) => {
+                      const isToday = d.date.toDateString() === today.toDateString();
+                      const dateStr = `${d.date.getFullYear()}-${String(d.date.getMonth() + 1).padStart(2, '0')}-${String(d.date.getDate()).padStart(2, '0')}`;
+                      
+                      const pmClases = activeLevels.includes('1M') ? globalData.pm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString()) : [];
+                      const smClases = activeLevels.includes('2M') ? globalData.sm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString()) : [];
+                      const daySpecialEvents = specialEvents.filter(ev => ev.date === dateStr);
 
-                    // Filter classes for this day
-                    const pmClases = activeLevels.includes('1M') ? globalData.pm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString()) : [];
-                    const smClases = activeLevels.includes('2M') ? globalData.sm.filter(c => c.rawFecha && c.rawFecha.toDateString() === d.date.toDateString()) : [];
+                      const hasActivity = pmClases.length > 0 || smClases.length > 0 || daySpecialEvents.length > 0;
 
-                    // Filter special events
-                    // Special event date is YYYY-MM-DD
-                    const dateStr = `${d.date.getFullYear()}-${String(d.date.getMonth() + 1).padStart(2, '0')}-${String(d.date.getDate()).padStart(2, '0')}`;
-                    const daySpecialEvents = specialEvents.filter(ev => ev.date === dateStr);
+                      return (
+                        <div 
+                          key={idx} 
+                          className={`calendar-day-cell ${!d.currentMonth ? 'other-month' : ''} ${isToday ? 'is-today' : ''} ${isHoliday(d.date) ? 'holiday-bg' : ''} ${hasActivity ? 'has-activity' : ''}`}
+                          onClick={() => setSelectedCalendarDay({ date: d.date, pm: pmClases, sm: smClases, special: daySpecialEvents })}
+                        >
+                          <div className="day-number">{d.day}</div>
+                          <div className="day-events-container">
+                            {pmClases.map((c, i) => {
+                              const clsId = String(c.clase || "").replace(/[^0-9]/g, '');
+                              const status = registrations[`1MA-${clsId}`] || registrations[`1MB-${clsId}`] || registrations[`1MC-${clsId}`] || registrations[`1MD-${clsId}`];
+                              return (
+                                <div 
+                                  key={`pm-${i}`} 
+                                  className={`event-dot-compact ev-1m clickable status-${status || 'none'}`}
+                                  onClick={(e) => { e.stopPropagation(); setActiveCourse(c.curso || '1 Medio A'); setSelectedClass(c); }}
+                                >
+                                  {status === 'completa' && <CheckCircle2 size={10} className="status-mini-icon" />}
+                                  {status === 'pendiente' && <AlertCircle size={10} className="status-mini-icon" />}
+                                  {status === 'no-realizada' && <XCircle size={10} className="status-mini-icon" />}
+                                  Clase {c.clase}
+                                </div>
+                              );
+                            })}
+                            {smClases.map((c, i) => {
+                              const clsId = String(c.clase || "").replace(/[^0-9]/g, '');
+                              const status = registrations[`2MA-${clsId}`] || registrations[`2MB-${clsId}`] || registrations[`2MC-${clsId}`] || registrations[`2MD-${clsId}`];
+                              return (
+                                <div 
+                                  key={`sm-${i}`} 
+                                  className={`event-dot-compact ev-2m clickable status-${status || 'none'}`}
+                                  onClick={(e) => { e.stopPropagation(); setActiveCourse(c.curso || '2 Medio A'); setSelectedClass(c); }}
+                                >
+                                  {status === 'completa' && <CheckCircle2 size={10} className="status-mini-icon" />}
+                                  {status === 'pendiente' && <AlertCircle size={10} className="status-mini-icon" />}
+                                  {status === 'no-realizada' && <XCircle size={10} className="status-mini-icon" />}
+                                  Clase {c.clase}
+                                </div>
+                              );
+                            })}
+                            {daySpecialEvents.map((ev, i) => (
+                              <div key={`spec-${i}`} className={`event-dot-compact ${ev.type === 'Evaluación' ? 'ev-eval' : 'ev-spec'}`}>
+                                {ev.title}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="selected-day-focus-view">
+                    <div className="focus-view-header">
+                      <button className="back-to-grid-btn" onClick={() => setSelectedCalendarDay(null)}>
+                        <ChevronLeft size={20} /> Volver al Mes
+                      </button>
+                      <div className="focus-date-title">
+                        <h3>{selectedCalendarDay.date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
+                      </div>
+                    </div>
 
-                    return (
-                      <div key={idx} className={`calendar-day-cell ${!d.currentMonth ? 'other-month' : ''} ${isToday ? 'is-today' : ''} ${isHoliday(d.date) ? 'holiday-bg' : ''}`}>
-                        <div className="day-number">{d.day}</div>
-                        <div className="day-events-container">
-                          {pmClases.map((c, i) => (
-                            <div key={`pm-${i}`} className="event-dot-compact ev-1m" title={`${c.etapa} - Clase ${c.clase}`}>
-                              CLASE N° {c.clase}
+                    <div className="focus-activities-grid">
+                      <div className="focus-section">
+                        <h4><BookOpen size={18} /> Clases Programadas</h4>
+                        <div className="focus-cards-list">
+                          {[...selectedCalendarDay.pm, ...selectedCalendarDay.sm].map((c, i) => (
+                            <div key={i} className={`focus-activity-card ${c.rawFecha && c.rawFecha.toDateString().includes('1M') ? 'ev-1m' : 'ev-2m'}`} onClick={() => { setActiveCourse(c.curso || (selectedCalendarDay.pm.includes(c) ? '1 Medio A' : '2 Medio A')); setSelectedClass(c); }}>
+                              <div className="focus-card-meta">
+                                <span className="focus-clase-num">CLASE N° {c.clase}</span>
+                                <span className="focus-clase-time"><Clock size={12} /> {c.horario}</span>
+                              </div>
+                              <p className="focus-clase-obj">{c.objetivo || 'Sin objetivo definido'}</p>
+                              <div className="focus-card-footer">
+                                <span><User size={12} /> {c.docenteRealiza}</span>
+                              </div>
                             </div>
                           ))}
-                          {smClases.map((c, i) => (
-                            <div key={`sm-${i}`} className="event-dot-compact ev-2m" title={`${c.etapa} - Clase ${c.clase}`}>
-                              CLASE N° {c.clase}
-                            </div>
-                          ))}
-                          {daySpecialEvents.map((ev, i) => (
-                            <div key={`spec-${i}`} className={`event-dot-compact ${ev.type === 'Evaluación' ? 'ev-eval' : 'ev-spec'}`}>
-                              {ev.title}
-                            </div>
-                          ))}
+                          {selectedCalendarDay.pm.length === 0 && selectedCalendarDay.sm.length === 0 && (
+                            <p className="empty-focus">No hay clases registradas para este día.</p>
+                          )}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+
+                      <div className="focus-section">
+                        <h4><Sparkles size={18} /> Eventos y Especiales</h4>
+                        <div className="focus-cards-list">
+                          {selectedCalendarDay.special.map((ev: any, i: number) => (
+                            <div key={i} className="focus-activity-card ev-spec">
+                              <span className="focus-clase-num">{ev.title}</span>
+                              <span className="focus-clase-time">{ev.type}</span>
+                            </div>
+                          ))}
+                          {selectedCalendarDay.special.length === 0 && (
+                            <p className="empty-focus">No hay eventos especiales.</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="calendar-event-sidebar">
+                {/* ... existing sidebar content ... */}
                 <div className="apple-calendar-selectors">
                   <h3>Calendarios</h3>
                   <div className="calendar-selector-item" onClick={() => setActiveLevels(prev => prev.includes('1M') ? prev.filter(l => l !== '1M') : [...prev, '1M'])}>
@@ -752,48 +917,45 @@ const App = () => {
 
                 <div className="event-form-card">
                   {/* Sidebar Tools - Modern Academic Area */}
-        <div className="modern-form-container">
-          <div className="modern-form-header">
-            <Sparkles size={18} color="#00236f" />
-            <h3>Planificar Nueva Actividad</h3>
-          </div>
-          
-          <form onSubmit={addSpecialEvent} className="modern-ios-form">
-            <div className="modern-form-row">
-              <div className="modern-row-icon"><Type size={16} /></div>
-              <div className="modern-row-content">
-                <label>Título de la Actividad</label>
-                <input name="title" type="text" placeholder="Ej: Concierto de Invierno" required />
-              </div>
-            </div>
-            
-            <div className="modern-form-row">
-              <div className="modern-row-icon"><Calendar size={16} /></div>
-              <div className="modern-row-content">
-                <label>Fecha del Evento</label>
-                <input name="date" type="date" required />
-              </div>
-            </div>
-            
-            <div className="modern-form-row">
-              <div className="modern-row-icon"><Bookmark size={16} /></div>
-              <div className="modern-row-content">
-                <label>Categoría</label>
-                <select name="type" required>
-                  <option value="Evaluación">Evaluación</option>
-                  <option value="Ensayo">Ensayo</option>
-                  <option value="Evento">Evento Especial</option>
-                  <option value="Admin">Administrativo</option>
-                </select>
-              </div>
-            </div>
-          </form>
+                  <div className="modern-form-container">
+                    <div className="modern-form-header">
+                      <Sparkles size={18} color="#00236f" />
+                      <h3>Planificar Nueva Actividad</h3>
+                    </div>
 
-          <button type="submit" onClick={() => (document.querySelector('.modern-ios-form') as HTMLFormElement)?.requestSubmit()} className="btn-create-event-premium">
-            <Plus size={18} />
-            Agendar en Calendario
-          </button>
-        </div>
+                    <form onSubmit={addSpecialEvent} className="modern-ios-form">
+                      <div className="modern-form-row title-row">
+                        <div className="modern-row-icon icon-blue"><Type size={24} /></div>
+                        <input name="title" type="text" placeholder="Título de la Actividad..." required />
+                      </div>
+
+                      <div className="modern-form-row">
+                        <div className="modern-row-icon icon-red"><Calendar size={20} /></div>
+                        <div className="modern-row-content">
+                          <label>Fecha del Evento</label>
+                          <input name="date" type="date" required />
+                        </div>
+                      </div>
+
+                      <div className="modern-form-row">
+                        <div className="modern-row-icon icon-green"><Bookmark size={20} /></div>
+                        <div className="modern-row-content">
+                          <label>Categoría</label>
+                          <select name="type" required>
+                            <option value="Evaluación">Evaluación</option>
+                            <option value="Ensayo">Ensayo</option>
+                            <option value="Evento">Evento Especial</option>
+                            <option value="Admin">Administrativo</option>
+                          </select>
+                        </div>
+                      </div>
+                    </form>
+
+                    <button type="submit" onClick={() => (document.querySelector('.modern-ios-form') as HTMLFormElement)?.requestSubmit()} className="btn-create-event-premium">
+                      <Plus size={18} />
+                      Agendar en Calendario
+                    </button>
+                  </div>
                 </div>
 
                 <div className="upcoming-events-list">
@@ -828,7 +990,7 @@ const App = () => {
 
           // Stats and Teacher tracking
           let aggregatedStats = { realizadas: 0, incompletas: 0, noRealizadas: 0, total: 0 };
-          let teacherStats: Record<string, { realizadas: number, incompletas: number, noRealizadas: number, total: number }> = {};
+          let teacherStats: Record<string, { realizadas: number, incompletas: number, noRealizadas: number, total: number, classLog: any[] }> = {};
 
           targetCourses.forEach(course => {
             const levelData = course.startsWith('1') ? globalData.pm : globalData.sm;
@@ -850,12 +1012,25 @@ const App = () => {
 
               if (shouldInclude) {
                 aggregatedStats.total++;
-                const status = registrations[`${course}-${clase.clase}`];
+                const courseTag = getCourseTag(course);
+                // Robust key extraction: handles "1", "Clase 1", 1, etc.
+                const clsId = String(clase.clase || "").replace(/[^0-9]/g, '');
+                const status = registrations[`${courseTag}-${clsId}`];
 
                 // Track stats by teacher
-                const docName = getTeacherForCourse(clase.rawDocente, course) || "Sin Asignar";
-                if (!teacherStats[docName]) teacherStats[docName] = { realizadas: 0, incompletas: 0, noRealizadas: 0, total: 0 };
+                const docName = getTeacherForCourse(clase.rawDocente || clase.docenteRealiza || clase.responsable, course);
+                if (!docName || docName.trim() === "" || docName.toLowerCase().includes("sin asignar")) return;
+                
+                if (!teacherStats[docName]) {
+                  teacherStats[docName] = { realizadas: 0, incompletas: 0, noRealizadas: 0, total: 0, classLog: [] };
+                }
+                
                 teacherStats[docName].total++;
+                teacherStats[docName].classLog.push({ 
+                  num: clsId, 
+                  course: courseTag, 
+                  status: status || 'pending' 
+                });
 
                 if (status === 'green') {
                   aggregatedStats.realizadas++;
@@ -866,10 +1041,6 @@ const App = () => {
                 } else if (status === 'red') {
                   aggregatedStats.noRealizadas++;
                   teacherStats[docName].noRealizadas++;
-                } else {
-                  // Count as pending (if not marked) but for teacher stats we might want to see them as "no realizadas" or just "pending"
-                  // User said "completas, por completar y no realizadas"
-                  // "green" = completa, "yellow" = por completar (incompleta), "red" = no realizada.
                 }
               }
             });
@@ -969,13 +1140,13 @@ const App = () => {
                     <h1><PieChart size={32} color="#0EA5E9" /> Analítica Avanzada</h1>
                     <p className="reports-subtitle">Explora datos pedagógicos filtrados por nivel, período anual, mensual o trimestral.</p>
                   </div>
-                  <button 
-                    className="export-pdf-btn" 
+                  <button
+                    className="export-pdf-btn"
                     onClick={() => {
                       setTimeout(() => {
                         window.print();
                       }, 100);
-                    }} 
+                    }}
                     style={{ background: '#1e293b', color: 'white' }}
                   >
                     <Printer size={18} /> Imprimir Reporte
@@ -1069,26 +1240,48 @@ const App = () => {
                             </thead>
                             <tbody>
                               {Object.entries(teacherStats)
-                                .sort((a, b) => b[1].total - a[1].total)
+                                .sort((a, b) => {
+                                  const adheA = a[1].total > 0 ? (a[1].realizadas / a[1].total) : 0;
+                                  const adheB = b[1].total > 0 ? (b[1].realizadas / b[1].total) : 0;
+                                  return adheB - adheA;
+                                })
                                 .map(([name, stats]) => {
                                   const adhe = stats.total > 0 ? Math.round((stats.realizadas / stats.total) * 100) : 0;
+                                  let statusClass = 'status-bad';
+                                  let statusText = 'REQUIERE APOYO';
+                                  if (adhe >= 90) { statusClass = 'status-perfect'; statusText = 'EXCELENTE'; }
+                                  else if (adhe >= 70) { statusClass = 'status-good'; statusText = 'ÓPTIMO'; }
+                                  else if (adhe >= 50) { statusClass = 'status-warning'; statusText = 'EN PROGRESO'; }
+
                                   return (
                                     <tr key={name}>
                                       <td className="docente-name-cell">
-                                        <span>{name}</span>
+                                        <div className="teacher-avatar-mini">
+                                          {name.charAt(0)}
+                                        </div>
+                                        <div className="teacher-info-stack">
+                                          <span className="teacher-name-main">{name}</span>
+                                          <span className={`teacher-status-badge ${statusClass}`}>{statusText}</span>
+                                        </div>
                                       </td>
-                                      <td style={{ textAlign: 'center', fontWeight: '600' }}>{stats.total}</td>
-                                      <td style={{ textAlign: 'center', color: '#10b981', fontWeight: '500' }}>{stats.realizadas}</td>
-                                      <td style={{ textAlign: 'center', color: '#f59e0b', fontWeight: '500' }}>{stats.incompletas}</td>
-                                      <td style={{ textAlign: 'center', color: '#ef4444', fontWeight: '500' }}>{stats.noRealizadas}</td>
                                       <td style={{ textAlign: 'center' }}>
-                                        <div className="mini-progress-bg">
-                                          <div className="mini-progress-fill" style={{
-                                            width: `${adhe}%`,
-                                            backgroundColor: adhe > 80 ? '#10b981' : adhe > 50 ? '#f59e0b' : '#ef4444',
-                                            WebkitPrintColorAdjust: 'exact'
-                                          }}></div>
-                                          <span className="mini-progress-text">{adhe}%</span>
+                                        <span className="count-badge total">{stats.total}</span>
+                                      </td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        <span className="count-badge done">{stats.realizadas}</span>
+                                      </td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        <span className="count-badge process">{stats.incompletas}</span>
+                                      </td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        <span className="count-badge fail">{stats.noRealizadas}</span>
+                                      </td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        <div className="premium-adherence-cell">
+                                          <div className="pac-progress-bar">
+                                            <div className="pac-fill" style={{ width: `${adhe}%`, backgroundColor: adhe >= 90 ? '#10b981' : adhe >= 70 ? '#0ea5e9' : '#f59e0b' }}></div>
+                                          </div>
+                                          <span className="pac-value">{adhe}%</span>
                                         </div>
                                       </td>
                                     </tr>
@@ -1096,6 +1289,84 @@ const App = () => {
                                 })}
                             </tbody>
                           </table>
+                        </div>
+                      </div>
+
+                      {/* Detailed Teacher Logs Section */}
+                      <div className="reports-details-card" style={{ marginTop: '2rem' }}>
+                        <div className="section-title-premium">
+                          <BookOpen size={22} color="#0EA5E9" />
+                          <h3>Detalle de Clases por Docente</h3>
+                        </div>
+                        <div className="teachers-detail-grid">
+                          {Object.entries(teacherStats)
+                            .sort((a, b) => a[0].localeCompare(b[0]))
+                            .map(([name, stats]) => {
+                              return (
+                                <div key={name} className="teacher-detail-card">
+                                  <div className="tdc-header">
+                                    <div className="tdc-avatar">{name.charAt(0)}</div>
+                                    <div className="tdc-info">
+                                      <h4>{name}</h4>
+                                      <span>{stats.realizadas} de {stats.total} completadas</span>
+                                    </div>
+                                  </div>
+                                  <div className="tdc-classes-tags">
+                                    {stats.classLog
+                                      .sort((a, b) => parseInt(a.num) - parseInt(b.num))
+                                      .map((log, idx) => (
+                                        <div key={idx} className={`class-tag-mini ${log.status}`}>
+                                          <span className="ctm-num">C{log.num}</span>
+                                          <span className="ctm-course">{log.course}</span>
+                                        </div>
+                                      ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+
+                      {/* Observations Log Section */}
+                      <div className="reports-details-card" style={{ marginTop: '2rem' }}>
+                        <div className="section-title-premium">
+                          <MessageSquare size={22} color="#8B5CF6" />
+                          <h3>Bitácora de Observaciones Pedagógicas</h3>
+                        </div>
+                        <div className="observations-log-grid">
+                          {Object.entries(observations).filter(([_, text]) => text.trim().length > 0).length > 0 ? (
+                            Object.entries(observations)
+                              .filter(([_, text]) => text.trim().length > 0)
+                              .map(([id, text]) => {
+                                const [course, className] = id.split('-');
+                                const status = registrations[id];
+                                
+                                // Try to find teacher in global data
+                                let teacher = "Docente no especificado";
+                                const courseData = course.startsWith('1') ? globalData.pm : globalData.sm;
+                                const session = courseData.find((s: any) => s.clase === className);
+                                if (session) teacher = session.docenteRealiza || session.responsable || teacher;
+
+                                return (
+                                  <div key={id} className={`observation-log-card ${status || 'pending'}`}>
+                                    <div className="olc-header">
+                                      <span className="olc-course">{course}</span>
+                                      <span className="olc-class">Clase {className}</span>
+                                      <div className={`olc-status-dot ${status || 'pending'}`}></div>
+                                    </div>
+                                    <div className="olc-teacher">
+                                      <Users size={12} />
+                                      <span>{teacher}</span>
+                                    </div>
+                                    <p className="olc-text">"{text}"</p>
+                                  </div>
+                                );
+                              })
+                          ) : (
+                            <div className="no-observations-notice">
+                              <p>No se han registrado observaciones aún.</p>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -1125,7 +1396,7 @@ const App = () => {
                 </>
               )}
               <div className="print-footer">
-                © {new Date().getFullYear()} Liceo Bicentenario de Excelencia de Vallenar - Unidad de Innovación Pedagógica - ZenitApp Professional v1.1.03
+                © {new Date().getFullYear()} Liceo Bicentenario William Taylor de Alto Hospicio - Unidad de Innovación Pedagógica - ZenitApp Professional v1.1.04
               </div>
             </div>
           );
@@ -1149,13 +1420,13 @@ const App = () => {
 
                 window.print();
               }}
-              style={{
-                background: '#1e293b',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
+                style={{
+                  background: '#1e293b',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
               >
                 <Printer size={18} /> Imprimir Reporte
               </button>
@@ -1165,22 +1436,24 @@ const App = () => {
               {(() => {
                 const allCourses = [...courses1M, ...courses2M];
                 const totalPossible = allCourses.length * classesList.length; // 8 * 32 = 256
-                
+
                 let realizadas = 0;
                 let incompletas = 0;
                 let noRealizadas = 0;
 
                 allCourses.forEach(course => {
-                  classesList.forEach(cls => {
-                    const status = registrations[`${course}-${cls}`];
+                  const courseTag = getCourseTag(course);
+                  classesList.forEach((_, i) => {
+                    const clsNum = i + 1;
+                    const status = registrations[`${courseTag}-${clsNum}`];
                     if (status === 'green') realizadas++;
                     else if (status === 'yellow') incompletas++;
                     else if (status === 'red') noRealizadas++;
                   });
                 });
 
-                const registradas = realizadas + incompletas + noRealizadas;
-                const pendientes = totalPossible - registradas;
+                // const registradas = realizadas + incompletas + noRealizadas;
+                // const pendientes = totalPossible - registradas;
                 const avanceGlobal = totalPossible > 0 ? Math.round((realizadas / totalPossible) * 100) : 0;
 
                 return (
@@ -1237,8 +1510,10 @@ const App = () => {
                       let noRealizadas = 0;
                       const totalCourse = classesList.length;
 
-                      classesList.forEach(cls => {
-                        const status = registrations[`${course}-${cls}`];
+                      const courseTag = getCourseTag(course);
+                      classesList.forEach((_, i) => {
+                        const clsNum = i + 1;
+                        const status = registrations[`${courseTag}-${clsNum}`];
                         if (status === 'green') realizadas++;
                         else if (status === 'yellow') incompletas++;
                         else if (status === 'red') noRealizadas++;
@@ -1268,7 +1543,64 @@ const App = () => {
             </div>
           </div>
         ) : view === 'courses' ? (
-          <div className="course-grid">
+          <div className="main-dashboard-container">
+            {/* Dashboard Overview Header */}
+            <div className="dashboard-overview-header">
+              <div className="welcome-banner-modern">
+                <div className="banner-text">
+                  <span className="banner-badge">Panel de Gestión Curricular</span>
+                  <h1>Bienvenido al Seguimiento de Proyectos</h1>
+                  <p>Liceo Bicentenario William Taylor de Alto Hospicio • Gestión de proyectos 2026</p>
+                </div>
+                <div className="banner-visual">
+                  <Sparkles size={120} className="floating-sparkle" />
+                </div>
+              </div>
+
+              <div className="dashboard-summary-row">
+                {(() => {
+                  const allCourses = [...courses1M, ...courses2M];
+                  const totalPossible = allCourses.length * classesList.length;
+                  let realizadas = 0;
+                  allCourses.forEach(course => {
+                    const courseTag = getCourseTag(course);
+                    classesList.forEach((_, i) => {
+                      const clsNum = i + 1;
+                      if (registrations[`${courseTag}-${clsNum}`] === 'green') realizadas++;
+                    });
+                  });
+                  const adherence = totalPossible > 0 ? Math.round((realizadas / totalPossible) * 100) : 0;
+
+                  return (
+                    <>
+                      <div className="summary-stat-item">
+                        <div className="stat-item-icon blue"><BookOpen size={24} /></div>
+                        <div className="stat-item-info">
+                          <span className="stat-label">Cursos Activos</span>
+                          <span className="stat-value">{allCourses.length} cursos disponibles</span>
+                        </div>
+                      </div>
+                      <div className="summary-stat-item">
+                        <div className="stat-item-icon green"><TrendingUp size={24} /></div>
+                        <div className="stat-item-info">
+                          <span className="stat-label">Adherencia Global</span>
+                          <span className="stat-value">{adherence}%</span>
+                        </div>
+                      </div>
+                      <div className="summary-stat-item">
+                        <div className="stat-item-icon purple"><Calendar size={24} /></div>
+                        <div className="stat-item-info">
+                          <span className="stat-label">Total Sesiones</span>
+                          <span className="stat-value">{totalPossible}</span>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className="course-grid">
             {[
               { id: 'letter-a', name: '1° Medio A', value: '1 Medio A', level: 'Primero Medio', icon: Users },
               { id: 'letter-b', name: '1° Medio B', value: '1 Medio B', level: 'Primero Medio', icon: Users },
@@ -1295,16 +1627,22 @@ const App = () => {
               </div>
             ))}
           </div>
+        </div>
         ) : (
           <div className={`class-selection-view ${getCourseColorClass(activeCourse)}`}>
             <div className="view-header">
-              <button className="back-btn" onClick={handleBackToCourses}>
-                <ChevronRight size={20} style={{ transform: 'rotate(180deg)' }} />
-                <span>Volver a Cursos</span>
-              </button>
-              <div className="current-context">
-                <p>Sesiones de seguimiento pedagógico</p>
-                <h2>{activeCourse}</h2>
+              <div className="view-header-flex">
+                <button className="back-btn-modern" onClick={handleBackToCourses}>
+                  <ChevronLeft size={20} />
+                  <span>Cursos</span>
+                </button>
+                <div className="current-context">
+                  <p>Sesiones de seguimiento pedagógico</p>
+                  <h2>{activeCourse}</h2>
+                </div>
+                <button className="close-view-btn" onClick={handleBackToCourses}>
+                  <X size={24} />
+                </button>
               </div>
             </div>
 
@@ -1325,18 +1663,20 @@ const App = () => {
                       <div className="cab-content-wrapper">
                         <div className="cab-header-top">
                           <span className="cab-number">#{session.clase || idx + 1}</span>
-                          {session.link && (
-                            <a
-                              href={ensureHttps(session.link)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="cab-link-btn"
-                              onClick={(e) => e.stopPropagation()}
-                              title="Ver material adjunto"
-                            >
-                              <Link2 size={16} />
-                            </a>
-                          )}
+                          <div className="cab-materials-badges">
+                            {session.canvaLink && (
+                              <div className="material-symbol-pro canva" title="Material Canva disponible">
+                                <MonitorPlay size={14} />
+                                <span>CANVA</span>
+                              </div>
+                            )}
+                            {session.pptLink && (
+                              <div className="material-symbol-pro ppt" title="Presentación PPTX disponible">
+                                <LayoutGrid size={14} />
+                                <span>PPTX</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <div className="cab-main">
@@ -1392,7 +1732,6 @@ const App = () => {
           className="modal-overlay-cosmic"
           onClick={() => {
             setSelectedClass(null);
-            setShowObservationInput(false);
           }}
         >
           <div
@@ -1402,181 +1741,157 @@ const App = () => {
             {/* Professional Sheet Handle for Mobile */}
             <div className="modal-sheet-handle"></div>
 
-            <button className="modal-close-btn" onClick={() => {
-              setSelectedClass(null);
-              setShowObservationInput(false);
-            }}>
+            <button className="modal-close-btn-pro" onClick={() => setSelectedClass(null)} title="Cerrar detalle">
               <X size={24} />
             </button>
 
-            <div className="modal-header-main-modern">
-              <div className="modal-nav-bar">
-                <button 
-                  className="nav-btn-premium" 
-                  onClick={() => {
-                    const idx = sheetData.findIndex(c => c === selectedClass);
-                    if (idx > 0) setSelectedClass(sheetData[idx - 1]);
-                  }}
-                  disabled={sheetData.findIndex(c => c === selectedClass) === 0}
-                >
-                  <ChevronLeft size={24} />
-                </button>
-                
-                <div className="modal-clase-highlight-mini">
-                  <span className="clase-label">CLASE</span>
-                  <span className="clase-number-mini">{selectedClass.clase}</span>
-                </div>
-
-                <button 
-                  className="nav-btn-premium" 
-                  onClick={() => {
-                    const idx = sheetData.findIndex(c => c === selectedClass);
-                    if (idx < sheetData.length - 1) setSelectedClass(sheetData[idx + 1]);
-                  }}
-                  disabled={sheetData.findIndex(c => c === selectedClass) === sheetData.length - 1}
-                >
-                  <ChevronRight size={24} />
-                </button>
-              </div>
-              
-              <div className="modal-title-context">
-                <h2>{activeCourse}</h2>
-                <div className="modal-logistics-badges">
-                  <span className="badge-ios"><Calendar size={14} /> {selectedClass.fecha}</span>
-                  <span className="badge-ios"><Clock size={14} /> {selectedClass.dia} | {selectedClass.horario}</span>
+            <div className="modal-header-compact">
+              <div className="modal-header-left">
+                <div className="modal-clase-num-badge">#{selectedClass.clase}</div>
+                <div className="modal-header-info">
+                  <h2>{activeCourse}</h2>
+                  <p>{selectedClass.dia} | {selectedClass.horario} • {selectedClass.fecha}</p>
                 </div>
               </div>
             </div>
 
             <div className="modal-scroll-area">
-              <div className="modal-grid-layout">
-                {/* Left Column: Management & Logistics */}
-                <div className="modal-column-management">
-                  <div className="premium-card-section">
-                    <h4 className="section-header-modern">
-                      <Sparkles size={18} color="#8B5CF6" /> 
-                      Gestión de Estado
-                    </h4>
-                    <div className="registration-controls-v2">
-                      <div className="status-button-grid">
-                        <button 
-                          className={`status-btn-v2 red ${registrations[`${activeCourse}-${selectedClass.clase}`] === 'red' ? 'active' : ''}`}
-                          onClick={() => handleRegisterStatus('red')}
-                        >
-                          No Realizada
-                        </button>
-                        <button 
-                          className={`status-btn-v2 yellow ${registrations[`${activeCourse}-${selectedClass.clase}`] === 'yellow' ? 'active' : ''}`}
-                          onClick={() => handleRegisterStatus('yellow')}
-                        >
-                          Incompleta
-                        </button>
-                        <button 
-                          className={`status-btn-v2 green ${registrations[`${activeCourse}-${selectedClass.clase}`] === 'green' ? 'active' : ''}`}
-                          onClick={() => handleRegisterStatus('green')}
-                        >
-                          Realizada
-                        </button>
-                      </div>
-                      
-                      {registrations[`${activeCourse}-${selectedClass.clase}`] && (
-                        <button className="revert-btn-v2" onClick={() => handleRegisterStatus('')}>
-                          <XCircle size={14} /> Limpiar registro actual
-                        </button>
-                      )}
+              <div className="modal-vertical-stack">
+                {/* Gestión de Estado */}
+                <div className="premium-card-section">
+                  <h4 className="section-header-modern">
+                    <Sparkles size={18} color="#8B5CF6" />
+                    Gestión de Estado
+                  </h4>
+                  <div className="registration-controls-v2">
+                    <div className="status-button-grid-pro">
+                      <button
+                        className={`status-btn-pro red ${registrations[`${getCourseTag(activeCourse)}-${selectedClass.clase}`] === 'red' ? 'active' : ''}`}
+                        onClick={() => handleRegisterStatus('red')}
+                      >
+                        <XCircle size={24} />
+                        <span>NO REALIZADA</span>
+                      </button>
+                      <button
+                        className={`status-btn-pro yellow ${registrations[`${getCourseTag(activeCourse)}-${selectedClass.clase}`] === 'yellow' ? 'active' : ''}`}
+                        onClick={() => handleRegisterStatus('yellow')}
+                      >
+                        <AlertCircle size={24} />
+                        <span>INCOMPLETA</span>
+                      </button>
+                      <button
+                        className={`status-btn-pro green ${registrations[`${getCourseTag(activeCourse)}-${selectedClass.clase}`] === 'green' ? 'active' : ''}`}
+                        onClick={() => handleRegisterStatus('green')}
+                      >
+                        <CheckCircle2 size={24} />
+                        <span>REALIZADA</span>
+                      </button>
                     </div>
-                  </div>
 
-                  <div className="premium-card-section">
-                    <h4 className="section-header-modern"><User size={18} color="#8B5CF6" /> Ejecución</h4>
-                    <div className="execution-box">
-                       <span className="execution-label">Docente en Aula:</span>
-                       <span className="execution-value">{selectedClass.docenteRealiza || 'No especificado'}</span>
-                    </div>
-                    <div className="execution-box secondary">
-                       <span className="execution-label">Responsables:</span>
-                       <span className="execution-value">{selectedClass.responsable || 'No asignados'}</span>
-                    </div>
-                  </div>
-
-                  {(selectedClass.link || selectedClass.sitesLink) && (
-                    <div className="premium-card-section">
-                      <h4 className="section-header-modern"><Layout size={18} color="#8B5CF6" /> Materiales y Recursos</h4>
-                      <div className="materials-grid" style={{ display: 'grid', gap: '10px', marginTop: '10px' }}>
-                        {selectedClass.link && (
-                          <a
-                            href={ensureHttps(selectedClass.link)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="modal-link-button-v2"
-                            style={{ margin: 0 }}
-                          >
-                            <MonitorPlay size={20} /> Ver Presentación (Canva/Material)
-                          </a>
-                        )}
-
-                        {selectedClass.sitesLink && (
-                          <a
-                            href={ensureHttps(selectedClass.sitesLink)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="modal-link-button-v2 sites-link"
-                            style={{ margin: 0 }}
-                          >
-                            <Globe size={20} /> Ir a Google Sites
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="premium-card-section">
-                    <h4 className="section-header-modern"><MessageSquare size={18} color="#8B5CF6" /> Observaciones</h4>
-                    <textarea
-                      className="modern-textarea"
-                      placeholder="Notas sobre la sesión..."
-                      value={observations[`${activeCourse}-${selectedClass.clase}`] || ''}
-                      onChange={(e) => setObservations(prev => ({
-                        ...prev,
-                        [`${activeCourse}-${selectedClass.clase}`]: e.target.value
-                      }))}
-                    />
+                    {registrations[`${getCourseTag(activeCourse)}-${selectedClass.clase}`] && (
+                      <button className="revert-btn-v2" onClick={() => handleRegisterStatus('')}>
+                        <XCircle size={14} /> Limpiar registro actual
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {/* Right Column: Pedagogical Content */}
-                <div className="modal-column-content">
-                  <div className="content-card-premium">
-                    <div className="content-card-header">
-                      <Target size={20} color="#8B5CF6" />
-                      <span>Objetivo de Aprendizaje</span>
+                {/* Ejecución */}
+                <div className="premium-card-section">
+                  <h4 className="section-header-modern"><User size={18} color="#8B5CF6" /> Ejecución y Responsables</h4>
+                  <div className="execution-row-pro">
+                    <div className="execution-box">
+                      <span className="execution-label">Docente en Aula:</span>
+                      <span className="execution-value">{selectedClass.docenteRealiza || 'No especificado'}</span>
                     </div>
+                    <div className="execution-box secondary">
+                      <span className="execution-label">Responsables:</span>
+                      <span className="execution-value">{selectedClass.responsable || 'No asignados'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Materiales */}
+                {(selectedClass.canvaLink || selectedClass.pptLink || selectedClass.sitesLink) && (
+                  <div className="premium-card-section">
+                    <h4 className="section-header-modern"><LayoutGrid size={18} color="#8B5CF6" /> Materiales Pedagógicos</h4>
+                    <div className="materials-grid-pro">
+                      {selectedClass.canvaLink && (
+                        <a href={ensureHttps(selectedClass.canvaLink)} target="_blank" rel="noopener noreferrer" className="material-btn-pro canva-style">
+                          <MonitorPlay size={20} /> Ver en Canva
+                        </a>
+                      )}
+                      {selectedClass.pptLink && (
+                        <a href={ensureHttps(selectedClass.pptLink)} target="_blank" rel="noopener noreferrer" className="material-btn-pro canva-style ppt-variant">
+                          <LayoutGrid size={20} /> Ver Presentación PPTX
+                        </a>
+                      )}
+                      {selectedClass.sitesLink && (
+                        <a href={ensureHttps(selectedClass.sitesLink)} target="_blank" rel="noopener noreferrer" className="material-btn-pro canva-style sites-variant">
+                          <Globe size={20} /> Google Sites
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contenido Pedagógico */}
+                <div className="content-stack-pro">
+                  <div className="content-card-premium">
+                    <div className="content-card-header"><Target size={20} color="#8B5CF6" /><span>Objetivo de Aprendizaje</span></div>
                     <div className="content-card-body">{selectedClass.objetivo || 'Sin objetivo definido'}</div>
                   </div>
 
                   <div className="content-card-premium">
-                    <div className="content-card-header">
-                      <BookOpen size={20} color="#8B5CF6" />
-                      <span>Contenido Curricular</span>
-                    </div>
+                    <div className="content-card-header"><BookOpen size={20} color="#8B5CF6" /><span>Contenido Curricular</span></div>
                     <div className="content-card-body">{selectedClass.contenido || 'Sin contenido definido'}</div>
                   </div>
 
                   <div className="content-card-premium">
-                    <div className="content-card-header">
-                      <ClipboardList size={20} color="#8B5CF6" />
-                      <span>Actividad Programada</span>
-                    </div>
+                    <div className="content-card-header"><ClipboardList size={20} color="#8B5CF6" /><span>Actividad Programada</span></div>
                     <div className="content-card-body">{selectedClass.actividad || 'Sin actividad definida'}</div>
                   </div>
 
                   <div className="content-card-premium">
-                    <div className="content-card-header">
-                      <Palette size={20} color="#8B5CF6" />
-                      <span>Diseño y Materiales</span>
-                    </div>
+                    <div className="content-card-header"><Palette size={20} color="#8B5CF6" /><span>Diseño y Materiales</span></div>
                     <div className="content-card-body">{selectedClass.diseno || 'Sin especificaciones'}</div>
                   </div>
+                </div>
+
+                {/* Observaciones */}
+                <div className="premium-card-section">
+                  <h4 className="section-header-modern"><MessageSquare size={18} color="#8B5CF6" /> Observaciones de la Sesión</h4>
+                  <textarea
+                    className="modern-textarea"
+                    placeholder="Escribe notas relevantes sobre el desarrollo de la clase..."
+                    value={observations[`${activeCourse}-${selectedClass.clase}`] || ''}
+                    onChange={(e) => setObservations(prev => ({
+                      ...prev,
+                      [`${activeCourse}-${selectedClass.clase}`]: e.target.value
+                    }))}
+                  />
+                   <button 
+                    className="btn-save-observation"
+                    onClick={() => {
+                      setSuccessInfo({
+                        title: 'OBSERVACIÓN GUARDADA',
+                        sub: 'Las notas pedagógicas se han registrado con éxito.'
+                      });
+                      setLastRegisteredColor('info');
+                      setShowSuccess(true);
+                      
+                      // Volver a los recuadros anteriores (cerrar modal)
+                      setTimeout(() => {
+                        setShowSuccess(false);
+                        setSelectedClass(null);
+                        setLastRegisteredColor(null);
+                      }, 2000);
+                      
+                      showToast('Observación guardada con éxito');
+                    }}
+                  >
+                    <ClipboardCheck size={18} /> Guardar Observación
+                  </button>
                 </div>
               </div>
             </div>
@@ -1588,11 +1903,11 @@ const App = () => {
       {showSuccess && (
         <div className={`success-overlay-premium ${lastRegisteredColor}`}>
           <div className="success-content-card">
-            <div className="success-icon-container">
+            <div className="success-icon-container" style={{ color: lastRegisteredColor === 'info' ? '#7c3aed' : '' }}>
               <CheckCircle2 size={70} />
             </div>
-            <h2>REGISTRO EXITOSO</h2>
-            <p>La información se ha sincronizado correctamente.</p>
+            <h2>{successInfo.title}</h2>
+            <p>{successInfo.sub}</p>
           </div>
         </div>
       )}
