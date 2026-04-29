@@ -1406,111 +1406,114 @@ const App = () => {
               <X size={24} />
             </button>
 
-            <div className="modal-header-main">
-              <div className="modal-clase-highlight">
-                <span className="clase-label">CLASE</span>
-                <span className="clase-number">{selectedClass.clase}</span>
+            <div className="modal-header-main-modern">
+              <div className="modal-nav-bar">
+                <button 
+                  className="nav-btn-premium" 
+                  onClick={() => {
+                    const idx = sheetData.findIndex(c => c === selectedClass);
+                    if (idx > 0) setSelectedClass(sheetData[idx - 1]);
+                  }}
+                  disabled={sheetData.findIndex(c => c === selectedClass) === 0}
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                
+                <div className="modal-clase-highlight-mini">
+                  <span className="clase-label">CLASE</span>
+                  <span className="clase-number-mini">{selectedClass.clase}</span>
+                </div>
+
+                <button 
+                  className="nav-btn-premium" 
+                  onClick={() => {
+                    const idx = sheetData.findIndex(c => c === selectedClass);
+                    if (idx < sheetData.length - 1) setSelectedClass(sheetData[idx + 1]);
+                  }}
+                  disabled={sheetData.findIndex(c => c === selectedClass) === sheetData.length - 1}
+                >
+                  <ChevronRight size={24} />
+                </button>
               </div>
-              <h2>{activeCourse}</h2>
-              <div className="modal-header-logistics">
-                <span><Calendar size={16} /> {selectedClass.fecha}</span>
-                <span><Clock size={16} /> {selectedClass.dia} | {selectedClass.horario}</span>
-                {selectedClass.link && (
-                  <a
-                    href={ensureHttps(selectedClass.link)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="modal-link-button-premium"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MonitorPlay size={18} strokeWidth={2.5} /> Presentación de la clase
-                  </a>
-                )}
+              
+              <div className="modal-title-context">
+                <h2>{activeCourse}</h2>
+                <div className="modal-logistics-badges">
+                  <span className="badge-ios"><Calendar size={14} /> {selectedClass.fecha}</span>
+                  <span className="badge-ios"><Clock size={14} /> {selectedClass.dia} | {selectedClass.horario}</span>
+                </div>
               </div>
             </div>
 
-            <div className="modal-body-content">
-              {/* Registration Controls - Moved UP for visibility */}
-              <div className="registration-controls" style={{ marginBottom: '2rem', background: '#f8fafc', padding: '1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-                <h4 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#1e293b', fontSize: '1.1rem' }}>
-                   <Sparkles size={20} color="var(--primary)" /> 
-                   Registro de Ejecución
-                </h4>
-                <div className="status-button-row">
-                  <button className="status-reg-btn red" onClick={() => handleRegisterStatus('red')}>
-                    No Realizada
-                  </button>
-                  <button className="status-reg-btn yellow" onClick={() => handleRegisterStatus('yellow')}>
-                    Incompleta
-                  </button>
-                  <button className="status-reg-btn green" onClick={() => handleRegisterStatus('green')}>
-                    Realizada
-                  </button>
-                </div>
-                {registrations[`${activeCourse}-${selectedClass.clase}`] && (
-                  <button
-                    className="clear-status-btn"
-                    onClick={() => handleRegisterStatus('')}
-                    style={{ marginTop: '1rem' }}
-                  >
-                    <XCircle size={14} /> Revertir / Limpiar
-                  </button>
-                )}
-              </div>
+            <div className="modal-scroll-area">
+              <div className="modal-grid-layout">
+                {/* Left Column: Management & Logistics */}
+                <div className="modal-column-management">
+                  <div className="premium-card-section">
+                    <h4 className="section-header-modern">
+                      <Sparkles size={18} color="#8B5CF6" /> 
+                      Gestión de Estado
+                    </h4>
+                    <div className="registration-controls-v2">
+                      <div className="status-button-grid">
+                        <button 
+                          className={`status-btn-v2 red ${registrations[`${activeCourse}-${selectedClass.clase}`] === 'red' ? 'active' : ''}`}
+                          onClick={() => handleRegisterStatus('red')}
+                        >
+                          No Realizada
+                        </button>
+                        <button 
+                          className={`status-btn-v2 yellow ${registrations[`${activeCourse}-${selectedClass.clase}`] === 'yellow' ? 'active' : ''}`}
+                          onClick={() => handleRegisterStatus('yellow')}
+                        >
+                          Incompleta
+                        </button>
+                        <button 
+                          className={`status-btn-v2 green ${registrations[`${activeCourse}-${selectedClass.clase}`] === 'green' ? 'active' : ''}`}
+                          onClick={() => handleRegisterStatus('green')}
+                        >
+                          Realizada
+                        </button>
+                      </div>
+                      
+                      {registrations[`${activeCourse}-${selectedClass.clase}`] && (
+                        <button className="revert-btn-v2" onClick={() => handleRegisterStatus('')}>
+                          <XCircle size={14} /> Limpiar registro actual
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
-              <div className="info-section-premium">
-                <h3><User size={18} color="#8B5CF6" /> Docente que Realiza la Clase</h3>
-                <div className="info-box-premium" style={{ borderLeft: '4px solid #8B5CF6', background: 'rgba(139, 92, 246, 0.05)', fontWeight: '700' }}>
-                  {selectedClass.docenteRealiza || 'No especificado'}
-                </div>
-              </div>
+                  <div className="premium-card-section">
+                    <h4 className="section-header-modern"><User size={18} color="#8B5CF6" /> Ejecución</h4>
+                    <div className="execution-box">
+                       <span className="execution-label">Docente en Aula:</span>
+                       <span className="execution-value">{selectedClass.docenteRealiza || 'No especificado'}</span>
+                    </div>
+                    <div className="execution-box secondary">
+                       <span className="execution-label">Responsables:</span>
+                       <span className="execution-value">{selectedClass.responsable || 'No asignados'}</span>
+                    </div>
+                  </div>
 
-              <div className="info-section-premium">
-                <h3><Users size={18} /> Docentes Responsables</h3>
-                <p>{selectedClass.responsable || 'No asignados'}</p>
-              </div>
+                  {selectedClass.link && (
+                    <div className="premium-card-section">
+                      <a
+                        href={ensureHttps(selectedClass.link)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="modal-link-button-v2"
+                      >
+                        <MonitorPlay size={20} /> Ver Presentación Digital
+                      </a>
+                    </div>
+                  )}
 
-              <div className="info-section-premium">
-                <h3><Target size={18} /> Objetivo de la Clase</h3>
-                <div className="info-box-premium objetivo">
-                  {selectedClass.objetivo || 'Sin objetivo definido'}
-                </div>
-              </div>
-
-              <div className="info-section-premium">
-                <h3><BookOpen size={18} /> Contenido</h3>
-                <div className="info-box-premium contenido">
-                  {selectedClass.contenido || 'Sin contenido definido'}
-                </div>
-              </div>
-
-              <div className="info-section-premium">
-                <h3><ClipboardList size={18} /> Actividad</h3>
-                <div className="info-box-premium actividad">
-                  {selectedClass.actividad || 'Sin actividad definida'}
-                </div>
-              </div>
-
-              <div className="info-section-premium">
-                <h3><Palette size={18} /> Diseño de Material</h3>
-                <div className="info-box-premium diseno">
-                  {selectedClass.diseno || 'Sin especificaciones de diseño'}
-                </div>
-              </div>
-
-              <div className="info-section-premium">
-                <button
-                  className="obs-toggle-btn"
-                  onClick={() => setShowObservationInput(!showObservationInput)}
-                >
-                  <MessageSquare size={18} /> Crear Observación
-                </button>
-
-                {showObservationInput && (
-                  <div className="observation-container">
+                  <div className="premium-card-section">
+                    <h4 className="section-header-modern"><MessageSquare size={18} color="#8B5CF6" /> Observaciones</h4>
                     <textarea
-                      className="observation-textarea"
-                      placeholder="Agrega notas, razones de no realización o datos relevantes sobre la sesión..."
+                      className="modern-textarea"
+                      placeholder="Notas sobre la sesión..."
                       value={observations[`${activeCourse}-${selectedClass.clase}`] || ''}
                       onChange={(e) => setObservations(prev => ({
                         ...prev,
@@ -1518,7 +1521,42 @@ const App = () => {
                       }))}
                     />
                   </div>
-                )}
+                </div>
+
+                {/* Right Column: Pedagogical Content */}
+                <div className="modal-column-content">
+                  <div className="content-card-premium">
+                    <div className="content-card-header">
+                      <Target size={20} color="#8B5CF6" />
+                      <span>Objetivo de Aprendizaje</span>
+                    </div>
+                    <div className="content-card-body">{selectedClass.objetivo || 'Sin objetivo definido'}</div>
+                  </div>
+
+                  <div className="content-card-premium">
+                    <div className="content-card-header">
+                      <BookOpen size={20} color="#8B5CF6" />
+                      <span>Contenido Curricular</span>
+                    </div>
+                    <div className="content-card-body">{selectedClass.contenido || 'Sin contenido definido'}</div>
+                  </div>
+
+                  <div className="content-card-premium">
+                    <div className="content-card-header">
+                      <ClipboardList size={20} color="#8B5CF6" />
+                      <span>Actividad Programada</span>
+                    </div>
+                    <div className="content-card-body">{selectedClass.actividad || 'Sin actividad definida'}</div>
+                  </div>
+
+                  <div className="content-card-premium">
+                    <div className="content-card-header">
+                      <Palette size={20} color="#8B5CF6" />
+                      <span>Diseño y Materiales</span>
+                    </div>
+                    <div className="content-card-body">{selectedClass.diseno || 'Sin especificaciones'}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
