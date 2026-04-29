@@ -934,12 +934,12 @@ const App = () => {
                     <span>{aggregatedStats.realizadas}</span>
                   </div>
                   <div className="legend-item">
-                    <div><span className="legend-dot" style={{ background: '#f59e0b' }}></span>En Proceso</div>
-                    <span>{aggregatedStats.incompletas}</span>
+                    <div><span className="legend-dot" style={{ background: '#ef4444' }}></span>No Realizadas</div>
+                    <span>{aggregatedStats.noRealizadas}</span>
                   </div>
                   <div className="legend-item">
-                    <div><span className="legend-dot" style={{ background: '#ef4444' }}></span>Pendientes</div>
-                    <span>{aggregatedStats.noRealizadas + (aggregatedStats.total - aggregatedStats.realizadas - aggregatedStats.incompletas - aggregatedStats.noRealizadas)}</span>
+                    <div><span className="legend-dot" style={{ background: '#e2e8f0' }}></span>Por Registrar</div>
+                    <span>{aggregatedStats.total - (aggregatedStats.realizadas + aggregatedStats.incompletas + aggregatedStats.noRealizadas)}</span>
                   </div>
                 </div>
               </div>
@@ -1122,7 +1122,7 @@ const App = () => {
                 </>
               )}
               <div className="print-footer">
-                © {new Date().getFullYear()} Liceo Bicentenario de Excelencia de Vallenar - Unidad de Innovación Pedagógica - ZenitApp Professional v1.5
+                © {new Date().getFullYear()} Liceo Bicentenario de Excelencia de Vallenar - Unidad de Innovación Pedagógica - ZenitApp Professional v1.1.02
               </div>
             </div>
           );
@@ -1160,40 +1160,52 @@ const App = () => {
 
             <div className="stats-grid-glass">
               {(() => {
-                const stats = Object.values(registrations).reduce((acc, curr) => {
-                  if (curr === 'green') acc.realizadas++;
-                  if (curr === 'yellow') acc.incompletas++;
-                  if (curr === 'red') acc.noRealizadas++;
-                  return acc;
-                }, { realizadas: 0, incompletas: 0, noRealizadas: 0 });
-                const total = stats.realizadas + stats.incompletas + stats.noRealizadas;
+                const allCourses = [...courses1M, ...courses2M];
+                const totalPossible = allCourses.length * classesList.length; // 8 * 32 = 256
+                
+                let realizadas = 0;
+                let incompletas = 0;
+                let noRealizadas = 0;
+
+                allCourses.forEach(course => {
+                  classesList.forEach(cls => {
+                    const status = registrations[`${course}-${cls}`];
+                    if (status === 'green') realizadas++;
+                    else if (status === 'yellow') incompletas++;
+                    else if (status === 'red') noRealizadas++;
+                  });
+                });
+
+                const registradas = realizadas + incompletas + noRealizadas;
+                const pendientes = totalPossible - registradas;
+                const avanceGlobal = totalPossible > 0 ? Math.round((realizadas / totalPossible) * 100) : 0;
 
                 return (
                   <>
                     <div className="stat-card-premium stat-blue">
                       <div className="stat-icon-wrapper"><TrendingUp size={28} /></div>
-                      <div className="stat-title">Clases Auditadas</div>
-                      <div className="stat-value">{total}</div>
+                      <div className="stat-title">Total Planificadas</div>
+                      <div className="stat-value">{totalPossible}</div>
                     </div>
                     <div className="stat-card-premium stat-green">
                       <div className="stat-icon-wrapper"><CheckCircle2 size={28} /></div>
-                      <div className="stat-title">Clases Realizadas</div>
-                      <div className="stat-value">{stats.realizadas}</div>
+                      <div className="stat-title">Completadas</div>
+                      <div className="stat-value">{realizadas}</div>
                     </div>
                     <div className="stat-card-premium stat-yellow">
                       <div className="stat-icon-wrapper"><AlertCircle size={28} /></div>
-                      <div className="stat-title">Clases Incompletas</div>
-                      <div className="stat-value">{stats.incompletas}</div>
+                      <div className="stat-title">En Proceso</div>
+                      <div className="stat-value">{incompletas}</div>
                     </div>
                     <div className="stat-card-premium stat-red">
                       <div className="stat-icon-wrapper"><XCircle size={28} /></div>
                       <div className="stat-title">No Realizadas</div>
-                      <div className="stat-value">{stats.noRealizadas}</div>
+                      <div className="stat-value">{noRealizadas}</div>
                     </div>
                     <div className="stat-card-premium stat-purple" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', color: 'white' }}>
                       <div className="stat-icon-wrapper" style={{ background: 'rgba(255,255,255,0.2)' }}><TrendingUp size={28} /></div>
-                      <div className="stat-title" style={{ opacity: 0.9 }}>% de Avance</div>
-                      <div className="stat-value" style={{ fontSize: '2.5rem' }}>{total > 0 ? Math.round((stats.realizadas / total) * 100) : 0}%</div>
+                      <div className="stat-title" style={{ opacity: 0.9 }}>% Avance Curricular</div>
+                      <div className="stat-value" style={{ fontSize: '2.5rem' }}>{avanceGlobal}%</div>
                     </div>
                   </>
                 );
@@ -1217,26 +1229,27 @@ const App = () => {
                   </thead>
                   <tbody>
                     {[...courses1M, ...courses2M].map(course => {
-                      const courseStats = Object.keys(registrations)
-                        .filter(key => key.startsWith(course))
-                        .reduce((acc, key) => {
-                          const status = registrations[key];
-                          if (status === 'green') acc.realizadas++;
-                          else if (status === 'yellow') acc.incompletas++;
-                          else if (status === 'red') acc.noRealizadas++;
-                          acc.total++;
-                          return acc;
-                        }, { realizadas: 0, incompletas: 0, noRealizadas: 0, total: 0 });
+                      let realizadas = 0;
+                      let incompletas = 0;
+                      let noRealizadas = 0;
+                      const totalCourse = classesList.length;
 
-                      const progress = courseStats.total > 0 ? Math.round((courseStats.realizadas / courseStats.total) * 100) : 0;
+                      classesList.forEach(cls => {
+                        const status = registrations[`${course}-${cls}`];
+                        if (status === 'green') realizadas++;
+                        else if (status === 'yellow') incompletas++;
+                        else if (status === 'red') noRealizadas++;
+                      });
+
+                      const progress = totalCourse > 0 ? Math.round((realizadas / totalCourse) * 100) : 0;
 
                       return (
                         <tr key={course}>
                           <td className="font-bold">{course}</td>
-                          <td>{courseStats.total}</td>
-                          <td className="text-green">{courseStats.realizadas}</td>
-                          <td className="text-yellow">{courseStats.incompletas}</td>
-                          <td className="text-red">{courseStats.noRealizadas}</td>
+                          <td>{totalCourse}</td>
+                          <td className="text-green">{realizadas}</td>
+                          <td className="text-yellow">{incompletas}</td>
+                          <td className="text-red">{noRealizadas}</td>
                           <td>
                             <div className="progress-mini-bar">
                               <div className="progress-mini-fill" style={{ width: `${progress}%` }}></div>
