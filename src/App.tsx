@@ -647,7 +647,7 @@ const App = () => {
           </div>
           
           <div className="sidebar-version">
-            ExeApp versión 1.1.02
+            ExeApp versión 1.1.03
           </div>
         </div>
       </aside>
@@ -1122,7 +1122,7 @@ const App = () => {
                 </>
               )}
               <div className="print-footer">
-                © {new Date().getFullYear()} Liceo Bicentenario de Excelencia de Vallenar - Unidad de Innovación Pedagógica - ZenitApp Professional v1.1.02
+                © {new Date().getFullYear()} Liceo Bicentenario de Excelencia de Vallenar - Unidad de Innovación Pedagógica - ZenitApp Professional v1.1.03
               </div>
             </div>
           );
