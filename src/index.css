@@ -2568,6 +2568,10 @@ h1, h2, h3, .brand h1 {
 
 .modal-link-button-v2:hover { transform: scale(1.02); }
 
+.modal-link-button-v2.sites-link {
+  background: linear-gradient(135deg, #059669 0%, #064e3b 100%);
+}
+
 .modern-textarea {
   width: 100%;
   min-height: 100px;

@@ -31,7 +31,8 @@ import {
   Sparkles,
   Type,
   Bookmark,
-  Menu
+  Menu,
+  Globe
 } from 'lucide-react';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
@@ -159,7 +160,8 @@ const getColumnIndices = (table: any, is1M: boolean) => {
     responsable: findIdx('responsable') !== -1 ? findIdx('responsable') : (is1M ? 10 : 9),
     diseno: findIdx('diseño') !== -1 ? findIdx('diseño') : (is1M ? 11 : 10),
     docente: findIdx('docente') !== -1 ? findIdx('docente') : (is1M ? 14 : 12),
-    link: findIdx('link') !== -1 ? findIdx('link') : (is1M ? 13 : 11)
+    link: findIdx('link') !== -1 ? findIdx('link') : (is1M ? 13 : 11),
+    sites: findIdx('sites') !== -1 ? findIdx('sites') : -1
   };
 };
 
@@ -433,7 +435,8 @@ const App = () => {
               responsable: getVal(idx.responsable) || '',
               diseno: getVal(idx.diseno) || '',
               docenteRealiza: parsedDocente,
-              link: finalLink
+              link: finalLink,
+              sitesLink: getBestLink(idx.sites)
             };
           });
 
@@ -1505,6 +1508,19 @@ const App = () => {
                         className="modal-link-button-v2"
                       >
                         <MonitorPlay size={20} /> Ver Presentación Digital
+                      </a>
+                    </div>
+                  )}
+
+                  {selectedClass.sitesLink && (
+                    <div className="premium-card-section">
+                      <a
+                        href={ensureHttps(selectedClass.sitesLink)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="modal-link-button-v2 sites-link"
+                      >
+                        <Globe size={20} /> Ir a Google Sites
                       </a>
                     </div>
                   )}
