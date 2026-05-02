@@ -326,26 +326,34 @@ const App = () => {
                 finalLink = rawDocente;
               }
 
-               // Detección exhaustiva de materiales en todas las columnas
+               // Smart Material Discovery
                let canvaVal: any = null, pptVal: any = null, sitesVal: any = null;
                if (r.c) {
                  r.c.forEach((cell: any) => {
                    if (!cell) return;
-                   const val = cell.l || String(cell.v || "").trim();
+                   const link = cell.l;
+                   const text = String(cell.v || "").trim();
+                   const val = link || text;
                    if (!val || val === "null" || val === "") return;
                    const v = val.toLowerCase();
-                   if (v.includes("canva.com") || v.includes("design")) {
-                     if (!canvaVal || cell.l) canvaVal = val;
-                   }
-                   if ((v.endsWith(".pptx") || v.includes("presentation") || v.includes("drive.google.com")) && !v.includes("spreadsheets")) {
-                     if (!pptVal || cell.l) pptVal = val;
-                   }
-                   if (v.includes("sites.google.com") || v.includes("google.com/site")) {
-                     if (!sitesVal || cell.l) sitesVal = val;
+                   if (link) {
+                     if (v.includes("canva.com") || v.includes("canva.link")) canvaVal = link;
+                     else if (v.includes("sites.google.com")) sitesVal = link;
+                     else if (v.includes("presentation") || v.endsWith(".pptx")) pptVal = link;
+                     else if (!v.includes("spreadsheets") && !v.includes("viewform")) {
+                       if (!canvaVal) canvaVal = link;
+                     }
+                   } else {
+                     if (v.includes("canva.com") || v.includes("canva.link")) {
+                       if (!canvaVal) canvaVal = text;
+                     } else if (v.includes("sites.google.com")) {
+                       if (!sitesVal) sitesVal = text;
+                     } else if (v.endsWith(".pptx") || v.includes(".pptx")) {
+                       if (!pptVal) pptVal = text;
+                     }
                    }
                  });
-               }
-               return {
+               }               return {
                  clase: String(r.c[pmIdx.clase]?.v),
                  fecha: r.c[pmIdx.fecha]?.f || r.c[pmIdx.fecha]?.v,
                  rawFecha: rawDate,
@@ -403,15 +411,20 @@ const App = () => {
                   let sites: any = null;
                   r.c.forEach((cell: any) => {
                     const val = cell?.l || String(cell?.v || "");
-                    if (val.includes('sites.google.com') || val.includes('google.com/site')) sites = val;
+                    if (val.includes("sites.google.com")) sites = val;
                   });
                   return sites;
                 })(),
                 canvaLink: (() => {
                   let canva: any = null;
                   r.c.forEach((cell: any) => {
-                    const val = cell?.l || String(cell?.v || "");
-                    if (val.includes('canva.com') || val.includes('design')) canva = val;
+                    const link = cell?.l;
+                    const text = String(cell?.v || "");
+                    if (link && (link.includes("canva") || (!link.includes("spreadsheets") && !link.includes("viewform") && !link.includes("sites.google.com")))) {
+                      canva = link;
+                    } else if (text.toLowerCase().includes("canva")) {
+                      if (!canva) canva = text;
+                    }
                   });
                   return canva;
                 })(),
@@ -419,7 +432,7 @@ const App = () => {
                   let ppt: any = null;
                   r.c.forEach((cell: any) => {
                     const val = cell?.l || String(cell?.v || "");
-                    if ((val.toLowerCase().endsWith('.pptx') || val.includes('drive.google.com')) && !val.includes('spreadsheets')) ppt = val;
+                    if ((val.toLowerCase().includes(".pptx") || val.includes("presentation")) && !val.includes("spreadsheets")) ppt = val;
                   });
                   return ppt;
                 })()
@@ -578,33 +591,37 @@ const App = () => {
               objetivo: getVal(idx.objetivo) || '',
               contenido: getVal(idx.contenido) || '',
               actividad: getVal(idx.actividad) || '',
-              responsable: getVal(idx.responsable) || '',
-              diseno: getVal(idx.diseno) || '',
-              docenteRealiza: parsedDocente,
-              link: finalLink,
-              sitesLink: (() => {
-                let sites: any = null;
-                cells.forEach((cell: any) => {
-                  const val = cell?.l || String(cell?.v || "");
-                  if (val.includes('sites.google.com') || val.includes('google.com/site')) sites = val;
-                });
-                return sites;
-              })(),
-              canvaLink: (() => {
-                let canva: any = null;
-                cells.forEach((cell: any) => {
-                  const val = cell?.l || String(cell?.v || "");
-                  if (val.includes('canva.com') || val.includes('design')) canva = val;
-                });
-                return canva;
-              })(),
-              pptLink: (() => {
-                let ppt: any = null;
-                cells.forEach((cell: any) => {
-                  const val = cell?.l || String(cell?.v || "");
-                  if ((val.toLowerCase().endsWith('.pptx') || val.includes('drive.google.com')) && !val.includes('spreadsheets')) ppt = val;
-                });
-                return ppt;
+               responsable: getVal(idx.responsable) || "",
+               diseno: getVal(idx.diseno) || "",
+               docenteRealiza: parsedDocente,
+               link: finalLink,               sitesLink: (() => {
+                 let sites: any = null;
+                 cells.forEach((cell: any) => {
+                   const val = cell?.l || String(cell?.v || "");
+                   if (val.includes("sites.google.com")) sites = val;
+                 });
+                 return sites;
+               })(),
+               canvaLink: (() => {
+                 let canva: any = null;
+                 cells.forEach((cell: any) => {
+                   const link = cell?.l;
+                   const text = String(cell?.v || "");
+                   if (link && (link.includes("canva") || (!link.includes("spreadsheets") && !link.includes("viewform") && !link.includes("sites.google.com")))) {
+                     canva = link;
+                   } else if (text.toLowerCase().includes("canva")) {
+                     if (!canva) canva = text;
+                   }
+                 });
+                 return canva;
+               })(),
+               pptLink: (() => {
+                 let ppt: any = null;
+                 cells.forEach((cell: any) => {
+                   const val = cell?.l || String(cell?.v || "");
+                   if ((val.toLowerCase().includes(".pptx") || val.includes("presentation")) && !val.includes("spreadsheets")) ppt = val;
+                 });
+                 return ppt;
               })()
             };
           });
@@ -825,7 +842,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.10
+            ZenitApp versión 1.1.11
           </div>
         </div>
       </aside>
