@@ -326,19 +326,25 @@ const App = () => {
                 finalLink = rawDocente;
               }
 
-               // Smart Material Discovery v3 (Prioridad absoluta a URLs de Presentación)
+               // Smart Material Discovery v4 (Filtro estricto anti-spreadsheets)
                let canvaVal: any = null, pptVal: any = null, sitesVal: any = null;
                if (r.c) {
                  r.c.forEach((cell: any) => {
                    if (!cell) return;
                    const link = cell.l;
                    const text = String(cell.v || "").trim();
+                   const vText = text.toLowerCase();
+                   const vLink = (link || "").toLowerCase();
+
+                   // Ignorar enlaces que sean claramente de la hoja de cálculo o planificador
+                   if (vLink.includes('spreadsheets') || vText.includes('planificador')) return;
+
                    const val = link || text;
                    if (!val || val === "null" || val === "") return;
                    const v = val.toLowerCase();
 
                    // 1. Detección de Google Presentations / PPTX (Prioridad máxima)
-                   if (v.includes('presentation') || v.includes('docs.google.com/presentation') || v.endsWith('.pptx')) {
+                   if (v.includes('presentation') || v.includes('docs.google.com/presentation') || v.endsWith('.pptx') || v.includes('.pptx')) {
                      if (link || !pptVal) pptVal = val;
                    }
                    // 2. Detección de Canva
@@ -349,10 +355,10 @@ const App = () => {
                    else if (v.includes('interactivo')) {
                      if (!pptVal || link) pptVal = val;
                    }
-                   // 4. Otros enlaces
+                   // 4. Otros enlaces pedagógicos
                    else if (link) {
                      if (v.includes('sites.google.com')) sitesVal = link;
-                     else if (!v.includes('spreadsheets') && !v.includes('viewform')) {
+                     else if (!v.includes('viewform')) {
                        if (!canvaVal) canvaVal = link;
                      }
                    }
@@ -846,7 +852,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.13
+            ZenitApp versión 1.1.14
           </div>
         </div>
       </aside>
