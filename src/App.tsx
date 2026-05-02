@@ -165,7 +165,7 @@ const getColumnIndices = (table: any, is1M: boolean) => {
     diseno: findIdx('diseño') !== -1 ? findIdx('diseño') : (is1M ? 11 : 10),
     docente: findIdx('docente') !== -1 ? findIdx('docente') : (is1M ? 14 : 12),
     canva: canvaIdx !== -1 ? canvaIdx : (is1M ? 12 : 11),
-    pptx: pptxIdx !== -1 ? pptxIdx : (presIdx !== -1 ? presIdx : (presIdx2 !== -1 ? presIdx2 : (is1M ? 13 : -1))),
+    pptx: pptxIdx !== -1 ? pptxIdx : (presIdx !== -1 ? presIdx : (presIdx2 !== -1 ? presIdx2 : (is1M ? 13 : (findIdx('link') !== -1 ? findIdx('link') : -1)))),
     link: findIdx('link') !== -1 ? findIdx('link') : (canvaIdx !== -1 ? canvaIdx : (presIdx !== -1 ? presIdx : (presIdx2 !== -1 ? presIdx2 : (findIdx('material') !== -1 ? findIdx('material') : (is1M ? 12 : 11))))),
     sites: findIdx('sites') !== -1 ? findIdx('sites') : (findIdx('google site') !== -1 ? findIdx('google site') : (findIdx('google sites') !== -1 ? findIdx('google sites') : -1))
   };
@@ -292,7 +292,8 @@ const App = () => {
                 if (!cell) return null;
                 if (cell.l) return cell.l;
                 const v = String(cell.v || "").trim();
-                if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com')) return v;
+                if (v === "" || v === "null") return null;
+                if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com') || v.toLowerCase().endsWith('.pptx')) return v;
                 return null;
               };
 
@@ -317,9 +318,18 @@ const App = () => {
                 docenteRealiza: getTeacherForCourse(rawDocente, '1 Medio A'),
                 rawDocente: rawDocente, 
                 link: finalLink,
-                sitesLink: getBestLink(pmIdx.sites),
-                canvaLink: getBestLink(pmIdx.canva),
-                pptLink: pmIdx.pptx !== -1 ? getBestLink(pmIdx.pptx) : null
+                sitesLink: (() => {
+                  const val = getBestLink(pmIdx.sites);
+                  return (val && (val.includes('sites.google.com') || val.includes('google.com/site'))) ? val : null;
+                })(),
+                canvaLink: (() => {
+                  const val = getBestLink(pmIdx.canva);
+                  return (val && (val.includes('canva.com') || val.includes('design'))) ? val : null;
+                })(),
+                pptLink: (() => {
+                  const val = pmIdx.pptx !== -1 ? getBestLink(pmIdx.pptx) : null;
+                  return (val && val.toLowerCase().endsWith('.pptx')) ? val : null;
+                })()
               };
             }),
             sm: smRows.map((r: any) => {
@@ -331,7 +341,8 @@ const App = () => {
                 if (!cell) return null;
                 if (cell.l) return cell.l;
                 const v = String(cell.v || "").trim();
-                if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com')) return v;
+                if (v === "" || v === "null") return null;
+                if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com') || v.toLowerCase().endsWith('.pptx')) return v;
                 return null;
               };
 
@@ -356,9 +367,18 @@ const App = () => {
                 docenteRealiza: getTeacherForCourse(rawDocente, '2 Medio A'),
                 rawDocente: rawDocente,
                 link: finalLink,
-                sitesLink: getBestLink(smIdx.sites),
-                canvaLink: getBestLink(smIdx.canva),
-                pptLink: smIdx.pptx !== -1 ? getBestLink(smIdx.pptx) : null
+                sitesLink: (() => {
+                  const val = getBestLink(smIdx.sites);
+                  return (val && (val.includes('sites.google.com') || val.includes('google.com/site'))) ? val : null;
+                })(),
+                canvaLink: (() => {
+                  const val = getBestLink(smIdx.canva);
+                  return (val && (val.includes('canva.com') || val.includes('design'))) ? val : null;
+                })(),
+                pptLink: (() => {
+                  const val = smIdx.pptx !== -1 ? getBestLink(smIdx.pptx) : null;
+                  return (val && val.toLowerCase().endsWith('.pptx')) ? val : null;
+                })()
               };
             })
           });
@@ -493,7 +513,8 @@ const App = () => {
               if (!cell) return null;
               if (cell.l) return cell.l;
               const v = String(cell.v || "").trim();
-              if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com')) return v;
+              if (v === "" || v === "null") return null;
+              if (v.toLowerCase().startsWith('http') || v.toLowerCase().includes('canva.com') || v.toLowerCase().endsWith('.pptx')) return v;
               return null;
             };
 
@@ -517,9 +538,18 @@ const App = () => {
               diseno: getVal(idx.diseno) || '',
               docenteRealiza: parsedDocente,
               link: finalLink,
-              sitesLink: getBestLink(idx.sites),
-              canvaLink: getBestLink(idx.canva),
-              pptLink: idx.pptx !== -1 ? getBestLink(idx.pptx) : null
+              sitesLink: (() => {
+                const val = getBestLink(idx.sites);
+                return (val && (val.includes('sites.google.com') || val.includes('google.com/site'))) ? val : null;
+              })(),
+              canvaLink: (() => {
+                const val = getBestLink(idx.canva);
+                return (val && (val.includes('canva.com') || val.includes('design'))) ? val : null;
+              })(),
+              pptLink: (() => {
+                const val = idx.pptx !== -1 ? getBestLink(idx.pptx) : null;
+                return (val && val.toLowerCase().endsWith('.pptx')) ? val : null;
+              })()
             };
           });
 
@@ -739,7 +769,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.06
+            ZenitApp versión 1.1.07
           </div>
         </div>
       </aside>
