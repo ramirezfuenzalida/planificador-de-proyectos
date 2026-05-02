@@ -54,7 +54,30 @@ const initialDbState: Record<string, Record<string, 'completa' | 'pendiente' | '
   });
 });
 
-const ensureHttps = (url: any) => {
+
+const getMaterialLinks = (cells: any[]) => {
+  let canva: any = null, ppt: any = null, sites: any = null;
+  if (!cells) return { canva, ppt, sites };
+  cells.forEach((cell: any) => {
+    if (!cell || !cell.l) return;
+    const l = cell.l.toLowerCase();
+    if (l.includes("spreadsheets") || l.includes("viewform")) return;
+    if (l.includes("presentation") || l.includes("docs.google.com/presentation") || l.endsWith(".pptx")) ppt = cell.l;
+    else if (l.includes("canva.com") || l.includes("canva.link") || l.includes("design")) canva = cell.l;
+    else if (l.includes("sites.google.com")) sites = cell.l;
+  });
+  if (!ppt || !canva) {
+    cells.forEach((cell: any) => {
+      if (!cell || cell.l) return;
+      const v = String(cell.v || "").trim();
+      const t = v.toLowerCase();
+      if (!t || t === "null") return;
+      if (!ppt && (t.includes("docs.google.com/presentation") || (t.startsWith("http") && t.includes("presentation")))) ppt = v;
+      if (!canva && t.includes("canva.com") && t.startsWith("http")) canva = v;
+    });
+  }
+  return { canva, ppt, sites };
+};const ensureHttps = (url: any) => {
   if (!url) return "#";
   let s = String(url).trim();
   if (!s || s === "null" || s === "") return "#";
@@ -77,14 +100,12 @@ const getCourseColorClass = (courseName: string | null) => {
 
 const parseGoogleDate = (dateStr: any) => {
   if (!dateStr) return null;
-  // Soporta Date(2026,4,1) y Date(2026,4,1,0,0,0)
   const match = String(dateStr).match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
   if (match) {
     return new Date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
   }
   return null;
 };
-
 const FERIADOS_CHILE_2026 = [
   '2026-01-01', // Año Nuevo
   '2026-04-03', // Viernes Santo
@@ -305,45 +326,8 @@ const App = () => {
                 finalLink = rawDocente;
               }
 
-               // Smart Material Discovery v5 (Hyperlink-First + No Search)
-               let canvaVal: any = null, pptVal: any = null, sitesVal: any = null;
-               if (r.c) {
-                 // Primero escaneamos todos los hipervínculos reales (Prioridad máxima)
-                 r.c.forEach((cell: any) => {
-                   if (!cell || !cell.l) return;
-                   const link = cell.l;
-                   const l = link.toLowerCase();
-                   
-                   if (l.includes('spreadsheets') || l.includes('viewform')) return;
-
-                   if (l.includes('presentation') || l.includes('docs.google.com/presentation') || l.endsWith('.pptx')) {
-                     pptVal = link;
-                   } else if (l.includes('canva.com') || l.includes('canva.link') || l.includes('design')) {
-                     canvaVal = link;
-                   } else if (l.includes('sites.google.com')) {
-                     sitesVal = link;
-                   } else if (!canvaVal) {
-                     canvaVal = link; // Fallback para cualquier otro link pedagógico
-                   }
-                 });
-
-                 // Luego escaneamos texto solo si no encontramos links reales
-                 r.c.forEach((cell: any) => {
-                   if (!cell || cell.l) return; // Si ya tiene link, ya lo procesamos
-                   const text = String(cell.v || "").trim();
-                   if (!text || text === "null") return;
-                   const t = text.toLowerCase();
-
-                   if (t.includes('docs.google.com/presentation') || (t.startsWith('http') && t.includes('presentation'))) {
-                     if (!pptVal) pptVal = text;
-                   } else if (t.includes('canva.com') && t.startsWith('http')) {
-                     if (!canvaVal) canvaVal = text;
-                   } else if (t.includes('interactivo') && t.startsWith('http')) {
-                     if (!pptVal) pptVal = text;
-                   }
-                 });
-               }
-               return {
+              const materials = getMaterialLinks(r.c);
+              return {
                  clase: String(r.c[pmIdx.clase]?.v),
                  fecha: r.c[pmIdx.fecha]?.f || r.c[pmIdx.fecha]?.v,
                  rawFecha: rawDate,
@@ -358,10 +342,11 @@ const App = () => {
                  docenteRealiza: getTeacherForCourse(rawDocente, "1 Medio A"),
                  rawDocente: rawDocente,
                  link: finalLink,
-                 sitesLink: sitesVal,
-                 canvaLink: canvaVal,
-                 pptLink: pptVal
-               };            }),
+                 sitesLink: materials.sites,
+                 canvaLink: materials.canva,
+                 pptLink: materials.ppt
+               };
+            }),
             sm: smRows.map((r: any) => {
               const rawDate = parseGoogleDate(r.c[smIdx.fecha]?.v);
               const rawDocente = String(r.c[smIdx.docente]?.v || "") === "null" ? "" : String(r.c[smIdx.docente]?.v || "");
@@ -382,51 +367,25 @@ const App = () => {
                 finalLink = rawDocente;
               }
 
-              return {
-                clase: String(r.c[smIdx.clase]?.v),
-                fecha: r.c[smIdx.fecha]?.f || r.c[smIdx.fecha]?.v,
-                rawFecha: rawDate,
-                dia: String(r.c[smIdx.dia]?.v || ""),
-                horario: String(r.c[smIdx.horario]?.v || ""),
-                etapa: String(r.c[smIdx.etapa]?.v || ""),
-                objetivo: String(r.c[smIdx.objetivo]?.v || ""),
-                contenido: String(r.c[smIdx.contenido]?.v || ""),
-                actividad: String(r.c[smIdx.actividad]?.v || ""),
-                responsable: String(r.c[smIdx.responsable]?.v || ""),
-                diseno: String(r.c[smIdx.diseno]?.v || ""),
-                docenteRealiza: getTeacherForCourse(rawDocente, '2 Medio A'),
-                rawDocente: rawDocente,
-                link: finalLink,
-                sitesLink: (() => {
-                  let sites: any = null;
-                  r.c.forEach((cell: any) => {
-                    const val = cell?.l || String(cell?.v || "");
-                    if (val.includes("sites.google.com")) sites = val;
-                  });
-                  return sites;
-                })(),
-                canvaLink: (() => {
-                  let canva: any = null;
-                  r.c.forEach((cell: any) => {
-                    const link = cell?.l;
-                    const text = String(cell?.v || "");
-                    if (link && (link.includes("canva") || (!link.includes("spreadsheets") && !link.includes("viewform") && !link.includes("sites.google.com")))) {
-                      canva = link;
-                    } else if (text.toLowerCase().includes("canva")) {
-                      if (!canva) canva = text;
-                    }
-                  });
-                  return canva;
-                })(),
-                pptLink: (() => {
-                  let ppt: any = null;
-                  r.c.forEach((cell: any) => {
-                    const val = cell?.l || String(cell?.v || "");
-                    if ((val.toLowerCase().includes(".pptx") || val.includes("presentation")) && !val.includes("spreadsheets")) ppt = val;
-                  });
-                  return ppt;
-                })()
-              };
+              const materials = getMaterialLinks(r.c);
+               return {
+                 clase: String(r.c[smIdx.clase]?.v),
+                 fecha: r.c[smIdx.fecha]?.f || r.c[smIdx.fecha]?.v,
+                 rawFecha: rawDate,
+                 dia: String(r.c[smIdx.dia]?.v || ""),
+                 horario: String(r.c[smIdx.horario]?.v || ""),
+                 etapa: String(r.c[smIdx.etapa]?.v || ""),
+                 objetivo: String(r.c[smIdx.objetivo]?.v || ""),
+                 contenido: String(r.c[smIdx.contenido]?.v || ""),
+                 actividad: String(r.c[smIdx.actividad]?.v || ""),
+                 responsable: String(r.c[smIdx.responsable]?.v || ""),
+                 diseno: String(r.c[smIdx.diseno]?.v || ""),
+                 docenteRealiza: getTeacherForCourse(rawDocente, '2 Medio A'),
+                 rawDocente: rawDocente,
+                 sitesLink: materials.sites,
+                 canvaLink: materials.canva,
+                 pptLink: materials.ppt
+               };
             })
           });
         } catch (e) {
@@ -443,7 +402,6 @@ const App = () => {
     if (!courseName) return '';
     if (courseName === 'Resumen') return 'RESUMEN';
     const parts = courseName.split(' ');
-    // "1 Medio A" -> "1" + "M" + "A" = "1MA"
     return (parts[0] + 'M' + parts[parts.length - 1]).toUpperCase();
   };
 
@@ -470,27 +428,23 @@ const App = () => {
     return raw;
   };
 
-  // Calendar Helper Logic
   const getCalendarDays = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const startDay = new Date(year, month, 1).getDay();
-    const firstDayIndex = startDay === 0 ? 6 : startDay - 1; // Adjust to Monday = 0
+    const firstDayIndex = startDay === 0 ? 6 : startDay - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const days = [];
 
-    // Previous month days
     const prevMonthLastDay = new Date(year, month, 0).getDate();
     for (let i = firstDayIndex; i > 0; i--) {
       days.push({ day: prevMonthLastDay - i + 1, currentMonth: false, date: new Date(year, month, 0 - i + 1) });
     }
 
-    // Current month days
     for (let i = 1; i <= daysInMonth; i++) {
       days.push({ day: i, currentMonth: true, date: new Date(year, month, i) });
     }
 
-    // Next month padding to fill grid (usually 42 cells)
     const remaining = 42 - days.length;
     for (let i = 1; i <= remaining; i++) {
       days.push({ day: i, currentMonth: false, date: new Date(year, month + 1, i) });
@@ -506,7 +460,7 @@ const App = () => {
     const newEv = {
       id: Date.now(),
       title: formData.get('title'),
-      date: formData.get('date'), // "YYYY-MM-DD"
+      date: formData.get('date'),
       type: formData.get('type')
     };
     setSpecialEvents([...specialEvents, newEv]);
@@ -517,7 +471,6 @@ const App = () => {
     setSpecialEvents(specialEvents.filter(ev => ev.id !== id));
   };
 
-  // Fetch Sheets Data based on active course
   useEffect(() => {
     if (!activeCourse) return;
 
@@ -539,14 +492,12 @@ const App = () => {
 
         let baseRows = data.table.rows.filter((row: any) => row && row.c && row.c[idx.clase]?.v !== null);
 
-        // Corrector algorítmico de feriados sobre tabla maestra listada
         baseRows = applyDateShifting(baseRows, idx.fecha);
 
         const rows = baseRows
           .map((row: any) => {
             const cells = row.c;
 
-            // Defensive cell access
             const getVal = (i: number) => {
               if (!cells || !cells[i]) return null;
               return cells[i].v || null;
@@ -571,49 +522,25 @@ const App = () => {
               finalLink = rawDocente;
             }
 
+            const materials = getMaterialLinks(cells);
             return {
-              semana: getVal(idx.semana) || '',
-              clase: getVal(idx.clase) || '',
-              dia: getVal(idx.dia) || '',
-              horario: getVal(idx.horario) || 'Horario no definido',
-              fecha: (cells[idx.fecha]?.f || cells[idx.fecha]?.v) || 'Fecha no definida',
-              etapa: getVal(idx.etapa) || '',
-              objetivo: getVal(idx.objetivo) || '',
-              contenido: getVal(idx.contenido) || '',
-              actividad: getVal(idx.actividad) || '',
-               responsable: getVal(idx.responsable) || "",
-               diseno: getVal(idx.diseno) || "",
-               docenteRealiza: parsedDocente,
-               link: finalLink,               sitesLink: (() => {
-                 let sites: any = null;
-                 cells.forEach((cell: any) => {
-                   const val = cell?.l || String(cell?.v || "");
-                   if (val.includes("sites.google.com")) sites = val;
-                 });
-                 return sites;
-               })(),
-               canvaLink: (() => {
-                 let canva: any = null;
-                 cells.forEach((cell: any) => {
-                   const link = cell?.l;
-                   const text = String(cell?.v || "");
-                   if (link && (link.includes("canva") || (!link.includes("spreadsheets") && !link.includes("viewform") && !link.includes("sites.google.com")))) {
-                     canva = link;
-                   } else if (text.toLowerCase().includes("canva")) {
-                     if (!canva) canva = text;
-                   }
-                 });
-                 return canva;
-               })(),
-               pptLink: (() => {
-                 let ppt: any = null;
-                 cells.forEach((cell: any) => {
-                   const val = cell?.l || String(cell?.v || "");
-                   if ((val.toLowerCase().includes(".pptx") || val.includes("presentation")) && !val.includes("spreadsheets")) ppt = val;
-                 });
-                 return ppt;
-              })()
-            };
+                 semana: getVal(idx.semana) || '',
+                 clase: getVal(idx.clase) || '',
+                 dia: getVal(idx.dia) || '',
+                 horario: getVal(idx.horario) || 'Horario no definido',
+                 fecha: (cells[idx.fecha]?.f || cells[idx.fecha]?.v) || 'Fecha no definida',
+                 etapa: getVal(idx.etapa) || '',
+                 objetivo: getVal(idx.objetivo) || '',
+                 contenido: getVal(idx.contenido) || '',
+                 actividad: getVal(idx.actividad) || '',
+                 responsable: getVal(idx.responsable) || "",
+                 diseno: getVal(idx.diseno) || "",
+                 docenteRealiza: parsedDocente,
+                 link: finalLink,
+                 sitesLink: materials.sites,
+                 canvaLink: materials.canva,
+                 pptLink: materials.ppt
+               };
           });
 
         setSheetData(prevData => {
