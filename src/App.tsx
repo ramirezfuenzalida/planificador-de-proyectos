@@ -57,41 +57,48 @@ const initialDbState: Record<string, Record<string, 'completa' | 'pendiente' | '
 
 const getMaterialLinks = (cells: any[]) => {
   let canva: any = null, ppt: any = null, sites: any = null;
-  if (!cells) return { canva, ppt, sites };
+  if (!cells || !Array.isArray(cells)) return { canva, ppt, sites };
   
-  // 1. Escaneo de hipervínculos (Prioridad máxima)
+  // Nivel 1: Detección por Hipervínculos (Prioridad Absoluta)
   cells.forEach((cell: any) => {
     if (!cell || !cell.l) return;
-    const l = cell.l.toLowerCase();
+    const link = String(cell.l).trim();
+    const l = link.toLowerCase();
+    
+    // Filtro anti-planificadores
     if (l.includes("spreadsheets") || l.includes("viewform")) return;
 
     if (l.includes("presentation") || l.includes("docs.google.com/presentation") || l.endsWith(".pptx")) {
-      ppt = cell.l;
+      ppt = link;
     } else if (l.includes("canva.com") || l.includes("canva.link") || l.includes("design")) {
-      canva = cell.l;
+      canva = link;
     } else if (l.includes("sites.google.com")) {
-      sites = cell.l;
-    } else if (!canva) {
-      // Fallback: Cualquier otro link que no sea spreadsheet se asume pedagógico (Canva/Otros)
-      canva = cell.l;
+      sites = link;
+    } else if (!canva && (l.includes("canva") || l.includes("drive.google.com"))) {
+      // Captura cualquier otro recurso que parezca material (Drive, etc)
+      canva = link;
     }
   });
 
-  // 2. Escaneo de texto (Solo si no hay link real)
-  if (!ppt || !canva) {
-    cells.forEach((cell: any) => {
-      if (!cell || cell.l) return;
-      const v = String(cell.v || "").trim();
-      const t = v.toLowerCase();
-      if (!t || t === "null" || !t.startsWith("http")) return;
-      
-      if (!ppt && (t.includes("docs.google.com/presentation") || t.includes("presentation"))) {
-        ppt = v;
-      } else if (!canva && t.includes("canva.com")) {
-        canva = v;
-      }
-    });
-  }
+  // Nivel 2: Detección por Texto (Fallback Inteligente)
+  cells.forEach((cell: any) => {
+    if (!cell || cell.l) return; // Ya procesado en Nivel 1
+    const val = String(cell.v || "").trim();
+    if (!val || val === "null" || val.length < 5) return;
+    const v = val.toLowerCase();
+
+    // Solo si el espacio está vacío intentamos capturar desde el texto
+    if (!ppt && (v.includes("docs.google.com/presentation") || v.includes("presentation"))) {
+      ppt = val;
+    }
+    if (!canva && (v.includes("canva.com") || v.includes("canva.link") || v.includes("design"))) {
+      canva = val;
+    }
+    if (!sites && v.includes("sites.google.com")) {
+      sites = val;
+    }
+  });
+
   return { canva, ppt, sites };
 };const ensureHttps = (url: any) => {
   if (!url) return "#";
@@ -775,7 +782,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.17
+            ZenitApp versión 1.1.18
           </div>
         </div>
       </aside>
