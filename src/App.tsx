@@ -58,22 +58,38 @@ const initialDbState: Record<string, Record<string, 'completa' | 'pendiente' | '
 const getMaterialLinks = (cells: any[]) => {
   let canva: any = null, ppt: any = null, sites: any = null;
   if (!cells) return { canva, ppt, sites };
+  
+  // 1. Escaneo de hipervínculos (Prioridad máxima)
   cells.forEach((cell: any) => {
     if (!cell || !cell.l) return;
     const l = cell.l.toLowerCase();
     if (l.includes("spreadsheets") || l.includes("viewform")) return;
-    if (l.includes("presentation") || l.includes("docs.google.com/presentation") || l.endsWith(".pptx")) ppt = cell.l;
-    else if (l.includes("canva.com") || l.includes("canva.link") || l.includes("design")) canva = cell.l;
-    else if (l.includes("sites.google.com")) sites = cell.l;
+
+    if (l.includes("presentation") || l.includes("docs.google.com/presentation") || l.endsWith(".pptx")) {
+      ppt = cell.l;
+    } else if (l.includes("canva.com") || l.includes("canva.link") || l.includes("design")) {
+      canva = cell.l;
+    } else if (l.includes("sites.google.com")) {
+      sites = cell.l;
+    } else if (!canva) {
+      // Fallback: Cualquier otro link que no sea spreadsheet se asume pedagógico (Canva/Otros)
+      canva = cell.l;
+    }
   });
+
+  // 2. Escaneo de texto (Solo si no hay link real)
   if (!ppt || !canva) {
     cells.forEach((cell: any) => {
       if (!cell || cell.l) return;
       const v = String(cell.v || "").trim();
       const t = v.toLowerCase();
-      if (!t || t === "null") return;
-      if (!ppt && (t.includes("docs.google.com/presentation") || (t.startsWith("http") && t.includes("presentation")))) ppt = v;
-      if (!canva && t.includes("canva.com") && t.startsWith("http")) canva = v;
+      if (!t || t === "null" || !t.startsWith("http")) return;
+      
+      if (!ppt && (t.includes("docs.google.com/presentation") || t.includes("presentation"))) {
+        ppt = v;
+      } else if (!canva && t.includes("canva.com")) {
+        canva = v;
+      }
     });
   }
   return { canva, ppt, sites };
@@ -759,7 +775,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.16
+            ZenitApp versión 1.1.17
           </div>
         </div>
       </aside>
