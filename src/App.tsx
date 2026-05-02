@@ -55,38 +55,17 @@ const initialDbState: Record<string, Record<string, 'completa' | 'pendiente' | '
 });
 
 const ensureHttps = (url: any) => {
-  if (!url) return '#';
+  if (!url) return "#";
   let s = String(url).trim();
-  if (!s || s === 'null') return '#';
-  if (s.startsWith('http://') || s.startsWith('https://')) return s;
-  
-  // Si es un enlace de Canva incompleto
-  if (s.toLowerCase().includes('canva.com')) {
-    return `https://${s.replace(/^https?:\/\//, '')}`;
+  if (!s || s === "null" || s === "") return "#";
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  if (s.startsWith("www.")) return `https://${s}`;
+  if (s.includes("docs.google.com") || s.includes("canva.com") || s.includes("sites.google.com")) {
+    const cleaned = s.replace(/^https?:\/\//, "");
+    return `https://${cleaned}`;
   }
-
-  // Si es un nombre de archivo .pptx (o similar)
-  if (s.toLowerCase().match(/\.(pptx|pdf|docx|xlsx|zip)$/)) {
-    // Si tiene espacios o no parece URL, buscamos directamente en Google Drive del usuario
-    if (s.includes(' ') || !s.includes('.')) {
-      return `https://drive.google.com/drive/search?q=${encodeURIComponent(s)}`;
-    }
-    return `https://${s}`;
-  }
-
-  // Validación estándar de URL
-  if (s.includes('.') && !s.includes(' ')) {
-    return `https://${s}`;
-  }
-  
-  // Fallback: búsqueda en Drive para cualquier texto descriptivo que no sea URL
-  if (s.length > 3) {
-    return `https://drive.google.com/drive/search?q=${encodeURIComponent(s)}`;
-  }
-
-  return '#';
+  return "#";
 };
-
 const getCourseColorClass = (courseName: string | null) => {
   if (!courseName) return '';
   if (courseName.endsWith('A')) return 'letter-a';
@@ -326,44 +305,45 @@ const App = () => {
                 finalLink = rawDocente;
               }
 
-               // Smart Material Discovery v4 (Filtro estricto anti-spreadsheets)
+               // Smart Material Discovery v5 (Hyperlink-First + No Search)
                let canvaVal: any = null, pptVal: any = null, sitesVal: any = null;
                if (r.c) {
+                 // Primero escaneamos todos los hipervínculos reales (Prioridad máxima)
                  r.c.forEach((cell: any) => {
-                   if (!cell) return;
+                   if (!cell || !cell.l) return;
                    const link = cell.l;
-                   const text = String(cell.v || "").trim();
-                   const vText = text.toLowerCase();
-                   const vLink = (link || "").toLowerCase();
+                   const l = link.toLowerCase();
+                   
+                   if (l.includes('spreadsheets') || l.includes('viewform')) return;
 
-                   // Ignorar enlaces que sean claramente de la hoja de cálculo o planificador
-                   if (vLink.includes('spreadsheets') || vText.includes('planificador')) return;
-
-                   const val = link || text;
-                   if (!val || val === "null" || val === "") return;
-                   const v = val.toLowerCase();
-
-                   // 1. Detección de Google Presentations / PPTX (Prioridad máxima)
-                   if (v.includes('presentation') || v.includes('docs.google.com/presentation') || v.endsWith('.pptx') || v.includes('.pptx')) {
-                     if (link || !pptVal) pptVal = val;
-                   }
-                   // 2. Detección de Canva
-                   else if (v.includes('canva.com') || v.includes('canva.link')) {
-                     if (link || !canvaVal) canvaVal = val;
-                   }
-                   // 3. Detección de "Interactivo" (Fallback para PPTX)
-                   else if (v.includes('interactivo')) {
-                     if (!pptVal || link) pptVal = val;
-                   }
-                   // 4. Otros enlaces pedagógicos
-                   else if (link) {
-                     if (v.includes('sites.google.com')) sitesVal = link;
-                     else if (!v.includes('viewform')) {
-                       if (!canvaVal) canvaVal = link;
-                     }
+                   if (l.includes('presentation') || l.includes('docs.google.com/presentation') || l.endsWith('.pptx')) {
+                     pptVal = link;
+                   } else if (l.includes('canva.com') || l.includes('canva.link') || l.includes('design')) {
+                     canvaVal = link;
+                   } else if (l.includes('sites.google.com')) {
+                     sitesVal = link;
+                   } else if (!canvaVal) {
+                     canvaVal = link; // Fallback para cualquier otro link pedagógico
                    }
                  });
-               }               return {
+
+                 // Luego escaneamos texto solo si no encontramos links reales
+                 r.c.forEach((cell: any) => {
+                   if (!cell || cell.l) return; // Si ya tiene link, ya lo procesamos
+                   const text = String(cell.v || "").trim();
+                   if (!text || text === "null") return;
+                   const t = text.toLowerCase();
+
+                   if (t.includes('docs.google.com/presentation') || (t.startsWith('http') && t.includes('presentation'))) {
+                     if (!pptVal) pptVal = text;
+                   } else if (t.includes('canva.com') && t.startsWith('http')) {
+                     if (!canvaVal) canvaVal = text;
+                   } else if (t.includes('interactivo') && t.startsWith('http')) {
+                     if (!pptVal) pptVal = text;
+                   }
+                 });
+               }
+               return {
                  clase: String(r.c[pmIdx.clase]?.v),
                  fecha: r.c[pmIdx.fecha]?.f || r.c[pmIdx.fecha]?.v,
                  rawFecha: rawDate,
@@ -852,7 +832,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.14
+            ZenitApp versión 1.1.15
           </div>
         </div>
       </aside>
