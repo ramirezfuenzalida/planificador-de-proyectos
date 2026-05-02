@@ -326,7 +326,7 @@ const App = () => {
                 finalLink = rawDocente;
               }
 
-               // Smart Material Discovery
+               // Smart Material Discovery v2 (Prioridad Interactivo)
                let canvaVal: any = null, pptVal: any = null, sitesVal: any = null;
                if (r.c) {
                  r.c.forEach((cell: any) => {
@@ -336,15 +336,30 @@ const App = () => {
                    const val = link || text;
                    if (!val || val === "null" || val === "") return;
                    const v = val.toLowerCase();
-                   if (link) {
-                     if (v.includes("canva.com") || v.includes("canva.link")) canvaVal = link;
-                     else if (v.includes("sites.google.com")) sitesVal = link;
-                     else if (v.includes("presentation") || v.endsWith(".pptx")) pptVal = link;
-                     else if (!v.includes("spreadsheets") && !v.includes("viewform")) {
+
+                   // 1. Detección de "Enlace Interactivo" (Prioridad para PPTX según usuario)
+                   if (v.includes('interactivo')) {
+                     pptVal = val;
+                   }
+                   // 2. Detección por Hyperlink
+                   else if (link) {
+                     if (v.includes('canva.com') || v.includes('canva.link')) {
                        if (!canvaVal) canvaVal = link;
                      }
-                   } else {
-                     if (v.includes("canva.com") || v.includes("canva.link")) {
+                     else if (v.includes('sites.google.com')) {
+                       if (!sitesVal) sitesVal = link;
+                     }
+                     else if (v.includes('presentation') || v.endsWith('.pptx') || v.includes('drive.google.com')) {
+                       if (!pptVal) pptVal = link;
+                     }
+                     else if (!v.includes('spreadsheets') && !v.includes('viewform')) {
+                       // Posible material genérico
+                       if (!canvaVal) canvaVal = link;
+                     }
+                   } 
+                   // 3. Detección por Texto
+                   else {
+                     if (v.includes('canva.com') || v.includes('canva.link')) {
                        if (!canvaVal) canvaVal = text;
                      } else if (v.includes("sites.google.com")) {
                        if (!sitesVal) sitesVal = text;
@@ -842,7 +857,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.11
+            ZenitApp versión 1.1.12
           </div>
         </div>
       </aside>
