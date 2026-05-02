@@ -759,7 +759,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.15
+            ZenitApp versión 1.1.16
           </div>
         </div>
       </aside>
