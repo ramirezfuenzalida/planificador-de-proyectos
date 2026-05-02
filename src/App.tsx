@@ -326,43 +326,25 @@ const App = () => {
                 finalLink = rawDocente;
               }
 
-              return {
-                clase: String(r.c[pmIdx.clase]?.v),
-                fecha: r.c[pmIdx.fecha]?.f || r.c[pmIdx.fecha]?.v,
-                rawFecha: rawDate,
-                dia: String(r.c[pmIdx.dia]?.v || ""),
-                horario: String(r.c[pmIdx.horario]?.v || ""),
-                etapa: String(r.c[pmIdx.etapa]?.v || ""),
-                objetivo: String(r.c[pmIdx.objetivo]?.v || ""),
-                contenido: String(r.c[pmIdx.contenido]?.v || ""),
-                actividad: String(r.c[pmIdx.actividad]?.v || ""),
-                responsable: String(r.c[pmIdx.responsable]?.v || ""),
-                diseno: String(r.c[pmIdx.diseno]?.v || ""),
-                docenteRealiza: getTeacherForCourse(rawDocente, '1 Medio A'),
-                rawDocente: rawDocente, 
                // Detección exhaustiva de materiales en todas las columnas
-               const materials = (() => {
-                 let canva = null, ppt = null, sites = null;
+               let canvaVal: any = null, pptVal: any = null, sitesVal: any = null;
+               if (r.c) {
                  r.c.forEach((cell: any) => {
                    if (!cell) return;
                    const val = cell.l || String(cell.v || "").trim();
                    if (!val || val === "null" || val === "") return;
                    const v = val.toLowerCase();
-                   
-                   // Priorizamos enlaces reales sobre nombres de archivo
-                   if (v.includes('canva.com') || v.includes('design')) {
-                     if (!canva || cell.l) canva = val;
+                   if (v.includes("canva.com") || v.includes("design")) {
+                     if (!canvaVal || cell.l) canvaVal = val;
                    }
-                   if ((v.endsWith('.pptx') || v.includes('presentation') || v.includes('drive.google.com')) && !v.includes('spreadsheets')) {
-                     if (!ppt || cell.l) ppt = val;
+                   if ((v.endsWith(".pptx") || v.includes("presentation") || v.includes("drive.google.com")) && !v.includes("spreadsheets")) {
+                     if (!pptVal || cell.l) pptVal = val;
                    }
-                   if (v.includes('sites.google.com') || v.includes('google.com/site')) {
-                     if (!sites || cell.l) sites = val;
+                   if (v.includes("sites.google.com") || v.includes("google.com/site")) {
+                     if (!sitesVal || cell.l) sitesVal = val;
                    }
                  });
-                 return { canva, ppt, sites };
-               })();
-
+               }
                return {
                  clase: String(r.c[pmIdx.clase]?.v),
                  fecha: r.c[pmIdx.fecha]?.f || r.c[pmIdx.fecha]?.v,
@@ -375,14 +357,13 @@ const App = () => {
                  actividad: String(r.c[pmIdx.actividad]?.v || ""),
                  responsable: String(r.c[pmIdx.responsable]?.v || ""),
                  diseno: String(r.c[pmIdx.diseno]?.v || ""),
-                 docenteRealiza: getTeacherForCourse(rawDocente, '1 Medio A'),
-                 rawDocente: rawDocente, 
+                 docenteRealiza: getTeacherForCourse(rawDocente, "1 Medio A"),
+                 rawDocente: rawDocente,
                  link: finalLink,
-                 sitesLink: materials.sites,
-                 canvaLink: materials.canva,
-                 pptLink: materials.ppt
-               };
-            }),
+                 sitesLink: sitesVal,
+                 canvaLink: canvaVal,
+                 pptLink: pptVal
+               };            }),
             sm: smRows.map((r: any) => {
               const rawDate = parseGoogleDate(r.c[smIdx.fecha]?.v);
               const rawDocente = String(r.c[smIdx.docente]?.v || "") === "null" ? "" : String(r.c[smIdx.docente]?.v || "");
@@ -419,7 +400,7 @@ const App = () => {
                 rawDocente: rawDocente,
                 link: finalLink,
                 sitesLink: (() => {
-                  let sites = null;
+                  let sites: any = null;
                   r.c.forEach((cell: any) => {
                     const val = cell?.l || String(cell?.v || "");
                     if (val.includes('sites.google.com') || val.includes('google.com/site')) sites = val;
@@ -427,7 +408,7 @@ const App = () => {
                   return sites;
                 })(),
                 canvaLink: (() => {
-                  let canva = null;
+                  let canva: any = null;
                   r.c.forEach((cell: any) => {
                     const val = cell?.l || String(cell?.v || "");
                     if (val.includes('canva.com') || val.includes('design')) canva = val;
@@ -435,7 +416,7 @@ const App = () => {
                   return canva;
                 })(),
                 pptLink: (() => {
-                  let ppt = null;
+                  let ppt: any = null;
                   r.c.forEach((cell: any) => {
                     const val = cell?.l || String(cell?.v || "");
                     if ((val.toLowerCase().endsWith('.pptx') || val.includes('drive.google.com')) && !val.includes('spreadsheets')) ppt = val;
@@ -602,24 +583,24 @@ const App = () => {
               docenteRealiza: parsedDocente,
               link: finalLink,
               sitesLink: (() => {
-                let sites = null;
-                cells.forEach(cell => {
+                let sites: any = null;
+                cells.forEach((cell: any) => {
                   const val = cell?.l || String(cell?.v || "");
                   if (val.includes('sites.google.com') || val.includes('google.com/site')) sites = val;
                 });
                 return sites;
               })(),
               canvaLink: (() => {
-                let canva = null;
-                cells.forEach(cell => {
+                let canva: any = null;
+                cells.forEach((cell: any) => {
                   const val = cell?.l || String(cell?.v || "");
                   if (val.includes('canva.com') || val.includes('design')) canva = val;
                 });
                 return canva;
               })(),
               pptLink: (() => {
-                let ppt = null;
-                cells.forEach(cell => {
+                let ppt: any = null;
+                cells.forEach((cell: any) => {
                   const val = cell?.l || String(cell?.v || "");
                   if ((val.toLowerCase().endsWith('.pptx') || val.includes('drive.google.com')) && !val.includes('spreadsheets')) ppt = val;
                 });
