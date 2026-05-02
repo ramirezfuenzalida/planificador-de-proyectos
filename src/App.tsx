@@ -65,9 +65,13 @@ const ensureHttps = (url: any) => {
     return `https://${s.replace(/^https?:\/\//, '')}`;
   }
 
-  // Si parece un nombre de archivo (ej: .pptx) pero tiene espacios
-  if (s.toLowerCase().match(/\.(pptx|pdf|docx|xlsx|zip)$/) && s.includes(' ')) {
-    return `https://www.google.com/search?q=${encodeURIComponent(s)}+site:drive.google.com`;
+  // Si es un nombre de archivo .pptx (o similar)
+  if (s.toLowerCase().match(/\.(pptx|pdf|docx|xlsx|zip)$/)) {
+    // Si tiene espacios o no parece URL, buscamos directamente en Google Drive del usuario
+    if (s.includes(' ') || !s.includes('.')) {
+      return `https://drive.google.com/drive/search?q=${encodeURIComponent(s)}`;
+    }
+    return `https://${s}`;
   }
 
   // Validación estándar de URL
@@ -75,9 +79,9 @@ const ensureHttps = (url: any) => {
     return `https://${s}`;
   }
   
-  // Si no es URL pero tiene texto, buscamos en Google como fallback interactivo
+  // Fallback: búsqueda en Drive para cualquier texto descriptivo que no sea URL
   if (s.length > 3) {
-    return `https://www.google.com/search?q=${encodeURIComponent(s)}`;
+    return `https://drive.google.com/drive/search?q=${encodeURIComponent(s)}`;
   }
 
   return '#';
@@ -790,7 +794,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.08
+            ZenitApp versión 1.1.09
           </div>
         </div>
       </aside>
