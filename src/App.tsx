@@ -326,7 +326,7 @@ const App = () => {
                 finalLink = rawDocente;
               }
 
-               // Smart Material Discovery v2 (Prioridad Interactivo)
+               // Smart Material Discovery v3 (Prioridad absoluta a URLs de Presentación)
                let canvaVal: any = null, pptVal: any = null, sitesVal: any = null;
                if (r.c) {
                  r.c.forEach((cell: any) => {
@@ -337,34 +337,23 @@ const App = () => {
                    if (!val || val === "null" || val === "") return;
                    const v = val.toLowerCase();
 
-                   // 1. Detección de "Enlace Interactivo" (Prioridad para PPTX según usuario)
-                   if (v.includes('interactivo')) {
-                     pptVal = val;
+                   // 1. Detección de Google Presentations / PPTX (Prioridad máxima)
+                   if (v.includes('presentation') || v.includes('docs.google.com/presentation') || v.endsWith('.pptx')) {
+                     if (link || !pptVal) pptVal = val;
                    }
-                   // 2. Detección por Hyperlink
+                   // 2. Detección de Canva
+                   else if (v.includes('canva.com') || v.includes('canva.link')) {
+                     if (link || !canvaVal) canvaVal = val;
+                   }
+                   // 3. Detección de "Interactivo" (Fallback para PPTX)
+                   else if (v.includes('interactivo')) {
+                     if (!pptVal || link) pptVal = val;
+                   }
+                   // 4. Otros enlaces
                    else if (link) {
-                     if (v.includes('canva.com') || v.includes('canva.link')) {
-                       if (!canvaVal) canvaVal = link;
-                     }
-                     else if (v.includes('sites.google.com')) {
-                       if (!sitesVal) sitesVal = link;
-                     }
-                     else if (v.includes('presentation') || v.endsWith('.pptx') || v.includes('drive.google.com')) {
-                       if (!pptVal) pptVal = link;
-                     }
+                     if (v.includes('sites.google.com')) sitesVal = link;
                      else if (!v.includes('spreadsheets') && !v.includes('viewform')) {
-                       // Posible material genérico
                        if (!canvaVal) canvaVal = link;
-                     }
-                   } 
-                   // 3. Detección por Texto
-                   else {
-                     if (v.includes('canva.com') || v.includes('canva.link')) {
-                       if (!canvaVal) canvaVal = text;
-                     } else if (v.includes("sites.google.com")) {
-                       if (!sitesVal) sitesVal = text;
-                     } else if (v.endsWith(".pptx") || v.includes(".pptx")) {
-                       if (!pptVal) pptVal = text;
                      }
                    }
                  });
@@ -857,7 +846,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.12
+            ZenitApp versión 1.1.13
           </div>
         </div>
       </aside>
