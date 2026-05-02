@@ -56,11 +56,30 @@ const initialDbState: Record<string, Record<string, 'completa' | 'pendiente' | '
 
 const ensureHttps = (url: any) => {
   if (!url) return '#';
-  const strUrl = String(url).trim();
-  if (strUrl === '#' || strUrl === '') return '#';
-  if (strUrl.startsWith('http://') || strUrl.startsWith('https://')) return strUrl;
-  // Si parece una URL (tiene punto y no espacios) pero le falta el protocolo
-  if (strUrl.includes('.') && !strUrl.includes(' ')) return `https://${strUrl}`;
+  let s = String(url).trim();
+  if (!s || s === 'null') return '#';
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+  
+  // Si es un enlace de Canva incompleto
+  if (s.toLowerCase().includes('canva.com')) {
+    return `https://${s.replace(/^https?:\/\//, '')}`;
+  }
+
+  // Si parece un nombre de archivo (ej: .pptx) pero tiene espacios
+  if (s.toLowerCase().match(/\.(pptx|pdf|docx|xlsx|zip)$/) && s.includes(' ')) {
+    return `https://www.google.com/search?q=${encodeURIComponent(s)}+site:drive.google.com`;
+  }
+
+  // Validación estándar de URL
+  if (s.includes('.') && !s.includes(' ')) {
+    return `https://${s}`;
+  }
+  
+  // Si no es URL pero tiene texto, buscamos en Google como fallback interactivo
+  if (s.length > 3) {
+    return `https://www.google.com/search?q=${encodeURIComponent(s)}`;
+  }
+
   return '#';
 };
 
@@ -319,16 +338,18 @@ const App = () => {
                 rawDocente: rawDocente, 
                 link: finalLink,
                 sitesLink: (() => {
-                  const val = getBestLink(pmIdx.sites);
+                  const val = getBestLink(pmIdx.sites) || getBestLink(pmIdx.link);
                   return (val && (val.includes('sites.google.com') || val.includes('google.com/site'))) ? val : null;
                 })(),
                 canvaLink: (() => {
-                  const val = getBestLink(pmIdx.canva);
+                  // Buscamos en columna canva, diseno o link general
+                  const val = getBestLink(pmIdx.canva) || getBestLink(pmIdx.diseno) || getBestLink(pmIdx.link);
                   return (val && (val.includes('canva.com') || val.includes('design'))) ? val : null;
                 })(),
                 pptLink: (() => {
-                  const val = pmIdx.pptx !== -1 ? getBestLink(pmIdx.pptx) : null;
-                  return (val && val.toLowerCase().endsWith('.pptx')) ? val : null;
+                  // Buscamos en columna pptx o link general
+                  const val = (pmIdx.pptx !== -1 ? getBestLink(pmIdx.pptx) : null) || getBestLink(pmIdx.link);
+                  return (val && (val.toLowerCase().endsWith('.pptx') || val.includes('presentation') || val.includes('drive.google.com'))) ? val : null;
                 })()
               };
             }),
@@ -368,16 +389,16 @@ const App = () => {
                 rawDocente: rawDocente,
                 link: finalLink,
                 sitesLink: (() => {
-                  const val = getBestLink(smIdx.sites);
+                  const val = getBestLink(smIdx.sites) || getBestLink(smIdx.link);
                   return (val && (val.includes('sites.google.com') || val.includes('google.com/site'))) ? val : null;
                 })(),
                 canvaLink: (() => {
-                  const val = getBestLink(smIdx.canva);
+                  const val = getBestLink(smIdx.canva) || getBestLink(smIdx.diseno) || getBestLink(smIdx.link);
                   return (val && (val.includes('canva.com') || val.includes('design'))) ? val : null;
                 })(),
                 pptLink: (() => {
-                  const val = smIdx.pptx !== -1 ? getBestLink(smIdx.pptx) : null;
-                  return (val && val.toLowerCase().endsWith('.pptx')) ? val : null;
+                  const val = (smIdx.pptx !== -1 ? getBestLink(smIdx.pptx) : null) || getBestLink(smIdx.link);
+                  return (val && (val.toLowerCase().endsWith('.pptx') || val.includes('presentation') || val.includes('drive.google.com'))) ? val : null;
                 })()
               };
             })
@@ -539,16 +560,16 @@ const App = () => {
               docenteRealiza: parsedDocente,
               link: finalLink,
               sitesLink: (() => {
-                const val = getBestLink(idx.sites);
+                const val = getBestLink(idx.sites) || getBestLink(idx.link);
                 return (val && (val.includes('sites.google.com') || val.includes('google.com/site'))) ? val : null;
               })(),
               canvaLink: (() => {
-                const val = getBestLink(idx.canva);
+                const val = getBestLink(idx.canva) || getBestLink(idx.diseno) || getBestLink(idx.link);
                 return (val && (val.includes('canva.com') || val.includes('design'))) ? val : null;
               })(),
               pptLink: (() => {
-                const val = idx.pptx !== -1 ? getBestLink(idx.pptx) : null;
-                return (val && val.toLowerCase().endsWith('.pptx')) ? val : null;
+                const val = (idx.pptx !== -1 ? getBestLink(idx.pptx) : null) || getBestLink(idx.link);
+                return (val && (val.toLowerCase().endsWith('.pptx') || val.includes('presentation') || val.includes('drive.google.com'))) ? val : null;
               })()
             };
           });
@@ -769,7 +790,7 @@ const App = () => {
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.07
+            ZenitApp versión 1.1.08
           </div>
         </div>
       </aside>
