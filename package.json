@@ -1,7 +1,7 @@
 {
   "name": "seguimiento-lbc",
   "private": true,
-  "version": "1.1.18",
+  "version": "1.1.32",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,10 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "framer-motion": "^12.4.7",
     "html2pdf.js": "^0.14.0",
-    "lucide-react": "^1.8.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "lucide-react": "^0.477.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
