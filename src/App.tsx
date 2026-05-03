@@ -259,7 +259,7 @@ export default function App() {
 
 
   return (
-    <div className="app-window">
+    <div className="app-window no-flicker">
       <Sidebar 
         view={view}
         setView={setView}
@@ -273,7 +273,7 @@ export default function App() {
         handleCourseSelect={handleCourseSelect}
       />
 
-      <main className="main-board">
+      <main className="main-board no-flicker">
         <header className="mobile-nav-header">
           <button className="mobile-menu-btn" onClick={() => setIsMobileSidebarOpen(true)}>
             <Menu size={28} />
@@ -281,9 +281,10 @@ export default function App() {
           <div className="mobile-nav-brand">ZenitApp</div>
         </header>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout" initial={false}>
           {view === 'courses' ? (
             <DashboardView 
+              key="courses"
               courses1M={courses1M}
               courses2M={courses2M}
               classesList={classesList}
@@ -293,6 +294,7 @@ export default function App() {
             />
           ) : view === 'class-list' && activeCourse ? (
             <ClassListView 
+              key="class-list"
               activeCourse={activeCourse}
               registrations={registrations}
               getCourseTag={getCourseTag}
@@ -303,6 +305,7 @@ export default function App() {
             />
           ) : view === 'analytics' ? (
             <AnalyticsView 
+              key="analytics"
               analyticsLevel={analyticsLevel}
               setAnalyticsLevel={setAnalyticsLevel}
               analyticsPeriod={analyticsPeriod}
@@ -320,6 +323,7 @@ export default function App() {
             />
           ) : view === 'calendar' ? (
             <CalendarView 
+              key="calendar"
               currentCalendarDate={currentCalendarDate}
               setCurrentCalendarDate={setCurrentCalendarDate}
               selectedCalendarDay={selectedCalendarDay}
@@ -331,6 +335,7 @@ export default function App() {
             />
           ) : view === 'reports' ? (
             <ReportsView 
+              key="reports"
               registrations={registrations}
               courses1M={courses1M}
               courses2M={courses2M}
@@ -339,6 +344,7 @@ export default function App() {
             />
           ) : view === 'formative-tracking' ? (
             <FormativeTrackingView 
+              key="formative"
               courses1M={courses1M}
               courses2M={courses2M}
               globalData={globalData}

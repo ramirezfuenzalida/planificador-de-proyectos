@@ -32,7 +32,10 @@ body {
   background:#fff fixed;
   font-family:Plus Jakarta Sans,sans-serif;
   display:flex;
-  overflow:hidden}
+  overflow:hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 h1,h2,h3,.brand h1 {
   letter-spacing:-.04em;
   font-family:Outfit,sans-serif}
@@ -42,14 +45,21 @@ h1,h2,h3,.brand h1 {
   height:100%;
   display:flex;
   position:relative;
-  overflow:hidden}
+  overflow:hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
 .main-board {
   background:var(--bg-main);
   flex:1;
   height:100%;
-  transition:padding .3s;
+  transition: padding 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position:relative;
-  overflow-y:auto}
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  will-change: transform, opacity;
+}
 .sidebar {
   width:var(--sidebar-width);
   background:var(--glass-sidebar);
@@ -655,11 +665,23 @@ to {
   left:150%}
 @keyframes fadeIn {
   0% {
-  opacity:0;
-  transform:translateY(10px)}
-to {
-  opacity:1;
-  transform:translateY(0)}
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Flicker Prevention Utility */
+.no-flicker {
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 .loading-state {
   color:var(--on-surface-variant);
