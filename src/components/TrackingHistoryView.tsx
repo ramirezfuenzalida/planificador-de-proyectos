@@ -93,56 +93,77 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
       return;
     }
 
-    const headers = [
-      'Curso',
-      'Clase',
-      'Objetivo',
-      'Grupo',
-      'Fecha',
-      'Hora',
-      'Evaluacion Global',
-      'Estudiante 1',
-      'Estudiante 2',
-      'Estudiante 3',
-      'Estudiante 4'
-    ];
+    import('jspdf').then(({ default: jsPDF }) => {
+      import('jspdf-autotable').then(({ default: autoTable }) => {
+        const doc = new jsPDF('landscape');
 
-    const rows = historyData.map(record => {
-      // Reconstruct students array securely 
-      const s1 = record.students['1'] || record.students['student_1'] || 'none';
-      const s2 = record.students['2'] || record.students['student_2'] || 'none';
-      const s3 = record.students['3'] || record.students['student_3'] || 'none';
-      const s4 = record.students['4'] || record.students['student_4'] || 'none';
+        // Title
+        doc.setFontSize(18);
+        doc.setTextColor(30, 41, 59); // #1e293b
+        doc.text(`Reporte ${period} de Seguimiento - ${selectedCourse}`, 14, 22);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(100, 116, 139); // #64748b
+        doc.text(`Generado el ${new Date().toLocaleDateString()}`, 14, 30);
 
-      return [
-        record.course,
-        `Clase N° ${record.clase}`,
-        `"${(record.objective || '').replace(/"/g, '""')}"`, // escape quotes for CSV
-        `Grupo ${record.groupId}`,
-        record.date,
-        record.time,
-        getStatusText(record.groupStatus),
-        getStatusText(s1),
-        getStatusText(s2),
-        getStatusText(s3),
-        getStatusText(s4)
-      ];
+        const headers = [
+          ['Fecha', 'Clase', 'Objetivo', 'Grupo', 'Global', 'Est. 1', 'Est. 2', 'Est. 3', 'Est. 4']
+        ];
+
+        const data = historyData.map(record => {
+          const s1 = record.students['1'] || record.students['student_1'] || 'none';
+          const s2 = record.students['2'] || record.students['student_2'] || 'none';
+          const s3 = record.students['3'] || record.students['student_3'] || 'none';
+          const s4 = record.students['4'] || record.students['student_4'] || 'none';
+
+          return [
+            `${record.date} ${record.time}`,
+            `N° ${record.clase}`,
+            record.objective || '',
+            `Grupo ${record.groupId}`,
+            getStatusText(record.groupStatus),
+            getStatusText(s1),
+            getStatusText(s2),
+            getStatusText(s3),
+            getStatusText(s4)
+          ];
+        });
+
+        autoTable(doc, {
+          head: headers,
+          body: data,
+          startY: 40,
+          styles: { fontSize: 9, cellPadding: 3 },
+          headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255] },
+          columnStyles: {
+            2: { cellWidth: 60 }, // make objective column wider
+          },
+          didParseCell: function(cellData) {
+            // Colorize student and global statuses
+            if (cellData.section === 'body' && cellData.column.index >= 4) {
+              const text = cellData.cell.raw as string;
+              if (text === 'Logrado') {
+                cellData.cell.styles.fillColor = [209, 250, 229]; // light emerald
+                cellData.cell.styles.textColor = [5, 150, 105];   // emerald
+                cellData.cell.styles.fontStyle = 'bold';
+              } else if (text === 'En Proceso') {
+                cellData.cell.styles.fillColor = [254, 243, 199]; // light amber
+                cellData.cell.styles.textColor = [217, 119, 6];   // amber
+                cellData.cell.styles.fontStyle = 'bold';
+              } else if (text === 'Alerta') {
+                cellData.cell.styles.fillColor = [254, 226, 226]; // light red
+                cellData.cell.styles.textColor = [220, 38, 38];   // red
+                cellData.cell.styles.fontStyle = 'bold';
+              } else if (text === 'Sin evaluar') {
+                cellData.cell.styles.textColor = [148, 163, 184]; // slate
+              }
+            }
+          }
+        });
+
+        doc.save(`Reporte_${period}_${selectedCourse.replace(/\s+/g, '_')}.pdf`);
+      });
     });
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(r => r.join(','))
-    ].join('\n');
-
-    // Add BOM for UTF-8 Excel compatibility
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Reporte_${period}_${selectedCourse.replace(/\s+/g, '_')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
