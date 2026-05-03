@@ -58,7 +58,8 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
             groupStatus: data.group,
             students: data.students,
             date: classMeta ? classMeta.fecha : 'Sin fecha',
-            time: classMeta ? classMeta.horario : 'Sin hora'
+            time: classMeta ? classMeta.horario : 'Sin hora',
+            objective: classMeta ? classMeta.objetivo : 'Sin objetivo registrado'
           });
         }
       }
@@ -191,10 +192,13 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
                         <span style={{ background: '#f1f5f9', color: '#475569', padding: '4px 12px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.5px' }}>
                           GRUPO {record.groupId}
                         </span>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>
-                          {record.clase}
+                        <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1e293b' }}>
+                          Clase N° {record.clase}
                         </h3>
                       </div>
+                      <p style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#475569', lineHeight: 1.4 }}>
+                        <strong>Objetivo:</strong> {record.objective}
+                      </p>
                       <div style={{ display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14} /> {record.date}</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> {record.time}</span>
