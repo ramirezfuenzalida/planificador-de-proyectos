@@ -15,6 +15,7 @@ import CalendarView from './components/CalendarView';
 import ReportsView from './components/ReportsView';
 import AnalyticsView from './components/AnalyticsView';
 import FormativeTrackingView from './components/FormativeTrackingView';
+import TrackingHistoryView from './components/TrackingHistoryView';
 import Toast from './components/Toast';
 
 // Utils
@@ -290,6 +291,15 @@ export default function App() {
             registrations={registrations}
             getCourseTag={getCourseTag}
             handleCourseSelect={handleCourseSelect}
+          />
+        ) : view === 'tracking-history' ? (
+          <TrackingHistoryView
+            key="tracking-history"
+            courses1M={courses1M}
+            courses2M={courses2M}
+            formativeRegistrations={formativeRegistrations}
+            globalData={globalData}
+            getCourseTag={getCourseTag}
           />
         ) : view === 'class-list' && activeCourse ? (
           <ClassListView 

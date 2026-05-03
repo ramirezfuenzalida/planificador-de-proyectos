@@ -10,7 +10,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Sparkles,
-  Menu
+  Menu,
+  History
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -132,6 +133,16 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="nav-item-left">
               <ClipboardCheck size={18} className="icon-emerald" />
               <span>Reportes</span>
+            </div>
+          </div>
+
+          <div 
+            className={`nav-item ${view === 'tracking-history' ? 'active' : ''}`}
+            onClick={() => { setView('tracking-history'); setActiveCourse(null); setIsMobileSidebarOpen(false); }}
+          >
+            <div className="nav-item-left">
+              <History size={18} className="icon-amber" />
+              <span>Historial Seguimiento</span>
             </div>
           </div>
 
