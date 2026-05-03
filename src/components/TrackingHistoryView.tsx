@@ -110,7 +110,18 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
           ['Fecha', 'Clase', 'Objetivo', 'Grupo', 'Global', 'Est. 1', 'Est. 2', 'Est. 3', 'Est. 4']
         ];
 
-        const data = historyData.map(record => {
+        const sortedForPdf = [...historyData].sort((a, b) => {
+          const classA = parseInt(a.clase.replace('Clase ', '')) || 0;
+          const classB = parseInt(b.clase.replace('Clase ', '')) || 0;
+          if (classA !== classB) {
+            return classB - classA; // Keep class descending like UI
+          }
+          const groupA = parseInt(a.groupId) || 0;
+          const groupB = parseInt(b.groupId) || 0;
+          return groupA - groupB; // Sort groups ascending
+        });
+
+        const data = sortedForPdf.map(record => {
           const s1 = record.students['s1'] || record.students['1'] || 'none';
           const s2 = record.students['s2'] || record.students['2'] || 'none';
           const s3 = record.students['s3'] || record.students['3'] || 'none';
