@@ -215,12 +215,22 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
                       {Object.keys(record.students).map((sKey, i) => {
                         const status = record.students[sKey];
                         return (
-                          <div key={sKey} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '10px 16px', borderRadius: '12px' }}>
-                            <span style={{ fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Estudiante {i + 1}</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: getStatusColor(status), fontSize: '0.85rem', fontWeight: 700 }}>
-                              {status === 'green' && <CheckCircle2 size={14} />}
-                              {status === 'yellow' && <Clock size={14} />}
-                              {status === 'red' && <AlertCircle size={14} />}
+                          <div key={sKey} style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between', 
+                            background: status === 'none' ? '#f8fafc' : `${getStatusColor(status)}15`,
+                            border: `1px solid ${status === 'none' ? 'transparent' : `${getStatusColor(status)}30`}`,
+                            padding: '10px 16px', 
+                            borderRadius: '12px' 
+                          }}>
+                            <span style={{ fontWeight: 600, color: status === 'none' ? '#64748b' : getStatusColor(status), fontSize: '0.9rem' }}>
+                              Estudiante {i + 1}
+                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: getStatusColor(status), fontSize: '0.85rem', fontWeight: 800 }}>
+                              {status === 'green' && <CheckCircle2 size={16} />}
+                              {status === 'yellow' && <Clock size={16} />}
+                              {status === 'red' && <AlertCircle size={16} />}
                               {status === 'none' && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#cbd5e1' }} />}
                               {getStatusText(status)}
                             </div>
