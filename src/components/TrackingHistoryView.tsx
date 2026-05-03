@@ -88,7 +88,61 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
   };
 
   const handleExport = (period: string) => {
-    alert(`Generando reporte ${period} para ${selectedCourse}... La descarga comenzará pronto.`);
+    if (historyData.length === 0) {
+      alert(`No hay registros para exportar en el curso ${selectedCourse}.`);
+      return;
+    }
+
+    const headers = [
+      'Curso',
+      'Clase',
+      'Objetivo',
+      'Grupo',
+      'Fecha',
+      'Hora',
+      'Evaluacion Global',
+      'Estudiante 1',
+      'Estudiante 2',
+      'Estudiante 3',
+      'Estudiante 4'
+    ];
+
+    const rows = historyData.map(record => {
+      // Reconstruct students array securely 
+      const s1 = record.students['1'] || record.students['student_1'] || 'none';
+      const s2 = record.students['2'] || record.students['student_2'] || 'none';
+      const s3 = record.students['3'] || record.students['student_3'] || 'none';
+      const s4 = record.students['4'] || record.students['student_4'] || 'none';
+
+      return [
+        record.course,
+        `Clase N° ${record.clase}`,
+        `"${(record.objective || '').replace(/"/g, '""')}"`, // escape quotes for CSV
+        `Grupo ${record.groupId}`,
+        record.date,
+        record.time,
+        getStatusText(record.groupStatus),
+        getStatusText(s1),
+        getStatusText(s2),
+        getStatusText(s3),
+        getStatusText(s4)
+      ];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(r => r.join(','))
+    ].join('\n');
+
+    // Add BOM for UTF-8 Excel compatibility
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Reporte_${period}_${selectedCourse.replace(/\s+/g, '_')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
