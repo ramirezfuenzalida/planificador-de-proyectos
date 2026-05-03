@@ -109,23 +109,21 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           gap: 24px;
         }
         .dv-course-card {
-          background: white;
           border-radius: 24px;
           padding: 24px;
           position: relative;
           cursor: pointer;
-          transition: all 0.3s ease;
-          border: 1px solid #e2e8f0;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          border: none;
           min-height: 160px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
           overflow: hidden;
+          color: white;
         }
         .dv-course-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-          border-color: #6366f1;
+          transform: translateY(-8px) scale(1.02);
         }
         /* KILL THE WHITE BLOB - NO BEFORE/AFTER ALLOWED */
         .dv-course-card::before, .dv-course-card::after {
@@ -139,22 +137,23 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           margin-bottom: 12px;
         }
         .dv-level-tag {
-          background: #f1f5f9;
-          color: #475569;
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
           padding: 4px 12px;
           border-radius: 100px;
           font-size: 0.75rem;
           font-weight: 700;
           text-transform: uppercase;
+          backdrop-filter: blur(4px);
         }
         .dv-adherence {
           font-weight: 800;
-          color: #6366f1;
+          color: white;
         }
         .dv-course-name {
           font-size: 1.75rem;
           font-weight: 900;
-          color: #1e293b;
+          color: white;
           margin: 0;
           line-height: 1.2;
         }
@@ -163,25 +162,31 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         }
         .dv-stats {
           font-size: 0.875rem;
-          color: #64748b;
+          color: rgba(255, 255, 255, 0.8);
           margin-bottom: 8px;
         }
         .dv-progress-track {
           height: 6px;
-          background: #f1f5f9;
+          background: rgba(255, 255, 255, 0.2);
           border-radius: 100px;
           overflow: hidden;
         }
         .dv-progress-fill {
           height: 100%;
-          background: #6366f1;
+          background: white;
           border-radius: 100px;
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
-        /* Card Colors */
-        .dv-course-card.a { border-left: 6px solid #6366f1; }
-        .dv-course-card.b { border-left: 6px solid #0ea5e9; }
-        .dv-course-card.c { border-left: 6px solid #f59e0b; }
-        .dv-course-card.d { border-left: 6px solid #ec4899; }
+        /* Solid Modern Card Colors */
+        .dv-course-card.a { background: #6366f1; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
+        .dv-course-card.b { background: #0ea5e9; box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4); }
+        .dv-course-card.c { background: #f59e0b; box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.4); }
+        .dv-course-card.d { background: #ec4899; box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.4); }
+        
+        .dv-course-card.a:hover { box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.6); }
+        .dv-course-card.b:hover { box-shadow: 0 20px 40px -10px rgba(14, 165, 233, 0.6); }
+        .dv-course-card.c:hover { box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.6); }
+        .dv-course-card.d:hover { box-shadow: 0 20px 40px -10px rgba(236, 72, 153, 0.6); }
       `}</style>
 
       <div className="dv-welcome-banner">
