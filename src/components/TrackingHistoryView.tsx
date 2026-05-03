@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { 
   History, 
   Download, 
-  Search, 
   Users, 
   Clock, 
   Calendar,
@@ -29,12 +28,11 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
 }) => {
   const allCourses = [...courses1M, ...courses2M];
   const [selectedCourse, setSelectedCourse] = useState<string>(allCourses[0] || '');
-  const [searchTerm, setSearchTerm] = useState('');
 
   const courseTag = getCourseTag(selectedCourse);
 
   // Reconstruct history data from formativeRegistrations
-  const historyData = [];
+  const historyData: any[] = [];
 
   Object.keys(formativeRegistrations).forEach(key => {
     // Key format: 1MA-CClase 1-G1
