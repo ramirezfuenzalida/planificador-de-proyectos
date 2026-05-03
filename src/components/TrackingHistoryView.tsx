@@ -193,15 +193,12 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
                           GRUPO {record.groupId}
                         </span>
                         <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>
-                          Clase N° {record.clase}
+                          Clase N° {record.clase} - {record.objective}
                         </h3>
                       </div>
-                      <div style={{ display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '4px' }}>
+                      <div style={{ display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14} /> {record.date}</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> {record.time}</span>
-                      </div>
-                      <div style={{ color: '#64748b', fontSize: '0.85rem' }}>
-                        <strong>Objetivo:</strong> {record.objective}
                       </div>
                     </div>
                     
