@@ -111,10 +111,10 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
         ];
 
         const data = historyData.map(record => {
-          const s1 = record.students['1'] || record.students['student_1'] || 'none';
-          const s2 = record.students['2'] || record.students['student_2'] || 'none';
-          const s3 = record.students['3'] || record.students['student_3'] || 'none';
-          const s4 = record.students['4'] || record.students['student_4'] || 'none';
+          const s1 = record.students['s1'] || record.students['1'] || 'none';
+          const s2 = record.students['s2'] || record.students['2'] || 'none';
+          const s3 = record.students['s3'] || record.students['3'] || 'none';
+          const s4 = record.students['s4'] || record.students['4'] || 'none';
 
           return [
             `${record.date} ${record.time}`,
