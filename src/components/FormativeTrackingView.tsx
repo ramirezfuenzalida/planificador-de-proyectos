@@ -226,6 +226,27 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
             </div>
           )}
 
+          <div className="formative-footer-actions" style={{ marginTop: '1rem', marginBottom: '2rem' }}>
+            <motion.button
+              className="save-revision-btn-premium"
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                alert(`Revisión de la Clase ${selectedClass} para el curso ${selectedCourse} guardada exitosamente.`);
+              }}
+              style={{ width: '100%', maxWidth: '600px', margin: '0 auto' }}
+            >
+              <div className="srb-icon">
+                <CheckCircle2 size={24} />
+              </div>
+              <div className="srb-text" style={{ textAlign: 'left' }}>
+                <strong style={{ fontSize: '1.1rem', display: 'block', marginBottom: '4px' }}>Finalizar y Guardar Revisión</strong>
+                <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>Consolidar estado de los 10 grupos</span>
+              </div>
+              <Sparkles size={20} className="srb-sparkle" style={{ marginLeft: 'auto' }} />
+            </motion.button>
+          </div>
+
           <div className="groups-grid-premium">
             {Array.from({ length: 10 }).map((_, i) => {
               const groupId = i + 1;
@@ -299,26 +320,6 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                 </motion.div>
               );
             })}
-          </div>
-          <div className="formative-footer-actions">
-            <motion.button
-              className="save-revision-btn-premium"
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                // Here we would typically trigger a sync to Google Sheets
-                alert(`Revisión de la Clase ${selectedClass} para el curso ${selectedCourse} guardada exitosamente.`);
-              }}
-            >
-              <div className="srb-icon">
-                <CheckCircle2 size={20} />
-              </div>
-              <div className="srb-text">
-                <strong>Finalizar y Guardar Revisión</strong>
-                <span>Consolidar estado de los 10 grupos</span>
-              </div>
-              <Sparkles size={18} className="srb-sparkle" />
-            </motion.button>
           </div>
         </motion.div>
       </AnimatePresence>
