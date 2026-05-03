@@ -96,7 +96,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   return (
     <motion.div 
       className="calendar-view-premium"
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 1, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="calendar-main-card">
@@ -161,7 +161,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 dayTasks.map((task, i) => (
                   <motion.div
                     key={`${task.course || task.title}-${task.clase || i}`}
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 1, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 }}
                     className={`premium-task-item ${task.isSpecial ? 'special-event' : ''}`}

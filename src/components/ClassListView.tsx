@@ -31,9 +31,9 @@ const ClassListView: React.FC<ClassListViewProps> = ({
   return (
     <motion.div 
       className="class-selection-view"
-      initial={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 1, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+      exit={{ opacity: 1, x: -20 }}
     >
       <div className="view-header">
         <div className="view-header-flex">

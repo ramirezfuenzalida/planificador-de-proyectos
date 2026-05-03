@@ -144,7 +144,7 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   const chartsUI = aggregatedStats.total > 0 ? (
     <div className="charts-container">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 1, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="chart-card"
       >
@@ -177,7 +177,7 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       </motion.div>
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 1, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="chart-card"
       >
@@ -225,7 +225,7 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 1, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="reports-view-modern" 
       id="premium-report-root"

@@ -165,9 +165,9 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
       <AnimatePresence mode="wait">
         <motion.div 
           key={`${selectedCourse}-${selectedClass}`}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
+          exit={{ opacity: 1, y: -20 }}
           className="formative-content-grid"
         >
           {currentClassData && (

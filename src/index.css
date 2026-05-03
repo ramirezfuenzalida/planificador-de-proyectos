@@ -201,7 +201,7 @@ h1,h2,h3,.brand h1 {
   max-width:1600px;
   margin:0 auto;
   padding:0 clamp(1.5rem,5vw,3rem) 3rem;
-  animation:.4s ease-out fadeIn;
+  animation:.15s ease-out fadeIn;
   display:grid}
 .main-dashboard-container {
   flex-direction:column;
@@ -451,7 +451,7 @@ h1,h2,h3,.brand h1 {
   width:100%;
   min-height:100vh;
   padding:clamp(1.5rem,5vw,3rem);
-  animation:.4s ease-out fadeIn}
+  animation:.15s ease-out fadeIn}
 .view-header {
   flex-direction:column;
   gap:1.5rem;
@@ -608,7 +608,7 @@ h1,h2,h3,.brand h1 {
   gap:.75rem;
   padding:1rem 2rem;
   font-weight:600;
-  animation:.4s cubic-bezier(.16,1,.3,1) slideUp;
+  animation:.15s cubic-bezier(.16,1,.3,1) slideUp;
   display:flex;
   position:fixed;
   bottom:2rem;
@@ -1512,7 +1512,7 @@ to {
   border-radius:24px;
   width:320px;
   padding:2rem;
-  animation:.4s cubic-bezier(.16,1,.3,1) slideDown;
+  animation:.15s cubic-bezier(.16,1,.3,1) slideDown;
   position:absolute;
   top:calc(100% + 1rem);
   left:0;
@@ -1799,7 +1799,7 @@ to {
   justify-content:center;
   align-items:center;
   padding:2rem;
-  animation:.4s fadeInModal;
+  animation:.15s fadeInModal;
   display:flex;
   position:fixed;
   inset:0}
@@ -1820,7 +1820,7 @@ to {
   width:95%;
   max-width:95%;
   max-height:95vh;
-  animation:.4s cubic-bezier(.16,1,.3,1) slideUpModal}
+  animation:.15s cubic-bezier(.16,1,.3,1) slideUpModal}
 .modal-sheet-handle {
   background:#0000001a;
   border-radius:10px;
@@ -1853,7 +1853,7 @@ to {
   width:100%;
   max-width:600px;
   max-height:85vh;
-  animation:.4s cubic-bezier(.16,1,.3,1) slideUpModal;
+  animation:.15s cubic-bezier(.16,1,.3,1) slideUpModal;
   position:relative;
   overflow-y:auto;
   box-shadow:0 40px 100px #0003;
@@ -2146,7 +2146,7 @@ to {
   z-index:2000;
   justify-content:center;
   align-items:center;
-  animation:.4s forwards fadeInModal;
+  animation:.15s forwards fadeInModal;
   display:flex;
   position:fixed;
   inset:0}
@@ -2228,7 +2228,7 @@ to {
   background:0 0;
   margin:0 auto;
   padding:clamp(1.5rem,5vw,4rem);
-  animation:.4s ease-out fadeIn}
+  animation:.15s ease-out fadeIn}
 @media (width<=768px) {
   .reports-header-glass {
   border-radius:16px;
@@ -4232,7 +4232,7 @@ body {
   background:#ef4444!important}
 .selected-day-focus-view {
   padding:1rem 0;
-  animation:.4s ease-out slideUp}
+  animation:.15s ease-out slideUp}
 .focus-view-header {
   flex-direction:column;
   gap:1rem;

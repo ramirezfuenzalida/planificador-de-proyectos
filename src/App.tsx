@@ -281,79 +281,77 @@ export default function App() {
           <div className="mobile-nav-brand">ZenitApp</div>
         </header>
 
-        <AnimatePresence mode="popLayout" initial={false}>
-          {view === 'courses' ? (
-            <DashboardView 
-              key="courses"
-              courses1M={courses1M}
-              courses2M={courses2M}
-              classesList={classesList}
-              registrations={registrations}
-              getCourseTag={getCourseTag}
-              handleCourseSelect={handleCourseSelect}
-            />
-          ) : view === 'class-list' && activeCourse ? (
-            <ClassListView 
-              key="class-list"
-              activeCourse={activeCourse}
-              registrations={registrations}
-              getCourseTag={getCourseTag}
-              globalData={globalData}
-              onClassSelect={setSelectedClass}
-              onBack={handleBackToCourses}
-              getTeacherForCourse={getTeacherForCourse}
-            />
-          ) : view === 'analytics' ? (
-            <AnalyticsView 
-              key="analytics"
-              analyticsLevel={analyticsLevel}
-              setAnalyticsLevel={setAnalyticsLevel}
-              analyticsPeriod={analyticsPeriod}
-              setAnalyticsPeriod={setAnalyticsPeriod}
-              analyticsSubPeriod={analyticsSubPeriod}
-              setAnalyticsSubPeriod={setAnalyticsSubPeriod}
-              analyticsLoading={loading}
-              globalData={globalData}
-              courses1M={courses1M}
-              courses2M={courses2M}
-              registrations={registrations}
-              observations={observations}
-              getCourseTag={getCourseTag}
-              getTeacherForCourse={getTeacherForCourse}
-            />
-          ) : view === 'calendar' ? (
-            <CalendarView 
-              key="calendar"
-              currentCalendarDate={currentCalendarDate}
-              setCurrentCalendarDate={setCurrentCalendarDate}
-              selectedCalendarDay={selectedCalendarDay}
-              setSelectedCalendarDay={setSelectedCalendarDay}
-              globalData={globalData}
-              registrations={registrations}
-              getTeacherForCourse={getTeacherForCourse}
-              getCourseTag={getCourseTag}
-            />
-          ) : view === 'reports' ? (
-            <ReportsView 
-              key="reports"
-              registrations={registrations}
-              courses1M={courses1M}
-              courses2M={courses2M}
-              getCourseTag={getCourseTag}
-              globalData={globalData}
-            />
-          ) : view === 'formative-tracking' ? (
-            <FormativeTrackingView 
-              key="formative"
-              courses1M={courses1M}
-              courses2M={courses2M}
-              globalData={globalData}
-              formativeRegistrations={formativeRegistrations}
-              setFormativeRegistrations={setFormativeRegistrations}
-              getCourseTag={getCourseTag}
-            />
-          ) : null}
-        </AnimatePresence>
+        {view === 'courses' ? (
+          <DashboardView 
+            key="courses"
+            courses1M={courses1M}
+            courses2M={courses2M}
+            classesList={classesList}
+            registrations={registrations}
+            getCourseTag={getCourseTag}
+            handleCourseSelect={handleCourseSelect}
+          />
+        ) : view === 'class-list' && activeCourse ? (
+          <ClassListView 
+            key="class-list"
+            activeCourse={activeCourse}
+            registrations={registrations}
+            getCourseTag={getCourseTag}
+            globalData={globalData}
+            onClassSelect={setSelectedClass}
+            onBack={handleBackToCourses}
+            getTeacherForCourse={getTeacherForCourse}
+          />
+        ) : view === 'analytics' ? (
+          <AnalyticsView 
+            key="analytics"
+            analyticsLevel={analyticsLevel}
+            setAnalyticsLevel={setAnalyticsLevel}
+            analyticsPeriod={analyticsPeriod}
+            setAnalyticsPeriod={setAnalyticsPeriod}
+            analyticsSubPeriod={analyticsSubPeriod}
+            setAnalyticsSubPeriod={setAnalyticsSubPeriod}
+            analyticsLoading={loading}
+            globalData={globalData}
+            courses1M={courses1M}
+            courses2M={courses2M}
+            registrations={registrations}
+            observations={observations}
+            getCourseTag={getCourseTag}
+            getTeacherForCourse={getTeacherForCourse}
+          />
+        ) : view === 'calendar' ? (
+          <CalendarView 
+            key="calendar"
+            currentCalendarDate={currentCalendarDate}
+            setCurrentCalendarDate={setCurrentCalendarDate}
+            selectedCalendarDay={selectedCalendarDay}
+            setSelectedCalendarDay={setSelectedCalendarDay}
+            globalData={globalData}
+            registrations={registrations}
+            getTeacherForCourse={getTeacherForCourse}
+            getCourseTag={getCourseTag}
+          />
+        ) : view === 'reports' ? (
+          <ReportsView 
+            key="reports"
+            registrations={registrations}
+            courses1M={courses1M}
+            courses2M={courses2M}
+            getCourseTag={getCourseTag}
+            globalData={globalData}
+          />
+        ) : view === 'formative-tracking' ? (
+          <FormativeTrackingView 
+            key="formative"
+            courses1M={courses1M}
+            courses2M={courses2M}
+            globalData={globalData}
+            formativeRegistrations={formativeRegistrations}
+            setFormativeRegistrations={setFormativeRegistrations}
+            getCourseTag={getCourseTag}
+          />
+        ) : null}
       </main>
 
       <AnimatePresence>

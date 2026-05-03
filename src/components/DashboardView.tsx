@@ -40,9 +40,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <motion.div 
       className="dv-main-container"
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 1, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.1 }}
     >
       <style>{`
         .dv-main-container {

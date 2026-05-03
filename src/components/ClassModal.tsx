@@ -47,16 +47,16 @@ const ClassModal: React.FC<ClassModalProps> = ({
     <AnimatePresence>
       {selectedClass && (
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 1 }}
           className="modal-overlay-cosmic"
           onClick={() => setSelectedClass(null)}
         >
           <motion.div
-            initial={{ opacity: 0, y: "100%", scale: 0.95 }}
+            initial={{ opacity: 1, y: "100%", scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: "100%", scale: 0.95 }}
+            exit={{ opacity: 1, y: "100%", scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="modal-content-premium"
             onClick={(e) => e.stopPropagation()}
