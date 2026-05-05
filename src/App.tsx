@@ -167,35 +167,41 @@ export default function App() {
       const PM_SHEET_ID = '1i3s_Qwcw0tJv9hxfIrWsrPMhztB5lv88NcAa0aOQwcc';
       const SM_SHEET_ID = '1kagImj0aUR4iaGFwUSUji0RhtOzKcr2JlEMWKHAX7Fo';
 
-      const fetchSheet = async (id: string) => {
-        const response = await fetch(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json`);
-        const text = await response.text();
-        const json = JSON.parse(text.substring(47).slice(0, -2));
-        const rows = json.table.rows;
-        const cols = json.table.cols;
+      const fetchSheet = async (id: string, name: string) => {
+        try {
+          const response = await fetch(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json`);
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          const text = await response.text();
+          const json = JSON.parse(text.substring(47).slice(0, -2));
+          const rows = json.table.rows;
+          const cols = json.table.cols;
 
-        return rows.map((r: any) => {
-          const obj: any = {};
-          r.c.forEach((cell: any, i: number) => {
-            const val = cell ? (cell.f || cell.v || '') : '';
-            if (cols[i] && cols[i].label) {
-              const key = cols[i].label.toLowerCase().replace(/ /g, '_');
-              obj[key] = val;
-            } else {
-              obj[`col_${i}`] = val;
-            }
-          });
-          return obj;
-        }).filter((clase: any) => 
-          clase.clase && 
-          clase.clase !== 'Clase' && 
-          String(clase.clase).trim() !== ''
-        );
+          return rows.map((r: any) => {
+            const obj: any = {};
+            r.c.forEach((cell: any, i: number) => {
+              const val = cell ? (cell.f || cell.v || '') : '';
+              if (cols[i] && cols[i].label) {
+                const key = cols[i].label.toLowerCase().replace(/ /g, '_');
+                obj[key] = val;
+              } else {
+                obj[`col_${i}`] = val;
+              }
+            });
+            return obj;
+          }).filter((clase: any) => 
+            clase.clase && 
+            clase.clase !== 'Clase' && 
+            String(clase.clase).trim() !== ''
+          );
+        } catch (error) {
+          console.error(`Error fetching sheet ${name}:`, error);
+          throw error;
+        }
       };
 
       const [pmData, smData] = await Promise.all([
-        fetchSheet(PM_SHEET_ID),
-        fetchSheet(SM_SHEET_ID)
+        fetchSheet(PM_SHEET_ID, 'Primeros Medios'),
+        fetchSheet(SM_SHEET_ID, 'Segundos Medios')
       ]);
 
       const normalize = (data: any[], type: 'pm' | 'sm') => data.map(item => {
@@ -233,12 +239,19 @@ export default function App() {
 
       const sortByDate = (arr: any[]) => arr.sort((a, b) => {
         const parse = (f: string) => {
-          const p = f.split('/');
-          return new Date(`${p[2].length === 2 ? '20' + p[2] : p[2]}-${p[1]}-${p[0]}T12:00:00`).getTime();
+          try {
+            if (!f || typeof f !== 'string' || !f.includes('/')) return 0;
+            const p = f.split('/');
+            if (p.length < 3) return 0;
+            const year = p[2].length === 2 ? '20' + p[2] : p[2];
+            const month = p[1].padStart(2, '0');
+            const day = p[0].padStart(2, '0');
+            return new Date(`${year}-${month}-${day}T12:00:00`).getTime();
+          } catch {
+            return 0;
+          }
         };
-        try {
-          return parse(a.fecha) - parse(b.fecha);
-        } catch { return 0; }
+        return parse(a.fecha) - parse(b.fecha);
       });
 
       setGlobalData({
