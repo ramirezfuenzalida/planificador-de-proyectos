@@ -54,10 +54,10 @@ const ClassModal: React.FC<ClassModalProps> = ({
           onClick={() => setSelectedClass(null)}
         >
           <motion.div
-            initial={{ opacity: 1, y: "100%", scale: 0.95 }}
+            initial={{ opacity: 1, y: 0, scale: 1 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 1, y: "100%", scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            exit={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.1 }}
             className="modal-content-premium"
             onClick={(e) => e.stopPropagation()}
           >

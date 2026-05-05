@@ -8,7 +8,8 @@ import {
   Calendar,
   Filter,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 
 interface TrackingHistoryViewProps {
@@ -17,6 +18,7 @@ interface TrackingHistoryViewProps {
   formativeRegistrations: Record<string, any>;
   globalData: { pm: any[]; sm: any[] };
   getCourseTag: (course: string) => string;
+  onDeleteRegistration: (id: string) => void;
 }
 
 const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
@@ -24,10 +26,12 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
   courses2M,
   formativeRegistrations,
   globalData,
-  getCourseTag
+  getCourseTag,
+  onDeleteRegistration
 }) => {
   const allCourses = [...courses1M, ...courses2M];
   const [selectedCourse, setSelectedCourse] = useState<string>(allCourses[0] || '');
+  const [recordToDelete, setRecordToDelete] = useState<string>('');
 
   const courseTag = getCourseTag(selectedCourse);
 
@@ -72,6 +76,8 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
     const numB = parseInt(b.clase.replace('Clase ', '')) || 0;
     return numB - numA;
   });
+
+  const uniqueClasses = Array.from(new Set(historyData.map(r => r.clase)));
 
   const getStatusText = (status: string) => {
     if (status === 'green') return 'Logrado';
@@ -177,11 +183,20 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
     });
   };
 
+  const handleDeleteRecord = () => {
+    if (recordToDelete) {
+      if (window.confirm('¿Está seguro que desea eliminar TODAS las evaluaciones (los 10 grupos) de esta clase? Esta acción no se puede deshacer.')) {
+        onDeleteRegistration(recordToDelete);
+        setRecordToDelete('');
+      }
+    }
+  };
+
   return (
-    <div className="tracking-history-container" style={{ padding: '24px', background: '#f8fafc', minHeight: '100vh' }}>
-      <div style={{ background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', borderRadius: '24px', padding: '40px', color: 'white', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="tracking-wrapper">
+      <div className="tracking-header-box">
         <div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
             <History size={40} color="#38bdf8" />
             Historial de Seguimiento
           </h1>
@@ -191,9 +206,9 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px' }}>
+      <div className="tracking-layout">
         {/* Left Sidebar Filters & Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="tracking-sidebar">
           <div style={{ background: 'white', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Filter size={18} /> Filtrar Curso
@@ -243,11 +258,36 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
               </button>
             </div>
           </div>
+
+          <div style={{ background: 'white', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', marginTop: '24px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Trash2 size={18} color="#ef4444" /> Gestión de Datos
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <select 
+                value={recordToDelete} 
+                onChange={(e) => setRecordToDelete(e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', fontWeight: 600, color: '#475569', outline: 'none', textOverflow: 'ellipsis' }}
+              >
+                <option value="">Seleccione clase a borrar...</option>
+                {uniqueClasses.map(clase => (
+                   <option key={clase as string} value={`${courseTag}-C${clase}-`}>Clase N° {clase as string}</option>
+                ))}
+              </select>
+              <button 
+                onClick={handleDeleteRecord}
+                disabled={!recordToDelete}
+                style={{ width: '100%', padding: '12px', background: recordToDelete ? '#fee2e2' : '#f1f5f9', border: 'none', borderRadius: '12px', color: recordToDelete ? '#ef4444' : '#94a3b8', fontWeight: 700, cursor: recordToDelete ? 'pointer' : 'not-allowed', transition: 'all 0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+              >
+                <Trash2 size={16} /> Borrar Clase Completa
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Right Content - History List */}
-        <div style={{ background: 'white', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', minHeight: '500px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="tracking-content tracking-content-box">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>
               Registros de {selectedCourse}
             </h2>
@@ -269,16 +309,16 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  style={{ border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}
+                  className="tracking-card-box"
                 >
                   {/* Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px', flexWrap: 'wrap', gap: '16px' }}>
+                    <div style={{ flex: '1 1 250px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', marginBottom: '10px' }}>
                         <span style={{ background: '#f1f5f9', color: '#475569', padding: '4px 12px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.5px' }}>
                           GRUPO {record.groupId}
                         </span>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', lineHeight: '1.4' }}>
                           Clase N° {record.clase} - {record.objective}
                         </h3>
                       </div>
@@ -297,11 +337,12 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
                   {/* Individual Students */}
                   <div>
                     <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Evaluación Individual</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                       {Object.keys(record.students).map((sKey, i) => {
                         const status = record.students[sKey];
                         return (
                           <div key={sKey} style={{ 
+                            flex: '1 1 180px',
                             display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'space-between', 

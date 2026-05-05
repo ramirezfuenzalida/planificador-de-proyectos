@@ -4,6 +4,8 @@ import {
   Menu, 
   CheckCircle2
 } from 'lucide-react';
+import { useRef } from 'react';
+import { supabase } from './lib/supabase';
 import './App.css';
 
 // Components
@@ -25,7 +27,7 @@ type Course = '1 Medio A' | '1 Medio B' | '1 Medio C' | '1 Medio D' |
 
 const courses1M: Course[] = ['1 Medio A', '1 Medio B', '1 Medio C', '1 Medio D'];
 const courses2M: Course[] = ['2 Medio A', '2 Medio B', '2 Medio C', '2 Medio D'];
-const classesList = Array.from({ length: 32 }, (_, i) => `Clase ${i + 1}`);
+
 
 export default function App() {
   const [view, setView] = useState('courses');
@@ -49,27 +51,111 @@ export default function App() {
   const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<Date | null>(null);
 
+  const lastSupabaseData = useRef<Record<string, string>>({});
+
   useEffect(() => {
     fetchData();
-    const saved = localStorage.getItem('zenit_regs');
-    if (saved) setRegistrations(jsonParseSafe(saved, {}));
-    const savedFormative = localStorage.getItem('zenit_formative_regs');
-    if (savedFormative) setFormativeRegistrations(jsonParseSafe(savedFormative, {}));
-    const savedObservations = localStorage.getItem('zenit_observations');
-    if (savedObservations) setObservations(jsonParseSafe(savedObservations, {}));
+    
+    const loadAndSubscribe = async () => {
+      // 1. Initial Load from Supabase
+      const { data: initialData } = await supabase.from('app_sync').select('*');
+      
+      if (initialData) {
+        const regs = initialData.find(d => d.key === 'registrations')?.data;
+        if (regs) {
+          setRegistrations(regs);
+          lastSupabaseData.current['registrations'] = JSON.stringify(regs);
+          localStorage.setItem('zenit_regs', JSON.stringify(regs));
+        }
+        
+        const formative = initialData.find(d => d.key === 'formativeRegistrations')?.data;
+        if (formative) {
+          setFormativeRegistrations(formative);
+          lastSupabaseData.current['formativeRegistrations'] = JSON.stringify(formative);
+          localStorage.setItem('zenit_formative_regs', JSON.stringify(formative));
+        }
+        
+        const obs = initialData.find(d => d.key === 'observations')?.data;
+        if (obs) {
+          setObservations(obs);
+          lastSupabaseData.current['observations'] = JSON.stringify(obs);
+          localStorage.setItem('zenit_observations', JSON.stringify(obs));
+        }
+      } else {
+        // Fallback to localStorage if no network data
+        const saved = localStorage.getItem('zenit_regs');
+        if (saved) setRegistrations(jsonParseSafe(saved, {}));
+        const savedFormative = localStorage.getItem('zenit_formative_regs');
+        if (savedFormative) setFormativeRegistrations(jsonParseSafe(savedFormative, {}));
+        const savedObservations = localStorage.getItem('zenit_observations');
+        if (savedObservations) setObservations(jsonParseSafe(savedObservations, {}));
+      }
+
+      // 2. Real-time Subscription
+      const channel = supabase
+        .channel('app_sync_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync' }, (payload: any) => {
+          if (!payload.new) return;
+          const { key, data } = payload.new;
+          const dataStr = JSON.stringify(data);
+          
+          if (dataStr === lastSupabaseData.current[key]) return;
+          
+          lastSupabaseData.current[key] = dataStr;
+          localStorage.setItem(`zenit_${key === 'registrations' ? 'regs' : key === 'formativeRegistrations' ? 'formative_regs' : 'observations'}`, dataStr);
+          
+          if (key === 'registrations') setRegistrations(data);
+          else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
+          else if (key === 'observations') setObservations(data);
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    loadAndSubscribe();
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('zenit_regs', JSON.stringify(registrations));
+    const dataStr = JSON.stringify(registrations);
+    if (Object.keys(registrations).length > 0 && dataStr !== lastSupabaseData.current['registrations']) {
+      lastSupabaseData.current['registrations'] = dataStr;
+      supabase.from('app_sync').upsert({ key: 'registrations', data: registrations }).then();
+      localStorage.setItem('zenit_regs', dataStr);
+    }
   }, [registrations]);
 
   useEffect(() => {
-    localStorage.setItem('zenit_formative_regs', JSON.stringify(formativeRegistrations));
+    const dataStr = JSON.stringify(formativeRegistrations);
+    if (Object.keys(formativeRegistrations).length > 0 && dataStr !== lastSupabaseData.current['formativeRegistrations']) {
+      lastSupabaseData.current['formativeRegistrations'] = dataStr;
+      supabase.from('app_sync').upsert({ key: 'formativeRegistrations', data: formativeRegistrations }).then();
+      localStorage.setItem('zenit_formative_regs', dataStr);
+    }
   }, [formativeRegistrations]);
 
   useEffect(() => {
-    localStorage.setItem('zenit_observations', JSON.stringify(observations));
+    const dataStr = JSON.stringify(observations);
+    if (Object.keys(observations).length > 0 && dataStr !== lastSupabaseData.current['observations']) {
+      lastSupabaseData.current['observations'] = dataStr;
+      supabase.from('app_sync').upsert({ key: 'observations', data: observations }).then();
+      localStorage.setItem('zenit_observations', dataStr);
+    }
   }, [observations]);
+
+  const deleteFormativeRegistration = (idOrPrefix: string) => {
+    setFormativeRegistrations(prev => {
+      const newRegs = { ...prev };
+      Object.keys(newRegs).forEach(key => {
+        if (key === idOrPrefix || key.startsWith(idOrPrefix)) {
+          delete newRegs[key];
+        }
+      });
+      return newRegs;
+    });
+  };
 
   const jsonParseSafe = (str: string, fallback: any) => {
     try { return JSON.parse(str); } catch { return fallback; }
@@ -287,8 +373,8 @@ export default function App() {
             key="courses"
             courses1M={courses1M}
             courses2M={courses2M}
-            classesList={classesList}
             registrations={registrations}
+            globalData={globalData}
             getCourseTag={getCourseTag}
             handleCourseSelect={handleCourseSelect}
           />
@@ -300,6 +386,7 @@ export default function App() {
             formativeRegistrations={formativeRegistrations}
             globalData={globalData}
             getCourseTag={getCourseTag}
+            onDeleteRegistration={deleteFormativeRegistration}
           />
         ) : view === 'class-list' && activeCourse ? (
           <ClassListView 

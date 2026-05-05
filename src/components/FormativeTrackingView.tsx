@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Toast from './Toast';
 import { 
   Users, 
   User, 
@@ -34,6 +35,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   const [selectedLevel, setSelectedLevel] = useState<'1M' | '2M'>('1M');
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [selectedClass, setSelectedClass] = useState<string>('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const courses = selectedLevel === '1M' ? courses1M : courses2M;
   const levelClasses = selectedLevel === '1M' ? globalData.pm : globalData.sm;
@@ -165,9 +167,10 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
       <AnimatePresence mode="wait">
         <motion.div 
           key={`${selectedCourse}-${selectedClass}`}
-          initial={{ opacity: 1, y: 20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 1, y: -20 }}
+          exit={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0 }}
           className="formative-content-grid"
         >
           {currentClassData && (
@@ -218,9 +221,11 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                 </div>
               </div>
               <div className="ccb-right">
-                 <div className="progress-circle-mini">
-                    <div className="pc-val">{Math.round(( (10 - classStats.none) / 10) * 100)}%</div>
-                    <div className="pc-label">Avance Grupal</div>
+                 <div className="progress-circle-mini" style={{ '--progress': `${Math.round(( (10 - classStats.none) / 10) * 100)}%` } as any}>
+                    <div className="progress-circle-inner">
+                      <div className="pc-val">{Math.round(( (10 - classStats.none) / 10) * 100)}%</div>
+                      <div className="pc-label">Grupal</div>
+                    </div>
                  </div>
               </div>
             </div>
@@ -232,7 +237,8 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
               whileHover={{ scale: 1.02, y: -4 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => {
-                alert(`Revisión de la Clase ${selectedClass} para el curso ${selectedCourse} guardada exitosamente.`);
+                setToastMessage('Guardado Exitosamente');
+                setTimeout(() => setToastMessage(null), 3000);
               }}
               style={{ width: '100%', maxWidth: '600px', margin: '0 auto' }}
             >
@@ -261,7 +267,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                 <motion.div 
                   key={groupId}
                   className={`group-card-premium status-${data.group}`}
-                  whileHover={{ y: -5 }}
+                  whileHover={{ y: 0 }}
                 >
                   <div className="gc-header">
                     <div className="gc-title">
@@ -323,6 +329,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
           </div>
         </motion.div>
       </AnimatePresence>
+      <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
     </div>
   );
 };

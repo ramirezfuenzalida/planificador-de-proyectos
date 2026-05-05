@@ -9,8 +9,8 @@ import { motion } from 'framer-motion';
 interface DashboardViewProps {
   courses1M: string[];
   courses2M: string[];
-  classesList: string[];
   registrations: Record<string, string>;
+  globalData: { pm: any[]; sm: any[] };
   getCourseTag: (courseName: string | null) => string;
   handleCourseSelect: (course: string) => void;
 }
@@ -18,20 +18,23 @@ interface DashboardViewProps {
 const DashboardView: React.FC<DashboardViewProps> = ({
   courses1M,
   courses2M,
-  classesList,
   registrations,
+  globalData,
   getCourseTag,
   handleCourseSelect
 }) => {
   const allCourses = [...courses1M, ...courses2M];
-  const totalPossible = allCourses.length * classesList.length;
   
+  let totalPossible = 0;
   let realizadas = 0;
+  
   allCourses.forEach(course => {
+    const levelData = course.startsWith('1') ? globalData.pm : globalData.sm;
+    totalPossible += levelData.length;
     const courseTag = getCourseTag(course);
-    classesList.forEach((_, i) => {
-      const clsNum = i + 1;
-      if (registrations[`${courseTag}-${clsNum}`] === 'green') realizadas++;
+    levelData.forEach((clase: any) => {
+      const clsId = String(clase.clase || "").replace(/[^0-9]/g, '');
+      if (registrations[`${courseTag}-${clsId}`] === 'green') realizadas++;
     });
   });
   
@@ -221,12 +224,15 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="dv-grid">
         {allCourses.map((course) => {
           const courseTag = getCourseTag(course);
+          const levelData = course.startsWith('1') ? globalData.pm : globalData.sm;
+          const totalCourseClasses = levelData.length || 1;
+          
           let courseRealizadas = 0;
-          classesList.forEach((_, i) => {
-            const clsNum = i + 1;
-            if (registrations[`${courseTag}-${clsNum}`] === 'green') courseRealizadas++;
+          levelData.forEach((clase: any) => {
+            const clsId = String(clase.clase || "").replace(/[^0-9]/g, '');
+            if (registrations[`${courseTag}-${clsId}`] === 'green') courseRealizadas++;
           });
-          const courseAdherence = Math.round((courseRealizadas / classesList.length) * 100);
+          const courseAdherence = Math.round((courseRealizadas / totalCourseClasses) * 100);
           const letter = course.split(' ').pop()?.toLowerCase();
 
           return (
@@ -247,7 +253,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
 
               <div className="dv-footer">
                 <div className="dv-stats">
-                  {courseRealizadas} / {classesList.length} Clases Realizadas
+                  {courseRealizadas} / {totalCourseClasses} Clases Realizadas
                 </div>
                 <div className="dv-progress-track">
                   <div className="dv-progress-fill" style={{ width: `${courseAdherence}%` }}></div>

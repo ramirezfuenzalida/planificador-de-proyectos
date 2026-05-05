@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutGrid, 
   TrendingUp, 
-  Calendar, 
   ClipboardCheck, 
   BookOpen, 
   ChevronDown, 
@@ -116,16 +115,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          <div
-            className={`nav-item ${view === 'calendar' ? 'active' : ''}`}
-            onClick={() => { setView('calendar'); setIsMobileSidebarOpen(false); }}
-          >
-            <div className="nav-item-left">
-              <Calendar size={18} className="icon-pink" />
-              <span>Calendario Académico</span>
-            </div>
-          </div>
-
           <div 
             className={`nav-item ${view === 'reports' ? 'active' : ''}`}
             onClick={() => { setView('reports'); setActiveCourse(null); setIsMobileSidebarOpen(false); }}
@@ -137,22 +126,22 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <div 
-            className={`nav-item ${view === 'tracking-history' ? 'active' : ''}`}
-            onClick={() => { setView('tracking-history'); setActiveCourse(null); setIsMobileSidebarOpen(false); }}
-          >
-            <div className="nav-item-left">
-              <History size={18} className="icon-amber" />
-              <span>Historial Seguimiento</span>
-            </div>
-          </div>
-
-          <div 
             className={`nav-item ${view === 'formative-tracking' ? 'active' : ''}`}
             onClick={() => { setView('formative-tracking'); setIsMobileSidebarOpen(false); }}
           >
             <div className="nav-item-left">
               <Sparkles size={18} className="icon-violet" />
               <span>Seguimiento Formativo</span>
+            </div>
+          </div>
+
+          <div 
+            className={`nav-item ${view === 'tracking-history' ? 'active' : ''}`}
+            onClick={() => { setView('tracking-history'); setActiveCourse(null); setIsMobileSidebarOpen(false); }}
+          >
+            <div className="nav-item-left">
+              <History size={18} className="icon-amber" />
+              <span>Historial de Seguimiento</span>
             </div>
           </div>
 
@@ -216,7 +205,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.1.33
+            ZenitApp versión 1.2.03
           </div>
         </div>
       </motion.aside>
