@@ -110,6 +110,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
           gap: 24px;
+          width: 100%;
+          max-width: 1400px;
+          margin: 0 auto;
         }
         .dv-course-card {
           border-radius: 24px;
@@ -127,6 +130,48 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         }
         .dv-course-card:hover {
           transform: translateY(-8px) scale(1.02);
+        }
+        /* Media Queries for Mobile Centering */
+        @media (max-width: 768px) {
+          .dv-main-container {
+            padding: 16px;
+          }
+          .dv-welcome-banner {
+            padding: 24px;
+            flex-direction: column;
+            text-align: center;
+            gap: 20px;
+          }
+          .dv-welcome-content h1 {
+            font-size: 1.75rem;
+          }
+          .dv-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+          .dv-course-card {
+            padding: 16px;
+            min-height: 140px;
+            border-radius: 20px;
+          }
+          .dv-course-name {
+            font-size: 1.2rem;
+          }
+          .dv-level-tag {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+          }
+          .dv-stats {
+            font-size: 0.75rem;
+          }
+        }
+        @media (max-width: 380px) {
+          .dv-grid {
+            gap: 8px;
+          }
+          .dv-course-name {
+            font-size: 1.1rem;
+          }
         }
         /* KILL THE WHITE BLOB - NO BEFORE/AFTER ALLOWED */
         .dv-course-card::before, .dv-course-card::after {
