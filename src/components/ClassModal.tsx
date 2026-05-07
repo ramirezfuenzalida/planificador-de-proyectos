@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// ... (icons imports kept as is)
 import { 
   X, 
   Sparkles, 
@@ -43,6 +44,16 @@ const ClassModal: React.FC<ClassModalProps> = ({
   setObservations,
   handleSaveObservation
 }) => {
+  const [localObservation, setLocalObservation] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused && selectedClass && activeCourse) {
+      const key = `${activeCourse}-${selectedClass.clase}`;
+      setLocalObservation(observations[key] || '');
+    }
+  }, [selectedClass, activeCourse, observations, isFocused]);
+
   return (
     <AnimatePresence>
       {selectedClass && (
@@ -201,15 +212,30 @@ const ClassModal: React.FC<ClassModalProps> = ({
                   <textarea
                     className="modern-textarea"
                     placeholder="Escribe notas relevantes sobre el desarrollo de la clase..."
-                    value={observations[`${activeCourse}-${selectedClass.clase}`] || ''}
-                    onChange={(e) => setObservations((prev: any) => ({
-                      ...prev,
-                      [`${activeCourse}-${selectedClass.clase}`]: e.target.value
-                    }))}
+                    value={localObservation}
+                    onChange={(e) => setLocalObservation(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => {
+                      setIsFocused(false);
+                      const key = `${activeCourse}-${selectedClass.clase}`;
+                      if (localObservation !== (observations[key] || '')) {
+                        setObservations((prev: any) => ({
+                          ...prev,
+                          [key]: localObservation
+                        }));
+                      }
+                    }}
                   />
                    <button 
                     className="btn-save-observation"
-                    onClick={handleSaveObservation}
+                    onClick={() => {
+                      const key = `${activeCourse}-${selectedClass.clase}`;
+                      setObservations((prev: any) => ({
+                        ...prev,
+                        [key]: localObservation
+                      }));
+                      handleSaveObservation();
+                    }}
                   >
                     <ClipboardCheck size={18} /> Guardar Observación
                   </button>
