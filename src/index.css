@@ -3250,10 +3250,11 @@ to {
   background-position:200%}
 }
 .formative-tracking-container {
-  max-width:1600px;
-  min-height:100vh;
-  margin:0 auto;
-  padding:2rem}
+  padding: 2rem;
+  padding-bottom: 8rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
 .formative-header-glass {
   -webkit-backdrop-filter:blur(20px);
   backdrop-filter:blur(20px);
@@ -3722,7 +3723,9 @@ to {
 .class-context-banner {
   grid-template-columns:1fr}
 .formative-tracking-container {
-  padding:1rem}
+  padding: 1rem;
+  padding-bottom: 8rem;
+}
 }
 .upcoming-events-list {
   background:#fff;
