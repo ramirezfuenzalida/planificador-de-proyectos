@@ -12,9 +12,7 @@ import {
   Menu,
   History,
   Cloud,
-  CloudOff,
-  RefreshCw,
-  CheckCircle
+  RefreshCw
 } from 'lucide-react';
 
 interface SidebarProps {
