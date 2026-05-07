@@ -10,7 +10,11 @@ import {
   ShieldCheck,
   Sparkles,
   Menu,
-  History
+  History,
+  Cloud,
+  CloudOff,
+  RefreshCw,
+  CheckCircle
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,6 +28,8 @@ interface SidebarProps {
   courses2M: string[];
   handleBackToCourses: () => void;
   handleCourseSelect: (courseName: string) => void;
+  isSyncing?: boolean;
+  lastSyncTime?: Date;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -36,7 +42,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   courses1M,
   courses2M,
   handleBackToCourses,
-  handleCourseSelect
+  handleCourseSelect,
+  isSyncing,
+  lastSyncTime
 }) => {
   const [is1MedioExpanded, setIs1MedioExpanded] = useState(true);
   const [is2MedioExpanded, setIs2MedioExpanded] = useState(false);
@@ -202,6 +210,18 @@ const Sidebar: React.FC<SidebarProps> = ({
               <span className="inst-name-small">Liceo William Taylor</span>
               <span className="inst-role-small">Administrador</span>
             </div>
+          </div>
+          
+          <div className="sidebar-sync-status">
+            <div className={`sync-pill ${isSyncing ? 'syncing' : 'synced'}`}>
+              {isSyncing ? <RefreshCw size={12} className="spin" /> : <Cloud size={12} />}
+              <span>{isSyncing ? 'Sincronizando...' : 'Nube Actualizada'}</span>
+            </div>
+            {lastSyncTime && !isSyncing && (
+              <span className="last-sync-text">
+                Hoy {lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
           </div>
 
           <div className="sidebar-version">

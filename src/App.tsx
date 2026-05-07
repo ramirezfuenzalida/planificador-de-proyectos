@@ -38,6 +38,8 @@ export default function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [globalData, setGlobalData] = useState<{ pm: any[], sm: any[] }>({ pm: [], sm: [] });
   const [loading, setLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successInfo, setSuccessInfo] = useState({ title: '', sub: '' });
@@ -107,6 +109,8 @@ export default function App() {
           if (key === 'registrations') setRegistrations(data);
           else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
           else if (key === 'observations') setObservations(data);
+          
+          setLastSyncTime(new Date());
         })
         .subscribe();
 
@@ -123,8 +127,12 @@ export default function App() {
     if (Object.keys(registrations).length > 0 && dataStr !== lastSupabaseData.current['registrations']) {
       lastSupabaseData.current['registrations'] = dataStr;
       localStorage.setItem('zenit_regs', dataStr);
+      setIsSyncing(true);
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key: 'registrations', data: registrations }).then();
+        supabase.from('app_sync').upsert({ key: 'registrations', data: registrations }).then(() => {
+          setIsSyncing(false);
+          setLastSyncTime(new Date());
+        });
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -135,8 +143,12 @@ export default function App() {
     if (Object.keys(formativeRegistrations).length > 0 && dataStr !== lastSupabaseData.current['formativeRegistrations']) {
       lastSupabaseData.current['formativeRegistrations'] = dataStr;
       localStorage.setItem('zenit_formative_regs', dataStr);
+      setIsSyncing(true);
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key: 'formativeRegistrations', data: formativeRegistrations }).then();
+        supabase.from('app_sync').upsert({ key: 'formativeRegistrations', data: formativeRegistrations }).then(() => {
+          setIsSyncing(false);
+          setLastSyncTime(new Date());
+        });
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -147,8 +159,12 @@ export default function App() {
     if (Object.keys(observations).length > 0 && dataStr !== lastSupabaseData.current['observations']) {
       lastSupabaseData.current['observations'] = dataStr;
       localStorage.setItem('zenit_observations', dataStr);
+      setIsSyncing(true);
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key: 'observations', data: observations }).then();
+        supabase.from('app_sync').upsert({ key: 'observations', data: observations }).then(() => {
+          setIsSyncing(false);
+          setLastSyncTime(new Date());
+        });
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -380,6 +396,8 @@ export default function App() {
         courses2M={courses2M}
         handleBackToCourses={handleBackToCourses}
         handleCourseSelect={handleCourseSelect}
+        isSyncing={isSyncing}
+        lastSyncTime={lastSyncTime}
       />
 
       <main className="main-board no-flicker">
