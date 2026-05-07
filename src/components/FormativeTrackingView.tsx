@@ -45,24 +45,26 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   if (selectedClass === '' && levelClasses.length > 0) setSelectedClass(levelClasses[0].clase);
 
   const handleStatusChange = (groupId: number, studentId: string | 'group', newStatus: string) => {
-    const courseTag = getCourseTag(selectedCourse);
-    const key = `${courseTag}-C${selectedClass}-G${groupId}`;
-    
-    const current = formativeRegistrations[key] || {
-      group: 'none',
-      students: { s1: 'none', s2: 'none', s3: 'none', s4: 'none' }
-    };
+    setFormativeRegistrations((prev: Record<string, any>) => {
+      const courseTag = getCourseTag(selectedCourse);
+      const key = `${courseTag}-C${selectedClass}-G${groupId}`;
+      
+      const current = prev[key] || {
+        group: 'none',
+        students: { s1: 'none', s2: 'none', s3: 'none', s4: 'none' }
+      };
 
-    const updated = { ...current };
-    if (studentId === 'group') {
-      updated.group = newStatus;
-    } else {
-      updated.students = { ...updated.students, [studentId]: newStatus };
-    }
+      const updated = { ...current };
+      if (studentId === 'group') {
+        updated.group = newStatus;
+      } else {
+        updated.students = { ...updated.students, [studentId]: newStatus };
+      }
 
-    setFormativeRegistrations({
-      ...formativeRegistrations,
-      [key]: updated
+      return {
+        ...prev,
+        [key]: updated
+      };
     });
   };
 

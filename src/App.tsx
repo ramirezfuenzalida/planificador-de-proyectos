@@ -122,8 +122,11 @@ export default function App() {
     const dataStr = JSON.stringify(registrations);
     if (Object.keys(registrations).length > 0 && dataStr !== lastSupabaseData.current['registrations']) {
       lastSupabaseData.current['registrations'] = dataStr;
-      supabase.from('app_sync').upsert({ key: 'registrations', data: registrations }).then();
       localStorage.setItem('zenit_regs', dataStr);
+      const timer = setTimeout(() => {
+        supabase.from('app_sync').upsert({ key: 'registrations', data: registrations }).then();
+      }, 1000);
+      return () => clearTimeout(timer);
     }
   }, [registrations]);
 
@@ -131,8 +134,11 @@ export default function App() {
     const dataStr = JSON.stringify(formativeRegistrations);
     if (Object.keys(formativeRegistrations).length > 0 && dataStr !== lastSupabaseData.current['formativeRegistrations']) {
       lastSupabaseData.current['formativeRegistrations'] = dataStr;
-      supabase.from('app_sync').upsert({ key: 'formativeRegistrations', data: formativeRegistrations }).then();
       localStorage.setItem('zenit_formative_regs', dataStr);
+      const timer = setTimeout(() => {
+        supabase.from('app_sync').upsert({ key: 'formativeRegistrations', data: formativeRegistrations }).then();
+      }, 1000);
+      return () => clearTimeout(timer);
     }
   }, [formativeRegistrations]);
 
@@ -140,8 +146,11 @@ export default function App() {
     const dataStr = JSON.stringify(observations);
     if (Object.keys(observations).length > 0 && dataStr !== lastSupabaseData.current['observations']) {
       lastSupabaseData.current['observations'] = dataStr;
-      supabase.from('app_sync').upsert({ key: 'observations', data: observations }).then();
       localStorage.setItem('zenit_observations', dataStr);
+      const timer = setTimeout(() => {
+        supabase.from('app_sync').upsert({ key: 'observations', data: observations }).then();
+      }, 1000);
+      return () => clearTimeout(timer);
     }
   }, [observations]);
 

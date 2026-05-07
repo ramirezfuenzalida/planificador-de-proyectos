@@ -3477,7 +3477,12 @@ to {
   height:32px;
   transition:all .2s cubic-bezier(.4,0,.2,1);
   display:flex;
-  box-shadow:0 2px 4px #00000005}
+  box-shadow:0 2px 4px #00000005;
+  user-select: none;
+  touch-action: manipulation}
+.st-btn:active {
+  transform: scale(0.9);
+  filter: brightness(0.9)}
 .st-btn svg {
   transition:all .2s}
 .st-btn.red {
