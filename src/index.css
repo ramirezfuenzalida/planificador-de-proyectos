@@ -2206,8 +2206,8 @@ to {
   background:linear-gradient(135deg,#059669 0%,#10b981 100%)!important;
   box-shadow:0 10px 25px #10b98133,inset 0 0 0 1px #fff3!important}
 .status-yellow {
-  background:linear-gradient(135deg,#d97706 0%,#f59e0b 100%)!important;
-  box-shadow:0 10px 25px #f59e0b33,inset 0 0 0 1px #fff3!important}
+  background:linear-gradient(135deg,#fbbf24 0%,#facc15 100%)!important;
+  box-shadow:0 10px 25px #facc154d,inset 0 0 0 1px #fff3!important}
 .status-red {
   background:linear-gradient(135deg,#dc2626 0%,#ef4444 100%)!important;
   box-shadow:0 10px 25px #ef444433,inset 0 0 0 1px #fff3!important}
@@ -3156,8 +3156,8 @@ to {
   box-shadow:0 4px 12px #10b9814d!important}
 .status-yellow {
   color:#fff!important;
-  background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%)!important;
-  box-shadow:0 4px 12px #f59e0b4d!important}
+  background:linear-gradient(135deg,#facc15 0%,#fbbf24 100%)!important;
+  box-shadow:0 4px 12px #facc1566!important}
 .status-red {
   color:#fff!important;
   background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)!important;
@@ -3507,9 +3507,9 @@ to {
   color:#fff!important}
 .st-btn.active.yellow {
   opacity:1;
-  background:#f59e0b;
-  border-color:#b45309;
-  box-shadow:0 4px 12px #f59e0b80;
+  background:#facc15;
+  border-color:#ca8a04;
+  box-shadow:0 4px 12px #facc1599;
   color:#fff!important}
 .st-btn.active.green {
   opacity:1;
@@ -3705,8 +3705,8 @@ to {
   border-color:#10b981;
   box-shadow:0 10px 20px #10b9810d}
 .group-card-premium.status-yellow {
-  border-color:#f59e0b;
-  box-shadow:0 10px 20px #f59e0b0d}
+  border-color:#facc15;
+  box-shadow:0 10px 20px #facc151a}
 .group-card-premium.status-red {
   border-color:#ef4444;
   box-shadow:0 10px 20px #ef44440d}
@@ -4222,8 +4222,8 @@ body {
   border-color:#10b981!important;
   box-shadow:0 0 20px #10b98133!important}
 .class-action-button.status-yellow {
-  border-color:#f59e0b!important;
-  box-shadow:0 0 20px #f59e0b33!important}
+  border-color:#facc15!important;
+  box-shadow:0 0 20px #facc154d!important}
 .class-action-button.status-red {
   border-color:#ef4444!important;
   box-shadow:0 0 20px #ef444433!important}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { 
-  Menu, 
+import {
+  Menu,
   CheckCircle2
 } from 'lucide-react';
 import { useRef } from 'react';
@@ -55,11 +55,11 @@ export default function App() {
 
   useEffect(() => {
     fetchData();
-    
+
     const loadAndSubscribe = async () => {
       // 1. Initial Load from Supabase
       const { data: initialData } = await supabase.from('app_sync').select('*');
-      
+
       if (initialData) {
         const regs = initialData.find(d => d.key === 'registrations')?.data;
         if (regs) {
@@ -67,14 +67,14 @@ export default function App() {
           lastSupabaseData.current['registrations'] = JSON.stringify(regs);
           localStorage.setItem('zenit_regs', JSON.stringify(regs));
         }
-        
+
         const formative = initialData.find(d => d.key === 'formativeRegistrations')?.data;
         if (formative) {
           setFormativeRegistrations(formative);
           lastSupabaseData.current['formativeRegistrations'] = JSON.stringify(formative);
           localStorage.setItem('zenit_formative_regs', JSON.stringify(formative));
         }
-        
+
         const obs = initialData.find(d => d.key === 'observations')?.data;
         if (obs) {
           setObservations(obs);
@@ -98,12 +98,12 @@ export default function App() {
           if (!payload.new) return;
           const { key, data } = payload.new;
           const dataStr = JSON.stringify(data);
-          
+
           if (dataStr === lastSupabaseData.current[key]) return;
-          
+
           lastSupabaseData.current[key] = dataStr;
           localStorage.setItem(`zenit_${key === 'registrations' ? 'regs' : key === 'formativeRegistrations' ? 'formative_regs' : 'observations'}`, dataStr);
-          
+
           if (key === 'registrations') setRegistrations(data);
           else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
           else if (key === 'observations') setObservations(data);
@@ -188,9 +188,9 @@ export default function App() {
               }
             });
             return obj;
-          }).filter((clase: any) => 
-            clase.clase && 
-            clase.clase !== 'Clase' && 
+          }).filter((clase: any) =>
+            clase.clase &&
+            clase.clase !== 'Clase' &&
             String(clase.clase).trim() !== ''
           );
         } catch (error) {
@@ -210,7 +210,7 @@ export default function App() {
         // SM: Link is col_11, Docente is col_12
         const rawLink = type === 'pm' ? (item.link_clase || item.col_12 || '') : (item.link_clase || item.col_11 || '');
         const rawDocente = type === 'pm' ? (item.docente_que_realiza_la_clase || item.col_14 || '') : (item.docente_que_realiza_la_clase || item.col_12 || '');
-        
+
         const links = {
           canva: rawLink.includes('canva.com') || rawLink.includes('canva.link') ? rawLink : null,
           sites: rawLink.includes('sites.google.com') ? rawLink : null,
@@ -321,7 +321,7 @@ export default function App() {
     if (!raw) return 'Sin asignar';
     const tag = getCourseTag(course);
     const rawStr = String(raw);
-    
+
     // Improved logic: find the section starting with the tag
     const regex = /(1MA|1MB|1MC|1MD|2MA|2MB|2MC|2MD)\s*[:\-]/g;
     const segments: { tag: string, start: number }[] = [];
@@ -337,18 +337,18 @@ export default function App() {
 
     const nextSeg = segments[segments.indexOf(targetSeg) + 1];
     const end = nextSeg ? nextSeg.start : rawStr.length;
-    
+
     let content = rawStr.substring(targetSeg.start, end);
     // Correctly strip the tag at the beginning (e.g., 1MA:, 1MB-, etc)
     content = content.replace(/^[12]M[A-D]\s*[:\-]\s*/i, '').trim();
-    
+
     // According to rule: // separates courses, / separates teammates
     // Strip the course end separator if present
     const courseEndIndex = content.indexOf('//');
     if (courseEndIndex !== -1) {
       content = content.substring(0, courseEndIndex).trim();
     }
-    
+
     return content.replace(/\/+$/, '').trim() || 'Sin asignar';
   };
 
@@ -360,7 +360,7 @@ export default function App() {
 
   return (
     <div className="app-window no-flicker">
-      <Sidebar 
+      <Sidebar
         view={view}
         setView={setView}
         activeCourse={activeCourse}
@@ -382,7 +382,7 @@ export default function App() {
         </header>
 
         {view === 'courses' ? (
-          <DashboardView 
+          <DashboardView
             key="courses"
             courses1M={courses1M}
             courses2M={courses2M}
@@ -402,7 +402,7 @@ export default function App() {
             onDeleteRegistration={deleteFormativeRegistration}
           />
         ) : view === 'class-list' && activeCourse ? (
-          <ClassListView 
+          <ClassListView
             key="class-list"
             activeCourse={activeCourse}
             registrations={registrations}
@@ -413,7 +413,7 @@ export default function App() {
             getTeacherForCourse={getTeacherForCourse}
           />
         ) : view === 'analytics' ? (
-          <AnalyticsView 
+          <AnalyticsView
             key="analytics"
             analyticsLevel={analyticsLevel}
             setAnalyticsLevel={setAnalyticsLevel}
@@ -431,7 +431,7 @@ export default function App() {
             getTeacherForCourse={getTeacherForCourse}
           />
         ) : view === 'calendar' ? (
-          <CalendarView 
+          <CalendarView
             key="calendar"
             currentCalendarDate={currentCalendarDate}
             setCurrentCalendarDate={setCurrentCalendarDate}
@@ -443,7 +443,7 @@ export default function App() {
             getCourseTag={getCourseTag}
           />
         ) : view === 'reports' ? (
-          <ReportsView 
+          <ReportsView
             key="reports"
             registrations={registrations}
             courses1M={courses1M}
@@ -452,7 +452,7 @@ export default function App() {
             globalData={globalData}
           />
         ) : view === 'formative-tracking' ? (
-          <FormativeTrackingView 
+          <FormativeTrackingView
             key="formative"
             courses1M={courses1M}
             courses2M={courses2M}
@@ -466,7 +466,7 @@ export default function App() {
 
       <AnimatePresence>
         {selectedClass && (
-          <ClassModal 
+          <ClassModal
             selectedClass={selectedClass}
             setSelectedClass={setSelectedClass}
             activeCourse={activeCourse}
@@ -482,18 +482,18 @@ export default function App() {
 
       <AnimatePresence>
         {showSuccess && (
-          <motion.div 
+          <motion.div
             className="success-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ 
-              background: lastRegisteredColor === 'green' ? 'rgba(6, 95, 70, 0.2)' : 
-                          lastRegisteredColor === 'yellow' ? 'rgba(146, 64, 14, 0.2)' : 
-                          'rgba(153, 27, 27, 0.2)'
+            style={{
+              background: lastRegisteredColor === 'green' ? 'rgba(6, 95, 70, 0.2)' :
+                lastRegisteredColor === 'yellow' ? 'rgba(234, 179, 8, 0.2)' :
+                  'rgba(153, 27, 27, 0.2)'
             }}
           >
-            <motion.div 
+            <motion.div
               className={`success-card ${lastRegisteredColor}`}
               initial={{ scale: 0.8, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
