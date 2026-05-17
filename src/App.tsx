@@ -109,7 +109,7 @@ export default function App() {
           if (key === 'registrations') setRegistrations(data);
           else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
           else if (key === 'observations') setObservations(data);
-          
+
           setLastSyncTime(new Date());
         })
         .subscribe();

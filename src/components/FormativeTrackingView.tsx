@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Toast from './Toast';
 import { 
@@ -12,8 +12,10 @@ import {
   Target,
   Layers,
   Sparkles,
-  Telescope
+  Telescope,
+  RefreshCw
 } from 'lucide-react';
+import { studentGroups2M } from '../utils/studentGroups';
 
 interface FormativeTrackingViewProps {
   courses1M: string[];
@@ -36,6 +38,101 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>(studentGroups2M);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('zenit_student_groups');
+    if (saved) {
+      try {
+        setDynamicGroups(JSON.parse(saved));
+      } catch(e) {}
+    }
+  }, []);
+
+  const handleSyncSheets = async () => {
+    setIsSyncing(true);
+    setToastMessage('Sincronizando con Google Sheets...');
+    try {
+      const res = await fetch("https://script.google.com/macros/s/AKfycbxsU0jJkLQelASMAcZSOcxqTA3tdlQgfEMzF4ML74XML6AgknTPyXrrKy_varObxIYI/exec");
+      const data = await res.json();
+      
+      const coursesMap = { "2MA": [0, 2], "2MB": [4, 6], "2MC": [8, 10], "2MD": [12, 14] };
+      const tbSheet = data['TEAM BUILDING 2 MEDIOS'];
+      const newGroups: Record<string, any> = {};
+      
+      if (tbSheet) {
+        for (const [course, cols] of Object.entries(coursesMap)) {
+          let currentGroup = null;
+          let groupMembers: any[] = [];
+          
+          for (let row of tbSheet) {
+            let val = String(row[cols[0]] || '').trim();
+            let roleVal = String(row[cols[1]] || '').trim();
+            
+            if (val.startsWith("EQUIPO N°")) {
+              if (currentGroup !== null) {
+                while (groupMembers.length < 4) groupMembers.push({name: '', role: ''});
+                const forcedRoles = ["Coordinador", "Investigador", "Mediador", "Secretario"];
+                for (let i=0; i<4; i++) {
+                  groupMembers[i].role = forcedRoles[i];
+                  if (!groupMembers[i].name || groupMembers[i].name.toLowerCase() === 'nan') {
+                    groupMembers[i].name = `Estudiante ${i+1}`;
+                  }
+                }
+                newGroups[`${course}-G${currentGroup}`] = groupMembers;
+              }
+              const numStr = val.replace("EQUIPO N°", "").trim();
+              currentGroup = parseInt(numStr) || null;
+              groupMembers = [];
+            } else if (currentGroup !== null && (val || roleVal)) {
+              if (!val.includes("SEGUNDO MEDIO")) {
+                groupMembers.push({ name: val, role: roleVal });
+              }
+            }
+          }
+          if (currentGroup !== null) {
+            while (groupMembers.length < 4) groupMembers.push({name: '', role: ''});
+            const forcedRoles = ["Coordinador", "Investigador", "Mediador", "Secretario"];
+            for (let i=0; i<4; i++) {
+              groupMembers[i].role = forcedRoles[i];
+              if (!groupMembers[i].name || groupMembers[i].name.toLowerCase() === 'nan') {
+                groupMembers[i].name = `Estudiante ${i+1}`;
+              }
+            }
+            newGroups[`${course}-G${currentGroup}`] = groupMembers;
+          }
+        }
+      }
+
+      for (const course of Object.keys(coursesMap)) {
+        for (let i=1; i<=10; i++) {
+          const key = `${course}-G${i}`;
+          if (!newGroups[key]) {
+            newGroups[key] = ["Coordinador", "Investigador", "Mediador", "Secretario"].map((r, idx) => ({
+              name: `Estudiante ${idx+1}`,
+              role: r
+            }));
+          }
+        }
+      }
+
+      setDynamicGroups(newGroups);
+      localStorage.setItem('zenit_student_groups', JSON.stringify(newGroups));
+      setToastMessage('Sincronización Completada con Éxito');
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (e) {
+      console.error(e);
+      setToastMessage('Error al sincronizar datos. Inténtalo más tarde.');
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setIsSyncing(false);
+      // Remove focus from button so it doesn't appear stuck on mobile
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    }
+  };
 
   const courses = selectedLevel === '1M' ? courses1M : courses2M;
   const levelClasses = selectedLevel === '1M' ? globalData.pm : globalData.sm;
@@ -117,7 +214,32 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
             <h1><Telescope size={32} color="#8B5CF6" /> Seguimiento Formativo</h1>
             <p>Gestión de hitos y evaluación continua.</p>
           </div>
-          <div className="fh-controls">
+          <div className="fh-controls" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button 
+              className="save-revision-btn-premium"
+              style={{ 
+                padding: '0.5rem 1rem', 
+                height: 'auto', 
+                minHeight: 'auto',
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+                color: 'white',
+                border: 'none',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                opacity: isSyncing ? 0.7 : 1,
+                boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+              }}
+              onClick={handleSyncSheets}
+              disabled={isSyncing}
+            >
+              <RefreshCw size={16} className={isSyncing ? "spin-icon" : ""} />
+              {isSyncing ? 'Actualizando...' : 'Actualizar Sheets'}
+            </button>
             <div className="level-toggle-premium">
               <button 
                 className={selectedLevel === '1M' ? 'active' : ''} 
@@ -278,52 +400,107 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                     </div>
                     <div className="status-selector-mini">
                       <button 
+                        type="button"
                         className={`status-btn-circle red ${data.group === 'red' ? 'active' : ''}`}
-                        onClick={() => handleStatusChange(groupId, 'group', data.group === 'red' ? 'none' : 'red')}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'red' ? 'none' : 'red'); }}
                       />
                       <button 
+                        type="button"
                         className={`status-btn-circle yellow ${data.group === 'yellow' ? 'active' : ''}`}
-                        onClick={() => handleStatusChange(groupId, 'group', data.group === 'yellow' ? 'none' : 'yellow')}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'yellow' ? 'none' : 'yellow'); }}
                       />
                       <button 
+                        type="button"
                         className={`status-btn-circle green ${data.group === 'green' ? 'active' : ''}`}
-                        onClick={() => handleStatusChange(groupId, 'group', data.group === 'green' ? 'none' : 'green')}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'green' ? 'none' : 'green'); }}
                       />
                     </div>
                   </div>
 
                   <div className="students-list-premium">
-                    {['s1', 's2', 's3', 's4'].map((sid, idx) => (
-                      <div key={sid} className={`student-row-premium status-${data.students[sid]}`}>
+                    {['s1', 's2', 's3', 's4'].map((sid, idx) => {
+                      let studentName = `Estudiante ${idx + 1}`;
+                      let studentRole = ['Coordinador', 'Investigador', 'Mediador', 'Secretario'][idx];
+
+                      if (selectedLevel === '2M') {
+                        const courseTag = getCourseTag(selectedCourse);
+                        const groupKey = `${courseTag}-G${groupId}`;
+                        const groupInfo = dynamicGroups[groupKey];
+                        if (groupInfo && groupInfo[idx]) {
+                          studentName = groupInfo[idx].name;
+                          studentRole = groupInfo[idx].role;
+                        }
+                      }
+
+                      const roleStyles: Record<string, any> = {
+                        'Coordinador': { bg: '#ffedd5', text: '#ea580c', border: '#fdba74', shadow: 'rgba(234, 88, 12, 0.15)' },
+                        'Investigador': { bg: '#fef3c7', text: '#d97706', border: '#fde68a', shadow: 'rgba(217, 119, 6, 0.15)' },
+                        'Mediador': { bg: '#dbeafe', text: '#2563eb', border: '#bfdbfe', shadow: 'rgba(37, 99, 235, 0.15)' },
+                        'Secretario': { bg: '#dcfce7', text: '#16a34a', border: '#bbf7d0', shadow: 'rgba(22, 163, 74, 0.15)' }
+                      };
+
+                      // Capitalize first letter to match keys just in case
+                      const normalizedRole = studentRole.charAt(0).toUpperCase() + studentRole.slice(1).toLowerCase();
+                      const styleInfo = roleStyles[normalizedRole] || { bg: '#f3f4f6', text: '#4b5563', border: '#e5e7eb', shadow: 'rgba(0,0,0,0.05)' };
+
+                      const studentStatus = data.students[sid];
+                      const isAssigned = studentStatus !== 'none';
+                      const nameColor = isAssigned ? '#ffffff' : 'inherit';
+                      const iconClass = isAssigned ? '' : 'icon-subtle';
+                      const iconColor = isAssigned ? '#ffffff' : undefined;
+
+                      return (
+                      <div key={sid} className={`student-row-premium status-${studentStatus}`}>
                         <div className="student-info">
-                          <User size={14} />
-                          <span>Estudiante {idx + 1}</span>
+                          <User size={14} className={iconClass} color={iconColor} style={{ minWidth: '14px' }} />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: nameColor }}>{studentName}</span>
+                            <span style={{ 
+                              fontSize: '0.65rem', 
+                              textTransform: 'uppercase', 
+                              letterSpacing: '0.06em', 
+                              color: styleInfo.text,
+                              backgroundColor: styleInfo.bg,
+                              border: `1px solid ${styleInfo.border}`,
+                              boxShadow: `0 2px 6px ${styleInfo.shadow}`,
+                              padding: '3px 8px',
+                              borderRadius: '12px',
+                              width: 'fit-content',
+                              fontWeight: 700
+                            }}>
+                              {studentRole}
+                            </span>
+                          </div>
                         </div>
                         <div className="student-status-toggle">
                           <button 
+                            type="button"
                             className={`st-btn red ${data.students[sid] === 'red' ? 'active' : ''}`}
-                            onClick={() => handleStatusChange(groupId, sid, data.students[sid] === 'red' ? 'none' : 'red')}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'red' ? 'none' : 'red'); }}
                             title="Pendiente / Alerta"
                           >
                             <AlertCircle size={14} />
                           </button>
                           <button 
+                            type="button"
                             className={`st-btn yellow ${data.students[sid] === 'yellow' ? 'active' : ''}`}
-                            onClick={() => handleStatusChange(groupId, sid, data.students[sid] === 'yellow' ? 'none' : 'yellow')}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'yellow' ? 'none' : 'yellow'); }}
                             title="En Proceso"
                           >
                             <Clock size={14} />
                           </button>
                           <button 
+                            type="button"
                             className={`st-btn green ${data.students[sid] === 'green' ? 'active' : ''}`}
-                            onClick={() => handleStatusChange(groupId, sid, data.students[sid] === 'green' ? 'none' : 'green')}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'green' ? 'none' : 'green'); }}
                             title="Logrado"
                           >
                             <CheckCircle2 size={14} />
                           </button>
                         </div>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 </motion.div>
               );
