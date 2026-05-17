@@ -1,7 +1,7 @@
 {
   "name": "seguimiento-lbc",
   "private": true,
-  "version": "1.2.04",
+  "version": "1.2.05",
   "type": "module",
   "scripts": {
     "dev": "vite",

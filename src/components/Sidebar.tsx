@@ -223,7 +223,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <div className="sidebar-version">
-            ZenitApp versión 1.2.04 ExeApp
+            ZenitApp versión 1.2.05 ExeApp
           </div>
         </div>
       </motion.aside>
