@@ -5595,13 +5595,19 @@ to {
 
 @media (max-width: 768px) {
   .groups-grid-premium {
-    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
     gap: 1rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding: 0 !important;
+    width: 100% !important;
   }
   .group-card-premium {
+    width: 100% !important;
+    max-width: 340px !important;
     padding: 1.25rem 1rem !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
   }
 }
 
