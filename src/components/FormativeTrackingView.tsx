@@ -59,7 +59,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
       const data2M = await res2M.json();
 
       // 2. Fetch 1° Medios (Se ejecutará cuando reemplaces la URL abajo)
-      const url1M = "REEMPLAZAR_CON_TU_URL_DE_1_MEDIOS";
+      const url1M = "https://script.google.com/macros/s/AKfycbxjWki_l8MX8rD1hNF6fQWT5E4xe43a520c6x0iAS4A0MRfw1LUKROjtdb1fGN27SxG/exec";
       let data1M: any = null;
       if (url1M.startsWith("https://script.google.com")) {
         try {
