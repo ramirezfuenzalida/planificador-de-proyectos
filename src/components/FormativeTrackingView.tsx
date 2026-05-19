@@ -54,23 +54,35 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
     setIsSyncing(true);
     setToastMessage('Sincronizando con Google Sheets...');
     try {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbxsU0jJkLQelASMAcZSOcxqTA3tdlQgfEMzF4ML74XML6AgknTPyXrrKy_varObxIYI/exec");
-      const data = await res.json();
+      // 1. Fetch 2° Medios
+      const res2M = await fetch("https://script.google.com/macros/s/AKfycbxsU0jJkLQelASMAcZSOcxqTA3tdlQgfEMzF4ML74XML6AgknTPyXrrKy_varObxIYI/exec");
+      const data2M = await res2M.json();
+
+      // 2. Fetch 1° Medios (Se ejecutará cuando reemplaces la URL abajo)
+      const url1M = "REEMPLAZAR_CON_TU_URL_DE_1_MEDIOS";
+      let data1M: any = null;
+      if (url1M.startsWith("https://script.google.com")) {
+        try {
+          const res1M = await fetch(url1M);
+          data1M = await res1M.json();
+        } catch (e) {
+          console.warn("No se pudo obtener data de 1° Medios", e);
+        }
+      }
       
-      const coursesMap = { "2MA": [0, 2], "2MB": [4, 6], "2MC": [8, 10], "2MD": [12, 14] };
-      const tbSheet = data['TEAM BUILDING 2 MEDIOS'];
       const newGroups: Record<string, any> = {};
-      
-      if (tbSheet) {
+
+      const processSheet = (sheetData: any, coursesMap: Record<string, number[]>, levelText: string) => {
+        if (!sheetData) return;
         for (const [course, cols] of Object.entries(coursesMap)) {
           let currentGroup = null;
           let groupMembers: any[] = [];
           
-          for (let row of tbSheet) {
+          for (let row of sheetData) {
             let val = String(row[cols[0]] || '').trim();
             let roleVal = String(row[cols[1]] || '').trim();
             
-            if (val.startsWith("EQUIPO N°")) {
+            if (val.startsWith("EQUIPO N°") || val.startsWith("EQUIPO Nº") || val.startsWith("EQUIPO N")) {
               if (currentGroup !== null) {
                 while (groupMembers.length < 4) groupMembers.push({name: '', role: ''});
                 const forcedRoles = ["Coordinador", "Investigador", "Mediador", "Secretario"];
@@ -82,11 +94,11 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                 }
                 newGroups[`${course}-G${currentGroup}`] = groupMembers;
               }
-              const numStr = val.replace("EQUIPO N°", "").trim();
+              const numStr = val.replace(/EQUIPO N[°º]?/g, "").trim();
               currentGroup = parseInt(numStr) || null;
               groupMembers = [];
             } else if (currentGroup !== null && (val || roleVal)) {
-              if (!val.includes("SEGUNDO MEDIO")) {
+              if (!val.toUpperCase().includes(levelText)) {
                 groupMembers.push({ name: val, role: roleVal });
               }
             }
@@ -103,9 +115,23 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
             newGroups[`${course}-G${currentGroup}`] = groupMembers;
           }
         }
+      };
+
+      // Procesar 2° Medios
+      const coursesMap2M = { "2MA": [0, 2], "2MB": [4, 6], "2MC": [8, 10], "2MD": [12, 14] };
+      if (data2M && data2M['TEAM BUILDING 2 MEDIOS']) {
+        processSheet(data2M['TEAM BUILDING 2 MEDIOS'], coursesMap2M, "SEGUNDO MEDIO");
       }
 
-      for (const course of Object.keys(coursesMap)) {
+      // Procesar 1° Medios
+      const coursesMap1M = { "1MA": [0, 2], "1MB": [4, 6], "1MC": [8, 10], "1MD": [12, 14] };
+      if (data1M && data1M['TEAM BUILDING 1 MEDIOS']) {
+        processSheet(data1M['TEAM BUILDING 1 MEDIOS'], coursesMap1M, "PRIMER MEDIO");
+      }
+
+      // Rellenar grupos vacíos para todos los cursos de 1° y 2° Medios
+      const allCoursesMap = { ...coursesMap1M, ...coursesMap2M };
+      for (const course of Object.keys(allCoursesMap)) {
         for (let i=1; i<=10; i++) {
           const key = `${course}-G${i}`;
           if (!newGroups[key]) {
@@ -422,14 +448,12 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                       let studentName = `Estudiante ${idx + 1}`;
                       let studentRole = ['Coordinador', 'Investigador', 'Mediador', 'Secretario'][idx];
 
-                      if (selectedLevel === '2M') {
-                        const courseTag = getCourseTag(selectedCourse);
-                        const groupKey = `${courseTag}-G${groupId}`;
-                        const groupInfo = dynamicGroups[groupKey];
-                        if (groupInfo && groupInfo[idx]) {
-                          studentName = groupInfo[idx].name;
-                          studentRole = groupInfo[idx].role;
-                        }
+                      const courseTag = getCourseTag(selectedCourse);
+                      const groupKey = `${courseTag}-G${groupId}`;
+                      const groupInfo = dynamicGroups[groupKey];
+                      if (groupInfo && groupInfo[idx]) {
+                        studentName = groupInfo[idx].name;
+                        studentRole = groupInfo[idx].role;
                       }
 
                       const roleStyles: Record<string, any> = {
