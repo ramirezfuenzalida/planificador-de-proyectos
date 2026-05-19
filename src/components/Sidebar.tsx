@@ -210,20 +210,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
           
-          <div className="sidebar-sync-status">
-            <div className={`sync-pill ${isSyncing ? 'syncing' : 'synced'}`}>
-              {isSyncing ? <RefreshCw size={12} className="spin" /> : <Cloud size={12} />}
-              <span>{isSyncing ? 'Sincronizando...' : 'Nube Actualizada'}</span>
+          <div className="sidebar-footer-meta">
+            <div className={`sync-indicator ${isSyncing ? 'syncing' : 'synced'}`}>
+              {isSyncing ? <RefreshCw size={10} className="spin" /> : <Cloud size={10} />}
+              <span>{isSyncing ? 'Sinc.' : 'Online'}</span>
             </div>
             {lastSyncTime && !isSyncing && (
-              <span className="last-sync-text">
-                Hoy {lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <span className="meta-text">
+                {lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
-          </div>
-
-          <div className="sidebar-version">
-            ZenitApp versión 1.2.05 ExeApp
+            <span className="meta-divider">•</span>
+            <span className="meta-text">v1.2.05</span>
           </div>
         </div>
       </motion.aside>
