@@ -221,7 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               </span>
             )}
             <span className="meta-divider">•</span>
-            <span className="meta-text">v1.2.05</span>
+            <span className="meta-text">ExeApp 1.2.06</span>
           </div>
         </div>
       </motion.aside>
