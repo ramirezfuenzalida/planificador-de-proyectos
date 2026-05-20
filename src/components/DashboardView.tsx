@@ -135,6 +135,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         @media (max-width: 768px) {
           .dv-main-container {
             padding: 16px;
+            padding-bottom: 120px;
           }
           .dv-welcome-banner {
             padding: 24px;
@@ -148,6 +149,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           .dv-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
+            padding-bottom: 40px;
           }
           .dv-course-card {
             padding: 16px;
