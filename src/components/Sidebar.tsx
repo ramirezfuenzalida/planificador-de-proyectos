@@ -6,15 +6,12 @@ import {
   ClipboardCheck, 
   BookOpen, 
   ChevronDown, 
-  ChevronRight,
   ShieldCheck,
   Sparkles,
   Menu,
   History,
-  Cloud,
   RefreshCw,
-  Wifi,
-  WifiOff
+  Wifi
 } from 'lucide-react';
 
 interface SidebarProps {
