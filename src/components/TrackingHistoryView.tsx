@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   History, 
@@ -32,6 +32,16 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
   const allCourses = [...courses1M, ...courses2M];
   const [selectedCourse, setSelectedCourse] = useState<string>(allCourses[0] || '');
   const [recordToDelete, setRecordToDelete] = useState<string>('');
+  const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const saved = localStorage.getItem('zenit_student_groups');
+    if (saved) {
+      try {
+        setDynamicGroups(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
 
   const courseTag = getCourseTag(selectedCourse);
 
@@ -81,8 +91,8 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
 
   const getStatusText = (status: string) => {
     if (status === 'green') return 'Logrado';
-    if (status === 'yellow') return 'En Proceso';
-    if (status === 'red') return 'Alerta';
+    if (status === 'yellow') return 'Por lograr';
+    if (status === 'red') return 'No logrado';
     return 'Sin evaluar';
   };
 
@@ -163,11 +173,11 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
                 cellData.cell.styles.fillColor = [209, 250, 229]; // light emerald
                 cellData.cell.styles.textColor = [5, 150, 105];   // emerald
                 cellData.cell.styles.fontStyle = 'bold';
-              } else if (text === 'En Proceso') {
+              } else if (text === 'Por lograr') {
                 cellData.cell.styles.fillColor = [254, 243, 199]; // light amber
                 cellData.cell.styles.textColor = [217, 119, 6];   // amber
                 cellData.cell.styles.fontStyle = 'bold';
-              } else if (text === 'Alerta') {
+              } else if (text === 'No logrado') {
                 cellData.cell.styles.fillColor = [254, 226, 226]; // light red
                 cellData.cell.styles.textColor = [220, 38, 38];   // red
                 cellData.cell.styles.fontStyle = 'bold';
@@ -340,6 +350,15 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                       {Object.keys(record.students).map((sKey, i) => {
                         const status = record.students[sKey];
+                        let studentName = `Estudiante ${i + 1}`;
+                        let studentRole = '';
+                        const groupKey = `${courseTag}-G${record.groupId}`;
+                        const groupInfo = dynamicGroups[groupKey];
+                        if (groupInfo && groupInfo[i]) {
+                          studentName = groupInfo[i].name;
+                          studentRole = groupInfo[i].role;
+                        }
+
                         return (
                           <div key={sKey} style={{ 
                             flex: '1 1 180px',
@@ -351,9 +370,16 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
                             padding: '10px 16px', 
                             borderRadius: '12px' 
                           }}>
-                            <span style={{ fontWeight: 600, color: status === 'none' ? '#64748b' : getStatusColor(status), fontSize: '0.9rem' }}>
-                              Estudiante {i + 1}
-                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                              <span style={{ fontWeight: 600, color: status === 'none' ? '#64748b' : getStatusColor(status), fontSize: '0.9rem' }}>
+                                {studentName}
+                              </span>
+                              {studentRole && (
+                                <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 500, marginTop: '2px' }}>
+                                  {studentRole}
+                                </span>
+                              )}
+                            </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: getStatusColor(status), fontSize: '0.85rem', fontWeight: 800 }}>
                               {status === 'green' && <CheckCircle2 size={16} />}
                               {status === 'yellow' && <Clock size={16} />}

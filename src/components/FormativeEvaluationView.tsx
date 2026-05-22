@@ -260,7 +260,7 @@ export default function FormativeEvaluationView({
 
   // 8. Exportación CSV de las calificaciones formativas
   const exportToCSV = () => {
-    const headers = ['Curso', 'Grupo', 'Estudiante', 'Rol', 'Evaluaciones Registradas', 'L (Logrado)', 'PL (Por Lograr)', 'NL (No Logrado)', 'Nota Propuesta (60%)', 'Calificación Final', 'Retroalimentación/Observación'];
+    const headers = ['Curso', 'Grupo', 'Estudiante', 'Rol', 'Evaluaciones Registradas', 'Logrados', 'Por lograr', 'No logrados', 'Nota Propuesta', 'Nota Final (Calificación)', 'Retroalimentación'];
     const rows = studentsList.map((s) => [
       selectedCourse,
       `Grupo ${s.groupId}`,
@@ -548,28 +548,30 @@ export default function FormativeEvaluationView({
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4b5563' }}>Historial de Hitos ({student.history.length} Sesiones)</span>
                     {hasHistory ? (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '2px' }}>
-                        {student.history.map((h: any, idx: number) => (
-                          <div 
-                            key={idx}
-                            style={{
-                              minWidth: '24px',
-                              width: 'auto',
-                              padding: '0 5px',
-                              height: '20px',
-                              borderRadius: '6px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.65rem',
-                              fontWeight: 800,
-                              backgroundColor: h.status === 'green' ? '#10B981' : h.status === 'yellow' ? '#F59E0B' : '#EF4444',
-                              color: 'white'
-                            }}
-                            title={`Clase ${h.classId} (${h.date}) - ${h.status === 'green' ? 'Logrado (L)' : h.status === 'yellow' ? 'Por Lograr (PL)' : 'No Logrado (NL)'}`}
-                          >
-                            C{h.classId}
-                          </div>
-                        ))}
+                        {student.history.map((h: any, idx: number) => {
+                          const statusText = h.status === 'green' ? 'Logrado' : h.status === 'yellow' ? 'Por lograr' : 'No logrado';
+                          return (
+                            <div 
+                              key={idx}
+                              style={{
+                                padding: '3px 8px',
+                                height: '22px',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.7rem',
+                                fontWeight: 800,
+                                backgroundColor: h.status === 'green' ? '#10B981' : h.status === 'yellow' ? '#F59E0B' : '#EF4444',
+                                color: 'white',
+                                whiteSpace: 'nowrap'
+                              }}
+                              title={`Clase ${h.classId} (${h.date})`}
+                            >
+                              C{h.classId} {statusText}
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontStyle: 'italic' }}>Sin clases evaluadas en este nivel</span>
