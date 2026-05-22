@@ -11,7 +11,8 @@ import {
   Menu,
   History,
   RefreshCw,
-  Wifi
+  Wifi,
+  Award
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -213,6 +214,23 @@ const Sidebar: React.FC<SidebarProps> = ({
               )}
             </AnimatePresence>
           </div>
+
+          {/* ── EVALUACIÓN FORMATIVA ── */}
+          <div className="sb2-section-label" style={{ marginTop: '1.75rem' }}>EVALUACIÓN</div>
+          <nav className="sb2-nav">
+            <button
+              className={`sb2-nav-item ${view === 'formative-evaluation' ? 'active' : ''}`}
+              onClick={() => {
+                setView('formative-evaluation');
+                setActiveCourse(null);
+                setIsMobileSidebarOpen(false);
+              }}
+            >
+              <span className="sb2-nav-icon icon-violet"><Award size={17} /></span>
+              <span className="sb2-nav-label">Evaluación Formativa</span>
+              {view === 'formative-evaluation' && <span className="sb2-nav-dot" />}
+            </button>
+          </nav>
 
           {/* ── INSTITUTION CARD (inline, not fixed) ── */}
           <div className="sb2-divider" />

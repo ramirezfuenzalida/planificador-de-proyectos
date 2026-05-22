@@ -19,6 +19,7 @@ import AnalyticsView from './components/AnalyticsView';
 import FormativeTrackingView from './components/FormativeTrackingView';
 import TrackingHistoryView from './components/TrackingHistoryView';
 import Toast from './components/Toast';
+import FormativeEvaluationView from './components/FormativeEvaluationView';
 
 // Utils
 
@@ -35,6 +36,7 @@ export default function App() {
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [registrations, setRegistrations] = useState<Record<string, string>>({});
   const [formativeRegistrations, setFormativeRegistrations] = useState<Record<string, any>>({});
+  const [formativeEvaluations, setFormativeEvaluations] = useState<Record<string, any>>({});
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [globalData, setGlobalData] = useState<{ pm: any[], sm: any[] }>({ pm: [], sm: [] });
   const [loading, setLoading] = useState(true);
@@ -83,6 +85,13 @@ export default function App() {
           lastSupabaseData.current['observations'] = JSON.stringify(obs);
           localStorage.setItem('zenit_observations', JSON.stringify(obs));
         }
+
+        const evaluations = initialData.find(d => d.key === 'formativeEvaluations')?.data;
+        if (evaluations) {
+          setFormativeEvaluations(evaluations);
+          lastSupabaseData.current['formativeEvaluations'] = JSON.stringify(evaluations);
+          localStorage.setItem('zenit_formative_evaluations', JSON.stringify(evaluations));
+        }
       } else {
         // Fallback to localStorage if no network data
         const saved = localStorage.getItem('zenit_regs');
@@ -91,6 +100,8 @@ export default function App() {
         if (savedFormative) setFormativeRegistrations(jsonParseSafe(savedFormative, {}));
         const savedObservations = localStorage.getItem('zenit_observations');
         if (savedObservations) setObservations(jsonParseSafe(savedObservations, {}));
+        const savedEvaluations = localStorage.getItem('zenit_formative_evaluations');
+        if (savedEvaluations) setFormativeEvaluations(jsonParseSafe(savedEvaluations, {}));
       }
 
       // 2. Real-time Subscription
@@ -101,14 +112,21 @@ export default function App() {
           const { key, data } = payload.new;
           const dataStr = JSON.stringify(data);
 
-          if (dataStr === lastSupabaseData.current[key]) return;
-
           lastSupabaseData.current[key] = dataStr;
-          localStorage.setItem(`zenit_${key === 'registrations' ? 'regs' : key === 'formativeRegistrations' ? 'formative_regs' : 'observations'}`, dataStr);
+          localStorage.setItem(
+            `zenit_${
+              key === 'registrations' ? 'regs' : 
+              key === 'formativeRegistrations' ? 'formative_regs' : 
+              key === 'formativeEvaluations' ? 'formative_evaluations' : 
+              'observations'
+            }`, 
+            dataStr
+          );
 
           if (key === 'registrations') setRegistrations(data);
           else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
           else if (key === 'observations') setObservations(data);
+          else if (key === 'formativeEvaluations') setFormativeEvaluations(data);
 
           setLastSyncTime(new Date());
         })
@@ -169,6 +187,22 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [observations]);
+
+  useEffect(() => {
+    const dataStr = JSON.stringify(formativeEvaluations);
+    if (Object.keys(formativeEvaluations).length > 0 && dataStr !== lastSupabaseData.current['formativeEvaluations']) {
+      lastSupabaseData.current['formativeEvaluations'] = dataStr;
+      localStorage.setItem('zenit_formative_evaluations', dataStr);
+      setIsSyncing(true);
+      const timer = setTimeout(() => {
+        supabase.from('app_sync').upsert({ key: 'formativeEvaluations', data: formativeEvaluations }).then(() => {
+          setIsSyncing(false);
+          setLastSyncTime(new Date());
+        });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [formativeEvaluations]);
 
   const deleteFormativeRegistration = (idOrPrefix: string) => {
     setFormativeRegistrations(prev => {
@@ -486,6 +520,17 @@ export default function App() {
             globalData={globalData}
             formativeRegistrations={formativeRegistrations}
             setFormativeRegistrations={setFormativeRegistrations}
+            getCourseTag={getCourseTag}
+          />
+        ) : view === 'formative-evaluation' ? (
+          <FormativeEvaluationView
+            key="formative-evaluation"
+            courses1M={courses1M}
+            courses2M={courses2M}
+            globalData={globalData}
+            formativeRegistrations={formativeRegistrations}
+            formativeEvaluations={formativeEvaluations}
+            setFormativeEvaluations={setFormativeEvaluations}
             getCourseTag={getCourseTag}
           />
         ) : null}
