@@ -107,7 +107,14 @@ export default function FormativeEvaluationView({
     return history;
   };
 
-  // 2. Calcular la nota propuesta según escala chilena del 60%
+  // 2. Calcular la nota propuesta según tabla de indicadores de logro institucional
+  //    D  (Desarrollado)       86%–100% → 7
+  //    ED (En Desarrollo)      73%–85%  → 6
+  //    DI (Desarrollo Inicial) 67%–72%  → 5
+  //    ND (No Desarrollado)    50%–66%  → 4
+  //                            26%–49%  → 3
+  //                             1%–25%  → 2
+  //                                0%   → 1
   const calculateProposedGrade = (history: any[]) => {
     const total = history.length;
     if (total === 0) return null;
@@ -118,19 +125,17 @@ export default function FormativeEvaluationView({
       else if (h.status === 'yellow') points += 0.5;
     });
 
-    const ratio = points / total;
-    let grade = 1.0;
+    const pct = total > 0 ? (points / total) * 100 : 0;
 
-    if (ratio < 0.6) {
-      // Escala 1.0 a 4.0
-      grade = 1.0 + 5.0 * (ratio / 0.6);
-    } else {
-      // Escala 4.0 a 7.0
-      grade = 4.0 + 3.0 * ((ratio - 0.6) / 0.4);
-    }
+    let grade: number;
+    if (pct >= 86)      grade = 7;
+    else if (pct >= 73) grade = 6;
+    else if (pct >= 67) grade = 5;
+    else if (pct >= 50) grade = 4;
+    else if (pct >= 26) grade = 3;
+    else if (pct >= 1)  grade = 2;
+    else                grade = 1;
 
-    // Asegurar límites
-    grade = Math.max(1.0, Math.min(7.0, grade));
     return parseFloat(grade.toFixed(1));
   };
 
@@ -460,20 +465,41 @@ export default function FormativeEvaluationView({
           borderRadius: '16px',
           padding: '1.25rem',
           border: '1px solid rgba(139, 92, 246, 0.1)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center'
+          boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
         }}>
-          <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem', fontWeight: 700, color: '#4b5563', marginBottom: '0.5rem' }}>
-            <Info size={16} className="icon-blue" /> Lógica y Escala de Calificación
+          <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem', fontWeight: 700, color: '#4b5563', marginBottom: '0.75rem' }}>
+            <Info size={16} className="icon-blue" /> Indicadores de Logro → Nota Propuesta
           </h4>
-          <p style={{ fontSize: '0.8rem', color: '#4b5563', lineHeight: '1.4', margin: 0 }}>
-            La <strong>Nota Propuesta</strong> se calcula automáticamente en base a las sesiones de clases registradas en el Seguimiento Formativo. 
-            Se otorga <strong>1.0 punto por Logrado (L)</strong>, <strong>0.5 puntos por Por Lograr (PL)</strong> y <strong>0.0 por No Logrado (NL)</strong>.
-            La nota se genera mediante la escala estándar con <strong>60% de nivel de exigencia</strong> (Nota 4.0).
-            Puedes aceptar la propuesta o ingresar una nota manualmente en la grilla.
+          <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.6rem', lineHeight: 1.4 }}>
+            La nota se obtiene del porcentaje logrado: <strong>1 pto por L · 0.5 por PL · 0 por NL</strong>.
           </p>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+            <thead>
+              <tr style={{ background: 'rgba(139,92,246,0.08)' }}>
+                <th style={{ textAlign: 'left', padding: '4px 8px', color: '#6d28d9', fontWeight: 700 }}>Sigla</th>
+                <th style={{ textAlign: 'left', padding: '4px 8px', color: '#6d28d9', fontWeight: 700 }}>Indicador</th>
+                <th style={{ textAlign: 'center', padding: '4px 8px', color: '#6d28d9', fontWeight: 700 }}>%</th>
+                <th style={{ textAlign: 'center', padding: '4px 8px', color: '#6d28d9', fontWeight: 700 }}>Nota</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { sigla: 'D',  label: 'Desarrollado',       pct: '86%–100%', nota: 7, color: '#10B981' },
+                { sigla: 'ED', label: 'En Desarrollo',      pct: '73%–85%',  nota: 6, color: '#3B82F6' },
+                { sigla: 'DI', label: 'Desarrollo Inicial', pct: '67%–72%',  nota: 5, color: '#8B5CF6' },
+                { sigla: 'ND', label: 'No Desarrollado',    pct: '50%–66%',  nota: 4, color: '#F59E0B' },
+                { sigla: '—',  label: '',                   pct: '26%–49%',  nota: 3, color: '#EF4444' },
+                { sigla: '—',  label: '',                   pct: '1%–25%',   nota: 2, color: '#DC2626' },
+              ].map(({ sigla, label, pct, nota, color }) => (
+                <tr key={nota} style={{ borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+                  <td style={{ padding: '3px 8px', fontWeight: 800, color }}>{sigla}</td>
+                  <td style={{ padding: '3px 8px', color: '#374151' }}>{label}</td>
+                  <td style={{ padding: '3px 8px', textAlign: 'center', color: '#6b7280' }}>{pct}</td>
+                  <td style={{ padding: '3px 8px', textAlign: 'center', fontWeight: 800, color }}>{nota}.0</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
