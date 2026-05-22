@@ -3420,7 +3420,18 @@ to {
   width:22px;
   height:22px;
   transition:all .2s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 2px 4px #0000000d}
+  box-shadow:0 2px 4px #0000000d;
+  position: relative;
+  user-select: none;
+  touch-action: manipulation}
+.status-btn-circle::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  bottom: -12px;
+  left: -8px;
+  right: -8px;
+}
 .status-btn-circle.red {
   background:#fee2e2;
   border-color:#fecaca}
@@ -3480,10 +3491,22 @@ to {
   display:flex;
   box-shadow:0 2px 4px #00000005;
   user-select: none;
-  touch-action: manipulation}
+  touch-action: manipulation;
+  position: relative;
+}
+.st-btn::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  bottom: -12px;
+  left: -6px;
+  right: -6px;
+}
 .st-btn:active {
-  transform: scale(0.9);
-  filter: brightness(0.9)}
+  transform: scale(0.96);
+  filter: brightness(0.82);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
 .st-btn svg {
   transition:all .2s}
 .st-btn.red {
@@ -3501,27 +3524,34 @@ to {
   opacity:.8;
   background:#dcfce7;
   border-color:#86efac}
-.st-btn:hover {
-  opacity:1;
-  transform:translateY(-2px);
-  box-shadow:0 4px 8px #0000000d}
+@media (hover: hover) {
+  .st-btn:hover {
+    opacity:1;
+    transform:translateY(-2px);
+    box-shadow:0 4px 8px #0000000d}
+}
 .st-btn.active.red {
   opacity:1;
   background:#ef4444;
   border-color:#b91c1c;
-  box-shadow:0 4px 12px #ef444480;
+  box-shadow:0 4px 12px rgba(239, 68, 68, 0.5);
   color:#fff!important}
 .st-btn.active.yellow {
   opacity:1;
-  background:#facc15;
+  background:#f59e0b;
   border-color:#ca8a04;
-  box-shadow:0 4px 12px #facc1599;
-  color:#fff!important}
+  box-shadow:0 4px 12px rgba(245, 158, 11, 0.45);
+  color:#78350f !important;
+}
+.st-btn.active.yellow svg {
+  stroke:#78350f !important;
+  color:#78350f !important;
+}
 .st-btn.active.green {
   opacity:1;
   background:#10b981;
   border-color:#047857;
-  box-shadow:0 4px 12px #10b98180;
+  box-shadow:0 4px 12px rgba(16, 185, 129, 0.5);
   color:#fff!important}
 .fh-filters-grid {
   grid-template-columns:1.5fr 1.5fr 1fr;
