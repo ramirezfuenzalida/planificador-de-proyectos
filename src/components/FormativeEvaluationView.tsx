@@ -552,7 +552,9 @@ export default function FormativeEvaluationView({
                           <div 
                             key={idx}
                             style={{
-                              width: '20px',
+                              minWidth: '24px',
+                              width: 'auto',
+                              padding: '0 5px',
                               height: '20px',
                               borderRadius: '6px',
                               display: 'flex',
@@ -565,7 +567,7 @@ export default function FormativeEvaluationView({
                             }}
                             title={`Clase ${h.classId} (${h.date}) - ${h.status === 'green' ? 'Logrado (L)' : h.status === 'yellow' ? 'Por Lograr (PL)' : 'No Logrado (NL)'}`}
                           >
-                            {h.status === 'green' ? 'L' : h.status === 'yellow' ? 'PL' : 'NL'}
+                            C{h.classId}
                           </div>
                         ))}
                       </div>
