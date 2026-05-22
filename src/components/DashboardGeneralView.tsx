@@ -666,6 +666,16 @@ export default function DashboardGeneralView({
           margin: 0 auto;
         }
 
+        .dg-btn-action {
+          transition: all 0.2s ease !important;
+        }
+        .dg-btn-action:hover {
+          background: #e2e8f0 !important;
+          color: #4f46e5 !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 10px rgba(79, 70, 229, 0.15);
+        }
+
         .dg-table {
           width: 100%;
           border-collapse: collapse;
@@ -1112,6 +1122,101 @@ export default function DashboardGeneralView({
                 </table>
               </div>
             </div>
+
+            {/* SECCIÓN D: LISTADO DE ALUMNOS DEL CURSO SELECCIONADO (SOLO SI SE SELECCIONA UN CURSO ESPECÍFICO) */}
+            {courseFilter !== 'All' && (
+              <div className="dg-card" style={{ marginTop: '24px' }}>
+                <div className="dg-card-header">
+                  <div className="dg-card-title">
+                    <Users size={18} className="icon-blue" />
+                    <span>Listado de Estudiantes — {courseFilter}</span>
+                  </div>
+                  <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>
+                    {filteredStudents.length} alumnos registrados
+                  </span>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="dg-table">
+                    <thead>
+                      <tr>
+                        <th>Nombre</th>
+                        <th>Grupo / Rol</th>
+                        <th style={{ textAlign: 'center' }}>Logros (L / PL / NL)</th>
+                        <th style={{ textAlign: 'center' }}>Nota Sugerida</th>
+                        <th style={{ textAlign: 'center' }}>Nota Oficial</th>
+                        <th>Observaciones</th>
+                        <th style={{ textAlign: 'center' }}>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredStudents.map((student) => (
+                        <tr key={student.key}>
+                          <td style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1e293b' }}>
+                            {student.name}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>
+                                Grupo {student.groupId}
+                              </span>
+                              <span style={{ 
+                                fontSize: '0.65rem', 
+                                textTransform: 'uppercase', 
+                                color: student.role === 'Coordinador' ? '#ea580c' : student.role === 'Investigador' ? '#d97706' : student.role === 'Mediador' ? '#2563eb' : '#16a34a',
+                                fontWeight: 800
+                              }}>
+                                {student.role}
+                              </span>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <div style={{ display: 'inline-flex', gap: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
+                              <span style={{ background: '#d1fae5', color: '#065f46', padding: '2px 6px', borderRadius: '6px' }} title="Logrados">
+                                {student.counts.green} L
+                              </span>
+                              <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '6px' }} title="Por Lograr">
+                                {student.counts.yellow} PL
+                              </span>
+                              <span style={{ background: '#fee2e2', color: '#991b1b', padding: '2px 6px', borderRadius: '6px' }} title="No Logrados">
+                                {student.counts.red} NL
+                              </span>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'center', fontWeight: 750, color: '#4f46e5' }}>
+                            {student.proposed ? student.proposed.toFixed(1) : '—'}
+                          </td>
+                          <td style={{ textAlign: 'center', fontWeight: 750, color: student.grade ? (student.grade >= 4.0 ? '#10b981' : '#ef4444') : '#94a3b8' }}>
+                            {student.grade ? student.grade.toFixed(1) : '—'}
+                          </td>
+                          <td style={{ maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontStyle: 'italic', color: '#64748b', fontSize: '0.78rem' }} title={student.comment}>
+                            {student.comment || <span style={{ color: '#cbd5e1', fontStyle: 'normal' }}>Sin observaciones</span>}
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <button
+                              onClick={() => setSelectedStudentKey(student.key)}
+                              style={{
+                                padding: '5px 10px',
+                                background: '#f1f5f9',
+                                border: '1px solid #cbd5e1',
+                                color: '#4f46e5',
+                                borderRadius: '8px',
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                              className="dg-btn-action"
+                            >
+                              Ver Ficha
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
