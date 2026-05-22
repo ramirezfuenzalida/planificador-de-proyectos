@@ -13,7 +13,8 @@ import {
   Layers,
   Sparkles,
   Telescope,
-  RefreshCw
+  RefreshCw,
+  X
 } from 'lucide-react';
 import { studentGroups2M } from '../utils/studentGroups';
 
@@ -40,6 +41,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>(studentGroups2M);
   const [isSyncing, setIsSyncing] = useState(false);
+  const lastClickRef = React.useRef<Record<string, number>>({});
 
   useEffect(() => {
     const saved = localStorage.getItem('zenit_student_groups');
@@ -168,6 +170,16 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   if (selectedClass === '' && levelClasses.length > 0) setSelectedClass(levelClasses[0].clase);
 
   const handleStatusChange = (groupId: number, studentId: string | 'group', newStatus: string) => {
+    const targetKey = `${selectedCourse}-${selectedClass}-${groupId}-${studentId}`;
+    const now = Date.now();
+    const lastClickTime = lastClickRef.current[targetKey] || 0;
+    
+    // Throttle rapid clicks within 350ms to prevent ghost clicks and double-tap toggle bugs on mobile
+    if (now - lastClickTime < 350) {
+      return;
+    }
+    lastClickRef.current[targetKey] = now;
+
     setFormativeRegistrations((prev: Record<string, any>) => {
       const courseTag = getCourseTag(selectedCourse);
       const key = `${courseTag}-C${selectedClass}-G${groupId}`;
@@ -420,25 +432,47 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                   whileHover={{ y: 0 }}
                 >
                   <div className="gc-header">
-                    <div className="gc-title">
+                    <div className="gc-title" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <Sparkles size={18} />
                       <h3>Grupo {groupId}</h3>
+                      {data.group !== 'none' && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', 'none'); }}
+                          style={{
+                            border: 'none',
+                            background: 'rgba(0,0,0,0.05)',
+                            padding: '4px',
+                            color: '#64748b',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '50%',
+                            transition: 'all 0.2s',
+                          }}
+                          className="clear-group-status-btn"
+                          title="Limpiar estado del grupo"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
                     </div>
                     <div className="status-selector-mini">
                       <button 
                         type="button"
                         className={`status-btn-circle red ${data.group === 'red' ? 'active' : ''}`}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'red' ? 'none' : 'red'); }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', 'red'); }}
                       />
                       <button 
                         type="button"
                         className={`status-btn-circle yellow ${data.group === 'yellow' ? 'active' : ''}`}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'yellow' ? 'none' : 'yellow'); }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', 'yellow'); }}
                       />
                       <button 
                         type="button"
                         className={`status-btn-circle green ${data.group === 'green' ? 'active' : ''}`}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'green' ? 'none' : 'green'); }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', 'green'); }}
                       />
                     </div>
                   </div>
@@ -469,9 +503,9 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
 
                       const studentStatus = data.students[sid];
                       const isAssigned = studentStatus !== 'none';
-                      const nameColor = isAssigned ? '#ffffff' : 'inherit';
+                      const nameColor = 'inherit';
                       const iconClass = isAssigned ? '' : 'icon-subtle';
-                      const iconColor = isAssigned ? '#ffffff' : undefined;
+                      const iconColor = undefined;
 
                       return (
                       <div key={sid} className={`student-row-premium status-${studentStatus}`}>
@@ -479,28 +513,53 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                           <User size={14} className={iconClass} color={iconColor} style={{ minWidth: '14px' }} />
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: nameColor }}>{studentName}</span>
-                            <span style={{ 
-                              fontSize: '0.65rem', 
-                              textTransform: 'uppercase', 
-                              letterSpacing: '0.06em', 
-                              color: styleInfo.text,
-                              backgroundColor: styleInfo.bg,
-                              border: `1px solid ${styleInfo.border}`,
-                              boxShadow: `0 2px 6px ${styleInfo.shadow}`,
-                              padding: '3px 8px',
-                              borderRadius: '12px',
-                              width: 'fit-content',
-                              fontWeight: 700
-                            }}>
-                              {studentRole}
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ 
+                                fontSize: '0.65rem', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: '0.06em', 
+                                color: styleInfo.text,
+                                backgroundColor: styleInfo.bg,
+                                border: `1px solid ${styleInfo.border}`,
+                                boxShadow: `0 2px 6px ${styleInfo.shadow}`,
+                                padding: '3px 8px',
+                                borderRadius: '12px',
+                                width: 'fit-content',
+                                fontWeight: 700
+                              }}>
+                                {studentRole}
+                              </span>
+                              {isAssigned && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, 'none'); }}
+                                  style={{
+                                    border: 'none',
+                                    background: 'none',
+                                    padding: '2px',
+                                    color: styleInfo.text,
+                                    opacity: 0.6,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '50%',
+                                    transition: 'all 0.2s',
+                                  }}
+                                  className="clear-student-status-btn"
+                                  title="Deseleccionar estudiante"
+                                >
+                                  <X size={12} />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="student-status-toggle">
                           <button 
                             type="button"
                             className={`st-btn red ${data.students[sid] === 'red' ? 'active' : ''}`}
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'red' ? 'none' : 'red'); }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, 'red'); }}
                             title="Pendiente / Alerta"
                           >
                             <AlertCircle size={14} />
@@ -508,7 +567,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                           <button 
                             type="button"
                             className={`st-btn yellow ${data.students[sid] === 'yellow' ? 'active' : ''}`}
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'yellow' ? 'none' : 'yellow'); }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, 'yellow'); }}
                             title="En Proceso"
                           >
                             <Clock size={14} />
@@ -516,7 +575,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                           <button 
                             type="button"
                             className={`st-btn green ${data.students[sid] === 'green' ? 'active' : ''}`}
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'green' ? 'none' : 'green'); }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, 'green'); }}
                             title="Logrado"
                           >
                             <CheckCircle2 size={14} />

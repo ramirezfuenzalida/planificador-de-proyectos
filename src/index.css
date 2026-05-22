@@ -3708,14 +3708,72 @@ to {
   gap:1rem}
 }
 .group-card-premium.status-green {
-  border-color:#10b981;
-  box-shadow:0 10px 20px #10b9810d}
+  background: #ffffff !important;
+  color: var(--text-primary) !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.08) !important;
+}
 .group-card-premium.status-yellow {
-  border-color:#facc15;
-  box-shadow:0 10px 20px #facc151a}
+  background: #ffffff !important;
+  color: var(--text-primary) !important;
+  border-color: #facc15 !important;
+  box-shadow: 0 10px 20px rgba(250, 204, 21, 0.1) !important;
+}
 .group-card-premium.status-red {
-  border-color:#ef4444;
-  box-shadow:0 10px 20px #ef44440d}
+  background: #ffffff !important;
+  color: var(--text-primary) !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 10px 20px rgba(239, 68, 68, 0.08) !important;
+}
+
+/* Premium subtle highlights for student rows */
+.student-row-premium.status-green {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-left: 4px solid #10b981 !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.06) !important;
+}
+.student-row-premium.status-yellow {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-left: 4px solid #f59e0b !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.06) !important;
+}
+.student-row-premium.status-red {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-left: 4px solid #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.06) !important;
+}
+
+/* Premium styling for clear status buttons */
+.clear-student-status-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.clear-student-status-btn:hover {
+  opacity: 1 !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+  transform: scale(1.15);
+}
+.clear-student-status-btn:active {
+  transform: scale(0.9);
+}
+
+.clear-group-status-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.clear-group-status-btn:hover {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+  transform: scale(1.15);
+}
+.clear-group-status-btn:active {
+  transform: scale(0.9);
+}
+
 @media (width<=768px) {
   .fh-top {
   flex-direction:column;
