@@ -401,6 +401,9 @@ export default function DashboardGeneralView({
           outline: none;
           cursor: pointer;
           transition: all 0.2s ease;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
         }
 
         .dg-select:focus {
@@ -576,6 +579,25 @@ export default function DashboardGeneralView({
           display: flex;
           gap: 8px;
           width: 100%;
+          align-items: center;
+        }
+
+        .dg-filter-row input {
+          width: 130px !important;
+          min-width: 130px !important;
+          max-width: 130px !important;
+        }
+
+        .dg-filter-row select {
+          width: 180px !important;
+          min-width: 180px !important;
+          max-width: 180px !important;
+        }
+
+        .dg-filter-row button {
+          width: 80px !important;
+          min-width: 80px !important;
+          max-width: 80px !important;
         }
 
         @media (max-width: 640px) {
@@ -584,9 +606,11 @@ export default function DashboardGeneralView({
             gap: 10px;
           }
           .dg-filter-row input,
-          .dg-filter-row select {
-            width: 100%;
+          .dg-filter-row select,
+          .dg-filter-row button {
+            width: 100% !important;
             min-width: 0 !important;
+            max-width: 100% !important;
           }
         }
 
@@ -732,13 +756,11 @@ export default function DashboardGeneralView({
               value={studentSearchQuery}
               onChange={(e) => setStudentSearchQuery(e.target.value)}
               className="dg-select"
-              style={{ flex: 1, minWidth: '80px', maxWidth: '200px' }}
             />
             <select
               value={selectedStudentKey}
               onChange={(e) => setSelectedStudentKey(e.target.value)}
               className="dg-select"
-              style={{ flex: 1.5, minWidth: '100px', maxWidth: '280px' }}
             >
               <option value="All">Ver consolidado grupal (Todos)</option>
               {studentDropdownList.map(s => (
