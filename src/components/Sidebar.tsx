@@ -43,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   isSyncing,
   lastSyncTime
 }) => {
-  const [is1MedioExpanded, setIs1MedioExpanded] = useState(true);
+  const [is1MedioExpanded, setIs1MedioExpanded] = useState(false);
   const [is2MedioExpanded, setIs2MedioExpanded] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
