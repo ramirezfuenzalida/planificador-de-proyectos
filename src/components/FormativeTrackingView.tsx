@@ -26,6 +26,39 @@ interface FormativeTrackingViewProps {
   getCourseTag: (course: string) => string;
 }
 
+// Mapeo oficial de estados de evaluación formativa y calificación
+export const FORMATIVE_EVALUATION_MAP = {
+  green: {
+    initial: 'L',
+    name: 'Logrado',
+    title: 'Logrado (L)'
+  },
+  yellow: {
+    initial: 'PL',
+    name: 'Por Lograr',
+    title: 'Por Lograr (PL)'
+  },
+  red: {
+    initial: 'NL',
+    name: 'No Logrado',
+    title: 'No Logrado (NL)'
+  },
+  none: {
+    initial: '-',
+    name: 'Sin Evaluar',
+    title: 'Sin Evaluar'
+  }
+} as const;
+
+// Función para obtener la calificación por inicial a partir del color
+export const getGradeInitial = (color: string): string => {
+  const normColor = (color || '').toLowerCase();
+  if (normColor === 'green') return 'L';
+  if (normColor === 'yellow') return 'PL';
+  if (normColor === 'red') return 'NL';
+  return '-';
+};
+
 const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   courses1M,
   courses2M,
@@ -319,9 +352,9 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
           </div>
 
           <div className="class-stats-mini-card">
-            <div className="stat-pill green"><span>{classStats.green}</span> Logrado</div>
-            <div className="stat-pill yellow"><span>{classStats.yellow}</span> Proceso</div>
-            <div className="stat-pill red"><span>{classStats.red}</span> Alerta</div>
+            <div className="stat-pill green"><span>{classStats.green}</span> Logrado (L)</div>
+            <div className="stat-pill yellow"><span>{classStats.yellow}</span> Por Lograr (PL)</div>
+            <div className="stat-pill red"><span>{classStats.red}</span> No Logrado (NL)</div>
           </div>
         </div>
       </div>
@@ -441,16 +474,19 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                         type="button"
                         className={`status-btn-circle red ${data.group === 'red' ? 'active' : ''}`}
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'red' ? 'none' : 'red'); }}
+                        title="Marcar Grupo Completo como No Logrado (NL)"
                       />
                       <button 
                         type="button"
                         className={`status-btn-circle yellow ${data.group === 'yellow' ? 'active' : ''}`}
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'yellow' ? 'none' : 'yellow'); }}
+                        title="Marcar Grupo Completo como Por Lograr (PL)"
                       />
                       <button 
                         type="button"
                         className={`status-btn-circle green ${data.group === 'green' ? 'active' : ''}`}
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'green' ? 'none' : 'green'); }}
+                        title="Marcar Grupo Completo como Logrado (L)"
                       />
                     </div>
                   </div>
@@ -513,7 +549,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                             type="button"
                             className={`st-btn red ${data.students[sid] === 'red' ? 'active' : ''}`}
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'red' ? 'none' : 'red'); }}
-                            title="Pendiente / Alerta"
+                            title="No Logrado (NL)"
                           >
                             <AlertCircle size={14} />
                           </button>
@@ -521,7 +557,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                             type="button"
                             className={`st-btn yellow ${data.students[sid] === 'yellow' ? 'active' : ''}`}
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'yellow' ? 'none' : 'yellow'); }}
-                            title="En Proceso"
+                            title="Por Lograr (PL)"
                           >
                             <Clock size={14} />
                           </button>
@@ -529,7 +565,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                             type="button"
                             className={`st-btn green ${data.students[sid] === 'green' ? 'active' : ''}`}
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'green' ? 'none' : 'green'); }}
-                            title="Logrado"
+                            title="Logrado (L)"
                           >
                             <CheckCircle2 size={14} />
                           </button>
