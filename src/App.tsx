@@ -20,6 +20,7 @@ import FormativeTrackingView from './components/FormativeTrackingView';
 import TrackingHistoryView from './components/TrackingHistoryView';
 import Toast from './components/Toast';
 import FormativeEvaluationView from './components/FormativeEvaluationView';
+import DashboardGeneralView from './components/DashboardGeneralView';
 
 // Utils
 
@@ -538,6 +539,16 @@ export default function App() {
             formativeRegistrations={formativeRegistrations}
             formativeEvaluations={formativeEvaluations}
             setFormativeEvaluations={setFormativeEvaluations}
+            getCourseTag={getCourseTag}
+          />
+        ) : view === 'dashboard-general' ? (
+          <DashboardGeneralView
+            key="dashboard-general"
+            courses1M={courses1M}
+            courses2M={courses2M}
+            globalData={globalData}
+            formativeRegistrations={formativeRegistrations}
+            formativeEvaluations={formativeEvaluations}
             getCourseTag={getCourseTag}
           />
         ) : null}

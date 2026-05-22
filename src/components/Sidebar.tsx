@@ -234,6 +234,18 @@ const Sidebar: React.FC<SidebarProps> = ({
               <span className="sb2-nav-label">Evaluación Formativa</span>
               {view === 'formative-evaluation' && <span className="sb2-nav-dot" />}
             </button>
+            <button
+              className={`sb2-nav-item ${view === 'dashboard-general' ? 'active' : ''}`}
+              onClick={() => {
+                setView('dashboard-general');
+                setActiveCourse(null);
+                setIsMobileSidebarOpen(false);
+              }}
+            >
+              <span className="sb2-nav-icon icon-sky"><LayoutGrid size={17} /></span>
+              <span className="sb2-nav-label">Dashboard</span>
+              {view === 'dashboard-general' && <span className="sb2-nav-dot" />}
+            </button>
           </nav>
 
           {/* ── ACTUALIZAR PLANIFICACIÓN ── */}
