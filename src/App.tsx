@@ -214,6 +214,20 @@ export default function App() {
       });
       return newRegs;
     });
+
+    // También borrar las notas finales en la evaluación formativa para este curso
+    const courseTag = idOrPrefix.split('-')[0];
+    if (courseTag) {
+      setFormativeEvaluations(prev => {
+        const newEvals = { ...prev };
+        Object.keys(newEvals).forEach(key => {
+          if (key.startsWith(courseTag + '-')) {
+            delete newEvals[key];
+          }
+        });
+        return newEvals;
+      });
+    }
   };
 
   const jsonParseSafe = (str: string, fallback: any) => {
