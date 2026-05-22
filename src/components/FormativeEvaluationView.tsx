@@ -9,7 +9,8 @@ import {
   FileSpreadsheet,
   Info,
   TrendingUp,
-  HelpCircle
+  HelpCircle,
+  Trash2
 } from 'lucide-react';
 import { studentGroups2M } from '../utils/studentGroups';
 import Toast from './Toast';
@@ -619,20 +620,45 @@ export default function FormativeEvaluationView({
                   </div>
 
                   {/* Selección de Nota Oficial */}
-                  <div style={{ minWidth: '140px' }}>
+                  <div style={{ minWidth: '160px' }}>
                     <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4b5563', display: 'block', marginBottom: '4px' }}>Nota Calificación</label>
-                    <div className="custom-select-wrapper" style={{ minWidth: '120px' }}>
-                      <select 
-                        value={student.grade} 
-                        onChange={(e) => handleGradeChange(student.groupId, student.studentId, e.target.value)}
-                        style={{ padding: '0.4rem 2rem 0.4rem 0.75rem', fontSize: '0.85rem', fontWeight: 700 }}
-                      >
-                        <option value="">Pendiente</option>
-                        {Array.from({ length: 61 }).map((_, idx) => {
-                          const val = (7.0 - idx * 0.1).toFixed(1);
-                          return <option key={val} value={val}>{val}</option>;
-                        })}
-                      </select>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div className="custom-select-wrapper" style={{ flex: 1, minWidth: '100px' }}>
+                        <select 
+                          value={student.grade} 
+                          onChange={(e) => handleGradeChange(student.groupId, student.studentId, e.target.value)}
+                          style={{ padding: '0.4rem 1.5rem 0.4rem 0.75rem', fontSize: '0.85rem', fontWeight: 700, width: '100%' }}
+                        >
+                          <option value="">Pendiente</option>
+                          {Array.from({ length: 61 }).map((_, idx) => {
+                            const val = (7.0 - idx * 0.1).toFixed(1);
+                            return <option key={val} value={val}>{val}</option>;
+                          })}
+                        </select>
+                      </div>
+                      {student.grade && (
+                        <button
+                          type="button"
+                          onClick={() => handleGradeChange(student.groupId, student.studentId, '')}
+                          style={{
+                            padding: '7px',
+                            background: '#fee2e2',
+                            border: '1px solid #fca5a5',
+                            borderRadius: '8px',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseOver={(e) => (e.currentTarget.style.background = '#fecaca')}
+                          onMouseOut={(e) => (e.currentTarget.style.background = '#fee2e2')}
+                          title="Borrar calificación"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </div>
                   </div>
 
