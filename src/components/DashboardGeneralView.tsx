@@ -284,6 +284,19 @@ export default function DashboardGeneralView({
           min-height: 100vh;
           font-family: 'Inter', sans-serif;
           color: #1e293b;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+
+        .dashboard-general-container * {
+          box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+          .dashboard-general-container {
+            padding: 12px;
+          }
         }
 
         .dg-header {
@@ -433,7 +446,11 @@ export default function DashboardGeneralView({
           margin-bottom: 24px;
         }
 
-        @media (max-width: 1024px) {
+        .dg-main-grid > div {
+          min-width: 0;
+        }
+
+        @media (max-width: 1200px) {
           .dg-main-grid {
             grid-template-columns: 1fr;
           }
@@ -527,6 +544,31 @@ export default function DashboardGeneralView({
           padding: 10px 14px;
           border-radius: 10px;
           backdrop-filter: blur(4px);
+        }
+
+        @media (max-width: 480px) {
+          .dg-student-badge-grid {
+            grid-template-columns: 1fr;
+            gap: 8px;
+          }
+        }
+
+        .dg-filter-row {
+          display: flex;
+          gap: 8px;
+          width: 100%;
+        }
+
+        @media (max-width: 640px) {
+          .dg-filter-row {
+            flex-direction: column;
+            gap: 10px;
+          }
+          .dg-filter-row input,
+          .dg-filter-row select {
+            width: 100%;
+            min-width: 0 !important;
+          }
         }
 
         .dg-student-badge-item {
@@ -664,7 +706,7 @@ export default function DashboardGeneralView({
 
         <div className="dg-filter-group" style={{ flex: 2 }}>
           <label>Buscar / Filtrar Estudiante</label>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="dg-filter-row">
             <input
               type="text"
               placeholder="Buscar estudiante..."
