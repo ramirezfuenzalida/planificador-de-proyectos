@@ -167,7 +167,19 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   if (selectedCourse === '' && courses.length > 0) setSelectedCourse(courses[0]);
   if (selectedClass === '' && levelClasses.length > 0) setSelectedClass(levelClasses[0].clase);
 
+  const lastClickRef = React.useRef<Record<string, number>>({});
+
   const handleStatusChange = (groupId: number, studentId: string | 'group', newStatus: string) => {
+    const targetKey = `${selectedCourse}-${selectedClass}-${groupId}-${studentId}`;
+    const now = Date.now();
+    const lastClickTime = lastClickRef.current[targetKey] || 0;
+    
+    // Throttle rapid clicks/taps within 400ms on the same target to eliminate mobile touch ghost-clicks
+    if (now - lastClickTime < 400) {
+      return;
+    }
+    lastClickRef.current[targetKey] = now;
+
     setFormativeRegistrations((prev: Record<string, any>) => {
       const courseTag = getCourseTag(selectedCourse);
       const key = `${courseTag}-C${selectedClass}-G${groupId}`;
