@@ -345,22 +345,41 @@ export default function DashboardGeneralView({
         .dg-filters-bar {
           background: white;
           border-radius: 16px;
-          padding: 16px 20px;
+          padding: 18px 24px;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
           border: 1px solid rgba(148, 163, 184, 0.12);
           margin-bottom: 24px;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 16px;
-          align-items: center;
+          display: grid;
+          grid-template-columns: 1fr 1fr 2fr;
+          gap: 20px;
+          width: 100%;
+          max-width: 100%;
         }
 
         .dg-filter-group {
           display: flex;
           flex-direction: column;
           gap: 6px;
-          min-width: 160px;
-          flex: 1 1 200px;
+          min-width: 0;
+          width: 100%;
+        }
+
+        @media (max-width: 900px) {
+          .dg-filters-bar {
+            grid-template-columns: 1fr 1fr;
+          }
+          .dg-filter-group-student {
+            grid-column: span 2;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .dg-filters-bar {
+            grid-template-columns: 1fr;
+          }
+          .dg-filter-group-student {
+            grid-column: span 1;
+          }
         }
 
         .dg-filter-group label {
@@ -704,7 +723,7 @@ export default function DashboardGeneralView({
           </select>
         </div>
 
-        <div className="dg-filter-group" style={{ flex: 2 }}>
+        <div className="dg-filter-group dg-filter-group-student">
           <label>Buscar / Filtrar Estudiante</label>
           <div className="dg-filter-row">
             <input
@@ -713,13 +732,13 @@ export default function DashboardGeneralView({
               value={studentSearchQuery}
               onChange={(e) => setStudentSearchQuery(e.target.value)}
               className="dg-select"
-              style={{ flex: 1, minWidth: '130px' }}
+              style={{ flex: 1, minWidth: '80px', maxWidth: '200px' }}
             />
             <select
               value={selectedStudentKey}
               onChange={(e) => setSelectedStudentKey(e.target.value)}
               className="dg-select"
-              style={{ flex: 1.5, minWidth: '150px' }}
+              style={{ flex: 1.5, minWidth: '100px', maxWidth: '280px' }}
             >
               <option value="All">Ver consolidado grupal (Todos)</option>
               {studentDropdownList.map(s => (
