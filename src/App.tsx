@@ -220,7 +220,7 @@ export default function App() {
     try { return JSON.parse(str); } catch { return fallback; }
   };
 
-  const fetchData = async () => {
+  const fetchData = async (isManual = false) => {
     setLoading(true);
     try {
       const PM_SHEET_ID = '1i3s_Qwcw0tJv9hxfIrWsrPMhztB5lv88NcAa0aOQwcc';
@@ -317,6 +317,11 @@ export default function App() {
         pm: sortByDate(normalize(pmData, 'pm')),
         sm: sortByDate(normalize(smData, 'sm'))
       });
+
+      if (isManual) {
+        setToastMessage("¡Planificación actualizada exitosamente!");
+        setTimeout(() => setToastMessage(null), 3000);
+      }
     } catch (e) {
       console.error("Fetch failed", e);
       setToastMessage("Error al sincronizar con Google Sheets");
@@ -432,6 +437,8 @@ export default function App() {
         handleCourseSelect={handleCourseSelect}
         isSyncing={isSyncing}
         lastSyncTime={lastSyncTime}
+        onRefreshData={() => fetchData(true)}
+        isLoadingData={loading}
       />
 
       <main className="main-board no-flicker">

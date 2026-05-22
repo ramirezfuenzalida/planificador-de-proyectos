@@ -28,6 +28,8 @@ interface SidebarProps {
   handleCourseSelect: (courseName: string) => void;
   isSyncing?: boolean;
   lastSyncTime?: Date;
+  onRefreshData?: () => void;
+  isLoadingData?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -42,7 +44,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   handleBackToCourses,
   handleCourseSelect,
   isSyncing,
-  lastSyncTime
+  lastSyncTime,
+  onRefreshData,
+  isLoadingData
 }) => {
   const [is1MedioExpanded, setIs1MedioExpanded] = useState(false);
   const [is2MedioExpanded, setIs2MedioExpanded] = useState(false);
@@ -231,6 +235,51 @@ const Sidebar: React.FC<SidebarProps> = ({
               {view === 'formative-evaluation' && <span className="sb2-nav-dot" />}
             </button>
           </nav>
+
+          {/* ── ACTUALIZAR PLANIFICACIÓN ── */}
+          <div style={{ padding: '0 0.85rem', marginTop: '1.5rem' }}>
+            <button
+              onClick={onRefreshData}
+              disabled={isLoadingData}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '0.65rem 1rem',
+                background: isLoadingData
+                  ? 'rgba(139, 92, 246, 0.08)'
+                  : 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%)',
+                border: '1px solid rgba(139, 92, 246, 0.25)',
+                borderRadius: '12px',
+                color: '#a78bfa',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                cursor: isLoadingData ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 12px rgba(139, 92, 246, 0.05)'
+              }}
+              className="sb2-refresh-btn"
+              onMouseEnter={(e) => {
+                if (!isLoadingData) {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%)';
+                  e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoadingData) {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%)';
+                  e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.25)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }
+              }}
+            >
+              <RefreshCw size={14} className={isLoadingData ? 'spin' : ''} style={{ animationDuration: '1.5s' }} />
+              <span>{isLoadingData ? 'Actualizando...' : 'Actualizar Planilla'}</span>
+            </button>
+          </div>
 
           {/* ── INSTITUTION CARD (inline, not fixed) ── */}
           <div className="sb2-divider" />
