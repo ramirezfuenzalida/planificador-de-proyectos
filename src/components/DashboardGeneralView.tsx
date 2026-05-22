@@ -20,6 +20,8 @@ interface DashboardGeneralViewProps {
   formativeRegistrations: Record<string, any>;
   formativeEvaluations: Record<string, any>;
   getCourseTag: (course: string) => string;
+  onNavigateToTracking?: (courseName: string) => void;
+  onNavigateToEvaluation?: (courseName: string) => void;
 }
 
 
@@ -54,7 +56,9 @@ export default function DashboardGeneralView({
   globalData,
   formativeRegistrations,
   formativeEvaluations,
-  getCourseTag
+  getCourseTag,
+  onNavigateToTracking,
+  onNavigateToEvaluation
 }: DashboardGeneralViewProps) {
   // Filtros principales
   const [levelFilter, setLevelFilter] = useState<'All' | '1M' | '2M'>('All');
@@ -896,6 +900,56 @@ export default function DashboardGeneralView({
                 </div>
               </div>
 
+              {/* Accesos rápidos de redirección */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                <button
+                  onClick={() => onNavigateToTracking && onNavigateToTracking(selectedStudentData.course)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    border: 'none',
+                    color: 'white',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  className="dg-btn-action"
+                >
+                  <Sparkles size={15} /> Ir a Registrar Seguimiento
+                </button>
+                <button
+                  onClick={() => onNavigateToEvaluation && onNavigateToEvaluation(selectedStudentData.course)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+                    border: 'none',
+                    color: 'white',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(139, 92, 246, 0.15)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  className="dg-btn-action"
+                >
+                  <Award size={15} /> Ir a Evaluar Estudiante
+                </button>
+              </div>
+
               {/* Botón para volver al consolidado */}
               <button 
                 onClick={() => setSelectedStudentKey('All')}
@@ -1193,22 +1247,65 @@ export default function DashboardGeneralView({
                             {student.comment || <span style={{ color: '#cbd5e1', fontStyle: 'normal' }}>Sin observaciones</span>}
                           </td>
                           <td style={{ textAlign: 'center' }}>
-                            <button
-                              onClick={() => setSelectedStudentKey(student.key)}
-                              style={{
-                                padding: '5px 10px',
-                                background: '#f1f5f9',
-                                border: '1px solid #cbd5e1',
-                                color: '#4f46e5',
-                                borderRadius: '8px',
-                                fontSize: '0.72rem',
-                                fontWeight: 700,
-                                cursor: 'pointer'
-                              }}
-                              className="dg-btn-action"
-                            >
-                              Ver Ficha
-                            </button>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
+                              <button
+                                onClick={() => setSelectedStudentKey(student.key)}
+                                style={{
+                                  padding: '5px 10px',
+                                  background: '#f1f5f9',
+                                  border: '1px solid #cbd5e1',
+                                  color: '#475569',
+                                  borderRadius: '8px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                                className="dg-btn-action"
+                              >
+                                <Info size={13} /> Ficha
+                              </button>
+                              <button
+                                onClick={() => onNavigateToTracking && onNavigateToTracking(student.course)}
+                                style={{
+                                  padding: '5px 10px',
+                                  background: '#d1fae5',
+                                  border: '1px solid #a7f3d0',
+                                  color: '#065f46',
+                                  borderRadius: '8px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                                className="dg-btn-action"
+                              >
+                                <Sparkles size={13} /> Seguimiento
+                              </button>
+                              <button
+                                onClick={() => onNavigateToEvaluation && onNavigateToEvaluation(student.course)}
+                                style={{
+                                  padding: '5px 10px',
+                                  background: '#f3e8ff',
+                                  border: '1px solid #e9d5ff',
+                                  color: '#6b21a8',
+                                  borderRadius: '8px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                                className="dg-btn-action"
+                              >
+                                <Award size={13} /> Evaluar
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

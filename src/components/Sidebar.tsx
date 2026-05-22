@@ -320,7 +320,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   {lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
-              <span className="sb2-version">1.02.06 ExeApp</span>
+              <span className="sb2-version">1.02.07 ExeApp</span>
             </div>
           </div>
 

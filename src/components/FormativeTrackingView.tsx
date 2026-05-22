@@ -24,6 +24,8 @@ interface FormativeTrackingViewProps {
   formativeRegistrations: Record<string, any>;
   setFormativeRegistrations: (regs: any) => void;
   getCourseTag: (course: string) => string;
+  initialLevel?: '1M' | '2M';
+  initialCourse?: string;
 }
 
 // Mapeo oficial de estados de evaluación formativa y calificación
@@ -65,10 +67,14 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   globalData,
   formativeRegistrations,
   setFormativeRegistrations,
-  getCourseTag
+  getCourseTag,
+  initialLevel,
+  initialCourse
 }) => {
-  const [selectedLevel, setSelectedLevel] = useState<'1M' | '2M'>('1M');
-  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selectedLevel, setSelectedLevel] = useState<'1M' | '2M'>(
+    initialLevel || (initialCourse ? (initialCourse.startsWith('1') ? '1M' : '2M') : '1M')
+  );
+  const [selectedCourse, setSelectedCourse] = useState<string>(initialCourse || '');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>(studentGroups2M);

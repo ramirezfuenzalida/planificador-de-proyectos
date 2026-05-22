@@ -23,6 +23,8 @@ interface FormativeEvaluationViewProps {
   formativeEvaluations: Record<string, any>;
   setFormativeEvaluations: React.Dispatch<React.SetStateAction<Record<string, any>>>;
   getCourseTag: (course: string) => string;
+  initialLevel?: '1M' | '2M';
+  initialCourse?: string;
 }
 
 const formatGrade = (grade: any): string => {
@@ -39,10 +41,14 @@ export default function FormativeEvaluationView({
   formativeRegistrations,
   formativeEvaluations,
   setFormativeEvaluations,
-  getCourseTag
+  getCourseTag,
+  initialLevel,
+  initialCourse
 }: FormativeEvaluationViewProps) {
-  const [selectedLevel, setSelectedLevel] = useState<'1M' | '2M'>('1M');
-  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selectedLevel, setSelectedLevel] = useState<'1M' | '2M'>(
+    initialLevel || (initialCourse ? (initialCourse.startsWith('1') ? '1M' : '2M') : '1M')
+  );
+  const [selectedCourse, setSelectedCourse] = useState<string>(initialCourse || '');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>(studentGroups2M);

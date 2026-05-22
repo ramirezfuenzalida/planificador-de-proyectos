@@ -6117,14 +6117,15 @@ to {
 }
 .sb2-meta-time {
   font-family: 'Inter', sans-serif;
-  font-size: 0.62rem;
-  color: rgba(255,255,255,0.25);
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.55);
 }
 .sb2-version {
   font-family: 'Inter', sans-serif;
-  font-size: 0.62rem;
-  color: rgba(255,255,255,0.2);
-  letter-spacing: 0.01em;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.02em;
 }
 
 @media (max-width: 768px) {

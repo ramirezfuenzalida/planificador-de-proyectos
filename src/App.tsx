@@ -34,6 +34,30 @@ const courses2M: Course[] = ['2 Medio A', '2 Medio B', '2 Medio C', '2 Medio D']
 export default function App() {
   const [view, setView] = useState('courses');
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
+  const [sharedCourse, setSharedCourse] = useState<string>('');
+  const [sharedLevel, setSharedLevel] = useState<'1M' | '2M'>('1M');
+
+  const handleSetView = (newView: string) => {
+    // Si se navega de forma normal por el menú, limpiamos el estado deep-link
+    setSharedCourse('');
+    setSharedLevel('1M');
+    setView(newView);
+  };
+
+  const handleNavigateToTracking = (courseName: string) => {
+    setSharedCourse(courseName);
+    const level = courseName.startsWith('1') ? '1M' : '2M';
+    setSharedLevel(level);
+    setView('formative-tracking');
+  };
+
+  const handleNavigateToEvaluation = (courseName: string) => {
+    setSharedCourse(courseName);
+    const level = courseName.startsWith('1') ? '1M' : '2M';
+    setSharedLevel(level);
+    setView('formative-evaluation');
+  };
+
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [registrations, setRegistrations] = useState<Record<string, string>>({});
   const [formativeRegistrations, setFormativeRegistrations] = useState<Record<string, any>>({});
@@ -427,7 +451,7 @@ export default function App() {
     <div className="app-window no-flicker">
       <Sidebar
         view={view}
-        setView={setView}
+        setView={handleSetView}
         activeCourse={activeCourse}
         setActiveCourse={(c) => setActiveCourse(c as Course | null)}
         isMobileSidebarOpen={isMobileSidebarOpen}
@@ -522,17 +546,19 @@ export default function App() {
           />
         ) : view === 'formative-tracking' ? (
           <FormativeTrackingView
-            key="formative"
+            key={`formative-${sharedCourse}`}
             courses1M={courses1M}
             courses2M={courses2M}
             globalData={globalData}
             formativeRegistrations={formativeRegistrations}
             setFormativeRegistrations={setFormativeRegistrations}
             getCourseTag={getCourseTag}
+            initialCourse={sharedCourse}
+            initialLevel={sharedLevel}
           />
         ) : view === 'formative-evaluation' ? (
           <FormativeEvaluationView
-            key="formative-evaluation"
+            key={`formative-evaluation-${sharedCourse}`}
             courses1M={courses1M}
             courses2M={courses2M}
             globalData={globalData}
@@ -540,6 +566,8 @@ export default function App() {
             formativeEvaluations={formativeEvaluations}
             setFormativeEvaluations={setFormativeEvaluations}
             getCourseTag={getCourseTag}
+            initialCourse={sharedCourse}
+            initialLevel={sharedLevel}
           />
         ) : view === 'dashboard-general' ? (
           <DashboardGeneralView
@@ -550,6 +578,8 @@ export default function App() {
             formativeRegistrations={formativeRegistrations}
             formativeEvaluations={formativeEvaluations}
             getCourseTag={getCourseTag}
+            onNavigateToTracking={handleNavigateToTracking}
+            onNavigateToEvaluation={handleNavigateToEvaluation}
           />
         ) : null}
       </main>
