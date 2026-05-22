@@ -25,6 +25,13 @@ interface FormativeEvaluationViewProps {
   getCourseTag: (course: string) => string;
 }
 
+const formatGrade = (grade: any): string => {
+  if (grade === undefined || grade === null || grade === '') return '';
+  const num = parseFloat(grade);
+  if (isNaN(num)) return '';
+  return num.toFixed(1);
+};
+
 export default function FormativeEvaluationView({
   courses1M,
   courses2M,
@@ -131,12 +138,13 @@ export default function FormativeEvaluationView({
   const handleGradeChange = (groupId: number, studentId: string, grade: string) => {
     const key = `${courseTag}-G${groupId}-${studentId}`;
     const prev = formativeEvaluations[key] || { grade: '', comment: '' };
+    const normalizedGrade = formatGrade(grade);
 
     setFormativeEvaluations((old) => ({
       ...old,
       [key]: {
         ...prev,
-        grade
+        grade: normalizedGrade
       }
     }));
 
@@ -208,7 +216,7 @@ export default function FormativeEvaluationView({
         role,
         history,
         proposed,
-        grade: currentEval.grade,
+        grade: formatGrade(currentEval.grade),
         comment: currentEval.comment,
         counts,
         evalKey
@@ -594,7 +602,7 @@ export default function FormativeEvaluationView({
                       <span style={{ fontSize: '0.7rem', display: 'block', color: '#6d28d9', fontWeight: 700 }}>Nota Propuesta</span>
                       <strong style={{ fontSize: '1.25rem', color: '#8B5CF6', fontWeight: 800 }}>{student.proposed || '-'}</strong>
                     </div>
-                    {hasHistory && student.proposed && student.grade !== student.proposed.toString() && (
+                    {hasHistory && student.proposed && student.grade !== formatGrade(student.proposed) && (
                       <button
                         type="button"
                         onClick={() => acceptProposedGrade(student.groupId, student.studentId, student.proposed)}
