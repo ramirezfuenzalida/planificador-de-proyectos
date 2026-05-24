@@ -730,10 +730,59 @@ export default function App() {
     );
   }
 
+  // ─── PANTALLA DE CARGA DE DATOS AL INICIAR SESIÓN ────────────────────────
+  const isDataEmpty = globalData.pm.length === 0 && globalData.sm.length === 0;
+  if (session && loading && isDataEmpty) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(160deg, #100b3b 0%, #07061b 55%, #02030a 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '24px',
+        fontFamily: "'Outfit', 'Inter', sans-serif",
+      }}>
+        <div style={{ position: 'relative', width: '80px', height: '80px' }}>
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: '50%',
+            border: '4px solid rgba(124, 58, 237, 0.1)',
+            borderTop: '4px solid #7c3aed',
+            animation: 'spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+          }} />
+          <div style={{
+            position: 'absolute', inset: '10px', borderRadius: '50%',
+            border: '4px solid rgba(251, 191, 36, 0.05)',
+            borderTop: '4px solid #fbbf24',
+            animation: 'spin-reverse 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+          }} />
+        </div>
+        <style>{`
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+          @keyframes spin-reverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+        `}</style>
+        <div style={{ textAlign: 'center' }}>
+          <h3 style={{ color: '#ffffff', margin: 0, fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
+            Inicializando Portal Docente
+          </h3>
+          <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', fontWeight: 500, marginTop: '6px' }}>
+            Sincronizando con base de datos de Liceo Bicentenario...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // ─── PANEL DE ADMINISTRACIÓN ──────────────────────────────────────────
   if (view === 'admin-panel') {
     return (
-      <div className="app-window no-flicker">
+      <motion.div 
+        className="app-window no-flicker"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
         <Sidebar
           view={view}
           setView={handleSetView}
@@ -770,13 +819,18 @@ export default function App() {
           />
         </main>
         <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
-      </div>
+      </motion.div>
     );
   }
 
   // ─── APLICACIÓN PRINCIPAL ─────────────────────────────────────────────
   return (
-    <div className="app-window no-flicker">
+    <motion.div 
+      className="app-window no-flicker"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+    >
       <Sidebar
         view={view}
         setView={handleSetView}
@@ -806,7 +860,16 @@ export default function App() {
           <div className="mobile-nav-brand">ZenitApp</div>
         </header>
 
-        {view === 'courses' ? (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view + (activeCourse ? `-${activeCourse}` : '') + (sharedCourse ? `-${sharedCourse}` : '')}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+          >
+            {view === 'courses' ? (
           <DashboardView
             key="courses"
             courses1M={courses1M}
@@ -943,6 +1006,8 @@ export default function App() {
             dynamicGroups={studentGroups}
           />
         ) : null}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       <AnimatePresence>
@@ -991,6 +1056,6 @@ export default function App() {
       </AnimatePresence>
 
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
-    </div>
+    </motion.div>
   );
 }
