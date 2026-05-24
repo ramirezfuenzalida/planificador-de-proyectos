@@ -487,19 +487,19 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                         <button 
                           type="button"
                           className={`status-btn-circle red ${data.group === 'red' ? 'active' : ''}`}
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'red' ? 'none' : 'red'); }}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', 'red'); }}
                           title="Marcar Grupo Completo como No Logrado (NL)"
                         />
                         <button 
                           type="button"
                           className={`status-btn-circle yellow ${data.group === 'yellow' ? 'active' : ''}`}
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'yellow' ? 'none' : 'yellow'); }}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', 'yellow'); }}
                           title="Marcar Grupo Completo como Por Lograr (PL)"
                         />
                         <button 
                           type="button"
                           className={`status-btn-circle green ${data.group === 'green' ? 'active' : ''}`}
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', data.group === 'green' ? 'none' : 'green'); }}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, 'group', 'green'); }}
                           title="Marcar Grupo Completo como Logrado (L)"
                         />
                       </div>
@@ -561,7 +561,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                               <button 
                                 type="button"
                                 className={`st-btn red ${data.students[sid] === 'red' ? 'active' : ''}`}
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'red' ? 'none' : 'red'); }}
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, 'red'); }}
                                 title="No Logrado (NL)"
                               >
                                 <AlertCircle size={14} />
@@ -569,7 +569,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                               <button 
                                 type="button"
                                 className={`st-btn yellow ${data.students[sid] === 'yellow' ? 'active' : ''}`}
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'yellow' ? 'none' : 'yellow'); }}
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, 'yellow'); }}
                                 title="Por Lograr (PL)"
                               >
                                 <Clock size={14} />
@@ -577,7 +577,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                               <button 
                                 type="button"
                                 className={`st-btn green ${data.students[sid] === 'green' ? 'active' : ''}`}
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, data.students[sid] === 'green' ? 'none' : 'green'); }}
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleStatusChange(groupId, sid, 'green'); }}
                                 title="Logrado (L)"
                               >
                                 <CheckCircle2 size={14} />
