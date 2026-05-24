@@ -519,7 +519,7 @@ export default function AdminPanelView({
       {/* ── HEADER CARD ── */}
       <div className="ap-header">
         <div>
-          <h1><Settings size={28} /> Panel de Administración <span>Soberano</span></h1>
+          <h1><Settings size={28} /> Panel de Administración</h1>
           <p>Control de roles de docentes y configuración dinámica de accesos a la Sidebar.</p>
         </div>
         <button className="ap-back-btn" onClick={onBackToDashboard}>
