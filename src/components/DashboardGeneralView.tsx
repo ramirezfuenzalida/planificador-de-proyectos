@@ -323,9 +323,9 @@ export default function DashboardGeneralView({
         }
 
         .dg-risk-radar-btn {
-          background: white;
-          color: #4f46e5;
-          border: none;
+          background: linear-gradient(135deg, #ef4444 0%, #ea580c 100%);
+          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.25);
           padding: 12px 22px;
           border-radius: 14px;
           font-weight: 850;
@@ -334,15 +334,15 @@ export default function DashboardGeneralView({
           display: flex;
           align-items: center;
           gap: 8px;
-          box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+          box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
           transition: all 0.2s ease;
           z-index: 10;
         }
 
         .dg-risk-radar-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(255, 255, 255, 0.35);
-          background: #f8fafc;
+          box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55);
+          background: linear-gradient(135deg, #f87171 0%, #f97316 100%);
         }
         
         .dg-header::after {
