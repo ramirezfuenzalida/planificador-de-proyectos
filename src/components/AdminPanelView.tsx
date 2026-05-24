@@ -215,15 +215,15 @@ export default function AdminPanelView({
         /* ── RESPONSIVE MOBILE OPTIMIZATIONS ── */
         @media (max-width: 768px) {
           .ap-wrapper {
-            padding: 12px;
+            padding: 16px;
           }
           .ap-header {
-            padding: 20px;
+            padding: 16px;
             border-radius: 16px;
-            gap: 12px;
+            gap: 16px;
           }
           .ap-header h1 {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             gap: 8px;
           }
           .ap-card {
@@ -356,6 +356,8 @@ export default function AdminPanelView({
         }
 
         .ap-input, .ap-select {
+          width: 100%;
+          box-sizing: border-box;
           padding: 10px 14px;
           border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.1);
