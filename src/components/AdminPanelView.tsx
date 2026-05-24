@@ -4,14 +4,12 @@ import {
   ShieldAlert, 
   Users, 
   Settings, 
-  PlusCircle, 
   Trash2, 
   CheckSquare, 
   Square, 
   Sparkles, 
   Activity, 
   UserPlus, 
-  ChevronRight,
   ArrowLeft
 } from 'lucide-react';
 
