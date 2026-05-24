@@ -62,7 +62,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
 
   // 1. Calcular Datos del Gráfico SVG
   const historyList = [...student.history].sort((a, b) => parseInt(a.classId) - parseInt(b.classId));
-  const chartWidth = Math.max(500, historyList.length * 80 + 80);
+  const chartWidth = Math.max(600, historyList.length * 80 + 160);
   const chartHeight = 180;
   
   // Mapear estados a alturas del eje Y (Green = arriba, Yellow = centro, Red = base)
@@ -75,7 +75,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
 
   const getPoints = () => {
     return historyList.map((h, index) => ({
-      x: 50 + index * 80,
+      x: 130 + index * 80,
       y: getY(h.status),
       classId: h.classId,
       date: h.date,
@@ -265,14 +265,14 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     </defs>
 
                     {/* Líneas de Guía de Eje Y (Gridlines) */}
-                    <line x1="30" y1="35" x2={chartWidth - 30} y2="35" stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
-                    <line x1="30" y1="90" x2={chartWidth - 30} y2="90" stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
-                    <line x1="30" y1="145" x2={chartWidth - 30} y2="145" stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
+                    <line x1="120" y1="35" x2={chartWidth - 30} y2="35" stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
+                    <line x1="120" y1="90" x2={chartWidth - 30} y2="90" stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
+                    <line x1="120" y1="145" x2={chartWidth - 30} y2="145" stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
 
                     {/* Etiquetas Eje Y */}
-                    <text x="35" y="40" fill="#10b981" fontSize="10" fontWeight="800" textAnchor="end">L (Logrado)</text>
-                    <text x="35" y="94" fill="#f59e0b" fontSize="10" fontWeight="800" textAnchor="end">PL (En Des.)</text>
-                    <text x="35" y="149" fill="#ef4444" fontSize="10" fontWeight="800" textAnchor="end">NL (No Log.)</text>
+                    <text x="115" y="40" fill="#10b981" fontSize="10.5" fontWeight="900" textAnchor="end">L (Logrado)</text>
+                    <text x="115" y="94" fill="#f59e0b" fontSize="10.5" fontWeight="900" textAnchor="end">PL (En Des.)</text>
+                    <text x="115" y="149" fill="#ef4444" fontSize="10.5" fontWeight="900" textAnchor="end">NL (No Log.)</text>
 
                     {/* La Línea de Conexión de Hitos */}
                     {points.length > 1 && (
@@ -351,22 +351,21 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     const classObs = classObservations[obsKey];
                     const classData = levelClasses.find(c => String(c.clase) === String(h.classId));
                     const objetivo = classData ? classData.objetivo : 'Hito formativo de la sesión de ABP';
+                    
+                    const statusColor = h.status === 'green' ? 'green' : h.status === 'yellow' ? 'yellow' : h.status === 'red' ? 'red' : 'none';
+                    const statusLabel = h.status === 'green' ? 'Logrado' : h.status === 'yellow' ? 'En Desarrollo' : h.status === 'red' ? 'No Logrado' : 'Sin Evaluar';
 
                     return (
-                      <div key={h.classId} style={{
-                        background: '#ffffff',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '16px',
-                        padding: '1rem 1.25rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '6px',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.01)'
-                      }}>
+                      <div key={h.classId} className={`observation-card-premium ${statusColor}-accent`}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6d28d9', background: 'rgba(139,92,246,0.08)', padding: '2px 8px', borderRadius: '6px' }}>
-                            Clase N° {h.classId}
-                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6d28d9', background: 'rgba(139,92,246,0.08)', padding: '2px 8px', borderRadius: '6px' }}>
+                              Clase N° {h.classId}
+                            </span>
+                            <span className={`badge-status-pill ${statusColor}`}>
+                              {statusLabel}
+                            </span>
+                          </div>
                           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <Calendar size={12} /> {h.date}
                           </span>
@@ -376,14 +375,9 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                           <strong>Objetivo / Hito:</strong> {objetivo}
                         </p>
 
-                        <div style={{
-                          marginTop: '4px',
-                          paddingTop: '6px',
-                          borderTop: '1px dashed #f1f5f9',
-                          fontSize: '0.82rem',
+                        <div className="observation-bitacora-content" style={{
                           color: classObs ? '#1f2937' : '#9ca3af',
-                          fontStyle: classObs ? 'normal' : 'italic',
-                          lineHeight: 1.4
+                          fontStyle: classObs ? 'normal' : 'italic'
                         }}>
                           <strong>Bitácora del Docente:</strong> {classObs || 'No se registraron observaciones específicas para esta clase.'}
                         </div>
