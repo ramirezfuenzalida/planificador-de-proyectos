@@ -5871,6 +5871,43 @@ to {
   margin-bottom: 0.5rem;
 }
 
+.sb2-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0 0.75rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: color 0.18s ease;
+  user-select: none;
+  text-align: left;
+}
+
+.sb2-section-header:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.sb2-section-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.18s ease;
+}
+
+.sb2-section-header:hover .sb2-section-chevron {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 .sb2-nav {
   display: flex;
   flex-direction: column;

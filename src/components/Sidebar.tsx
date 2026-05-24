@@ -70,6 +70,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [is1MedioExpanded, setIs1MedioExpanded] = useState(false);
   const [is2MedioExpanded, setIs2MedioExpanded] = useState(false);
+  const [isGeneralExpanded, setIsGeneralExpanded] = useState(true);
+  const [isNivelesExpanded, setIsNivelesExpanded] = useState(true);
+  const [isEvaluacionExpanded, setIsEvaluacionExpanded] = useState(true);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showChangePwModal, setShowChangePwModal] = useState(false);
@@ -409,117 +412,196 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* GENERAL section */}
           {navItems.length > 0 && (
             <>
-              <div className="sb2-section-label">GENERAL</div>
-              <nav className="sb2-nav">
-                {navItems.map(item => (
-                  <button
-                    key={item.id}
-                    className={`sb2-nav-item ${view === item.id ? 'active' : ''}`}
-                    onClick={item.onClick}
+              <button 
+                className="sb2-section-header" 
+                onClick={() => setIsGeneralExpanded(!isGeneralExpanded)}
+                type="button"
+              >
+                <span>GENERAL</span>
+                <motion.span 
+                  animate={{ rotate: isGeneralExpanded ? 0 : -90 }}
+                  transition={{ duration: 0.15 }}
+                  className="sb2-section-chevron"
+                >
+                  <ChevronDown size={11} />
+                </motion.span>
+              </button>
+              
+              <AnimatePresence initial={false}>
+                {isGeneralExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ overflow: 'hidden' }}
                   >
-                    <span className={`sb2-nav-icon ${item.colorClass}`}>{item.icon}</span>
-                    <span className="sb2-nav-label">{item.label}</span>
-                    {view === item.id && <span className="sb2-nav-dot" />}
-                  </button>
-                ))}
-              </nav>
+                    <nav className="sb2-nav">
+                      {navItems.map(item => (
+                        <button
+                          key={item.id}
+                          className={`sb2-nav-item ${view === item.id ? 'active' : ''}`}
+                          onClick={item.onClick}
+                        >
+                          <span className={`sb2-nav-icon ${item.colorClass}`}>{item.icon}</span>
+                          <span className="sb2-nav-label">{item.label}</span>
+                          {view === item.id && <span className="sb2-nav-dot" />}
+                        </button>
+                      ))}
+                    </nav>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           )}
 
           {/* NIVELES section — solo si tiene permisos de cursos */}
           {hasPermission('courses') && (
             <>
-              <div className="sb2-section-label" style={{ marginTop: '1.75rem' }}>NIVELES</div>
+              <button 
+                className="sb2-section-header" 
+                onClick={() => setIsNivelesExpanded(!isNivelesExpanded)}
+                style={{ marginTop: '1.75rem' }}
+                type="button"
+              >
+                <span>NIVELES</span>
+                <motion.span 
+                  animate={{ rotate: isNivelesExpanded ? 0 : -90 }}
+                  transition={{ duration: 0.15 }}
+                  className="sb2-section-chevron"
+                >
+                  <ChevronDown size={11} />
+                </motion.span>
+              </button>
 
-              {/* Primeros Medios */}
-              <div className="sb2-accordion">
-                <button className="sb2-accordion-trigger" onClick={() => setIs1MedioExpanded(!is1MedioExpanded)}>
-                  <span className="sb2-nav-icon icon-pink"><BookOpen size={17} /></span>
-                  <span className="sb2-nav-label">Primeros Medios</span>
-                  <motion.span animate={{ rotate: is1MedioExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="sb2-chevron">
-                    <ChevronDown size={14} />
-                  </motion.span>
-                </button>
-                <AnimatePresence initial={false}>
-                  {is1MedioExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                      style={{ overflow: 'hidden' }}
-                    >
-                      <div className="sb2-sub-list">
-                        {courses1M.map((course) => (
-                          <button
-                            key={course}
-                            className={`sb2-sub-item ${activeCourse === course ? 'active' : ''}`}
-                            onClick={() => handleCourseSelect(course)}
+              <AnimatePresence initial={false}>
+                {isNivelesExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    {/* Primeros Medios */}
+                    <div className="sb2-accordion">
+                      <button className="sb2-accordion-trigger" onClick={() => setIs1MedioExpanded(!is1MedioExpanded)}>
+                        <span className="sb2-nav-icon icon-pink"><BookOpen size={17} /></span>
+                        <span className="sb2-nav-label">Primeros Medios</span>
+                        <motion.span animate={{ rotate: is1MedioExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="sb2-chevron">
+                          <ChevronDown size={14} />
+                        </motion.span>
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {is1MedioExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                            style={{ overflow: 'hidden' }}
                           >
-                            <span className="sb2-sub-dot" />
-                            {course}
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                            <div className="sb2-sub-list">
+                              {courses1M.map((course) => (
+                                <button
+                                  key={course}
+                                  className={`sb2-sub-item ${activeCourse === course ? 'active' : ''}`}
+                                  onClick={() => handleCourseSelect(course)}
+                                >
+                                  <span className="sb2-sub-dot" />
+                                  {course}
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
 
-              {/* Segundos Medios */}
-              <div className="sb2-accordion">
-                <button className="sb2-accordion-trigger" onClick={() => setIs2MedioExpanded(!is2MedioExpanded)}>
-                  <span className="sb2-nav-icon icon-amber"><ShieldCheck size={17} /></span>
-                  <span className="sb2-nav-label">Segundos Medios</span>
-                  <motion.span animate={{ rotate: is2MedioExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="sb2-chevron">
-                    <ChevronDown size={14} />
-                  </motion.span>
-                </button>
-                <AnimatePresence initial={false}>
-                  {is2MedioExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                      style={{ overflow: 'hidden' }}
-                    >
-                      <div className="sb2-sub-list">
-                        {courses2M.map((course) => (
-                          <button
-                            key={course}
-                            className={`sb2-sub-item ${activeCourse === course ? 'active' : ''}`}
-                            onClick={() => handleCourseSelect(course)}
+                    {/* Segundos Medios */}
+                    <div className="sb2-accordion">
+                      <button className="sb2-accordion-trigger" onClick={() => setIs2MedioExpanded(!is2MedioExpanded)}>
+                        <span className="sb2-nav-icon icon-amber"><ShieldCheck size={17} /></span>
+                        <span className="sb2-nav-label">Segundos Medios</span>
+                        <motion.span animate={{ rotate: is2MedioExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="sb2-chevron">
+                          <ChevronDown size={14} />
+                        </motion.span>
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {is2MedioExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                            style={{ overflow: 'hidden' }}
                           >
-                            <span className="sb2-sub-dot" />
-                            {course}
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                            <div className="sb2-sub-list">
+                              {courses2M.map((course) => (
+                                <button
+                                  key={course}
+                                  className={`sb2-sub-item ${activeCourse === course ? 'active' : ''}`}
+                                  onClick={() => handleCourseSelect(course)}
+                                >
+                                  <span className="sb2-sub-dot" />
+                                  {course}
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           )}
 
           {/* EVALUACIÓN section */}
           {evalItems.length > 0 && (
             <>
-              <div className="sb2-section-label" style={{ marginTop: '1.75rem' }}>EVALUACIÓN</div>
-              <nav className="sb2-nav">
-                {evalItems.map(item => (
-                  <button
-                    key={item.id}
-                    className={`sb2-nav-item ${view === item.id ? 'active' : ''}`}
-                    onClick={item.onClick}
+              <button 
+                className="sb2-section-header" 
+                onClick={() => setIsEvaluacionExpanded(!isEvaluacionExpanded)}
+                style={{ marginTop: '1.75rem' }}
+                type="button"
+              >
+                <span>EVALUACIÓN</span>
+                <motion.span 
+                  animate={{ rotate: isEvaluacionExpanded ? 0 : -90 }}
+                  transition={{ duration: 0.15 }}
+                  className="sb2-section-chevron"
+                >
+                  <ChevronDown size={11} />
+                </motion.span>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {isEvaluacionExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ overflow: 'hidden' }}
                   >
-                    <span className={`sb2-nav-icon ${item.colorClass}`}>{item.icon}</span>
-                    <span className="sb2-nav-label">{item.label}</span>
-                    {view === item.id && <span className="sb2-nav-dot" />}
-                  </button>
-                ))}
-              </nav>
+                    <nav className="sb2-nav">
+                      {evalItems.map(item => (
+                        <button
+                          key={item.id}
+                          className={`sb2-nav-item ${view === item.id ? 'active' : ''}`}
+                          onClick={item.onClick}
+                        >
+                          <span className={`sb2-nav-icon ${item.colorClass}`}>{item.icon}</span>
+                          <span className="sb2-nav-label">{item.label}</span>
+                          {view === item.id && <span className="sb2-nav-dot" />}
+                        </button>
+                      ))}
+                    </nav>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           )}
 
