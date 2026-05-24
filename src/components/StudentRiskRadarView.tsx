@@ -1004,7 +1004,7 @@ export default function StudentRiskRadarView({
       {/* ── HEADER CARD ── */}
       <div className="srr-header-card">
         <div className="srr-header-info">
-          <h1><Activity size={28} color="#ef4444" /> Zenit Risk Radar & Acompañamiento</h1>
+          <h1><Activity size={28} color="#ef4444" /> ZenitApp Radar de alertas de evaluación.</h1>
           <p>Detección de inasistencias/NL acumulados y bitácora colaborativa de acciones pedagógicas.</p>
         </div>
         <button className="srr-back-btn" onClick={onBackToDashboard}>
