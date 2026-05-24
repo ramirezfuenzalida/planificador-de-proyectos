@@ -14,8 +14,6 @@ import {
   Smile,
   ShieldAlert
 } from 'lucide-react';
-import { studentGroups2M } from '../utils/studentGroups';
-
 export interface Intervention {
   id: string;
   date: string;
@@ -34,6 +32,7 @@ interface StudentRiskRadarViewProps {
   setFormativeEvaluations: React.Dispatch<React.SetStateAction<Record<string, any>>>;
   getCourseTag: (course: string) => string;
   onBackToDashboard: () => void;
+  dynamicGroups: Record<string, any>;
 }
 
 // Lógica de cálculo de nota propuesta sugerida por escala institucional
@@ -69,7 +68,8 @@ export default function StudentRiskRadarView({
   formativeEvaluations,
   setFormativeEvaluations,
   getCourseTag,
-  onBackToDashboard
+  onBackToDashboard,
+  dynamicGroups
 }: StudentRiskRadarViewProps) {
   // Filtros reactivos
   const [selectedLevel, setSelectedLevel] = useState<'All' | '1M' | '2M'>('All');
@@ -77,25 +77,12 @@ export default function StudentRiskRadarView({
   const [selectedRiskFilter, setSelectedRiskFilter] = useState<'All' | 'critical' | 'medium' | 'stable'>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Grupos dinámicos de estudiantes
-  const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>(studentGroups2M);
-
   // Modal de intervenciones pedagógicas
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [newActionType, setNewActionType] = useState<string>('Cambio de Rol');
   const [newActionDesc, setNewActionDesc] = useState<string>('');
   const [newActionResp, setNewActionResp] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Cargar grupos guardados de localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('zenit_student_groups');
-    if (saved) {
-      try {
-        setDynamicGroups(JSON.parse(saved));
-      } catch (e) {}
-    }
-  }, []);
 
   const availableCourses = (() => {
     if (selectedLevel === '1M') return courses1M;

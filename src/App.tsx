@@ -24,6 +24,7 @@ import DashboardGeneralView from './components/DashboardGeneralView';
 import SmartCalendarView from './components/SmartCalendarView';
 import StudentRiskRadarView from './components/StudentRiskRadarView';
 import type { CalendarEvent } from './components/SmartCalendarView';
+import { studentGroups2M } from './utils/studentGroups';
 
 // Utils
 
@@ -75,6 +76,15 @@ export default function App() {
   const [successInfo, setSuccessInfo] = useState({ title: '', sub: '' });
   const [lastRegisteredColor, setLastRegisteredColor] = useState<string | null>(null);
   const [customEvents, setCustomEvents] = useState<CalendarEvent[]>([]);
+  const [studentGroups, setStudentGroups] = useState<Record<string, any>>(() => {
+    const saved = localStorage.getItem('zenit_student_groups');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return studentGroups2M;
+  });
 
   // Analytics & Calendar States
   const [analyticsLevel, setAnalyticsLevel] = useState('All');
@@ -128,6 +138,13 @@ export default function App() {
           lastSupabaseData.current['calendarEvents'] = JSON.stringify(calEvents);
           localStorage.setItem('zenit_calendar_events', JSON.stringify(calEvents));
         }
+
+        const groups = initialData.find(d => d.key === 'studentGroups')?.data;
+        if (groups) {
+          setStudentGroups(groups);
+          lastSupabaseData.current['studentGroups'] = JSON.stringify(groups);
+          localStorage.setItem('zenit_student_groups', JSON.stringify(groups));
+        }
       } else {
         // Fallback to localStorage if no network data
         const saved = localStorage.getItem('zenit_regs');
@@ -157,6 +174,7 @@ export default function App() {
               key === 'formativeRegistrations' ? 'formative_regs' : 
               key === 'formativeEvaluations' ? 'formative_evaluations' : 
               key === 'calendarEvents' ? 'calendar_events' : 
+              key === 'studentGroups' ? 'student_groups' :
               'observations'
             }`, 
             dataStr
@@ -167,6 +185,7 @@ export default function App() {
           else if (key === 'observations') setObservations(data);
           else if (key === 'formativeEvaluations') setFormativeEvaluations(data);
           else if (key === 'calendarEvents') setCustomEvents(data);
+          else if (key === 'studentGroups') setStudentGroups(data);
 
           setLastSyncTime(new Date());
         })
@@ -259,6 +278,22 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [customEvents]);
+
+  useEffect(() => {
+    const dataStr = JSON.stringify(studentGroups);
+    if (Object.keys(studentGroups).length > 0 && dataStr !== lastSupabaseData.current['studentGroups']) {
+      lastSupabaseData.current['studentGroups'] = dataStr;
+      localStorage.setItem('zenit_student_groups', dataStr);
+      setIsSyncing(true);
+      const timer = setTimeout(() => {
+        supabase.from('app_sync').upsert({ key: 'studentGroups', data: studentGroups }).then(() => {
+          setIsSyncing(false);
+          setLastSyncTime(new Date());
+        });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [studentGroups]);
 
   const deleteFormativeRegistration = (idOrPrefix: string) => {
     setFormativeRegistrations(prev => {
@@ -536,6 +571,7 @@ export default function App() {
             globalData={globalData}
             getCourseTag={getCourseTag}
             onDeleteRegistration={deleteFormativeRegistration}
+            dynamicGroups={studentGroups}
           />
         ) : view === 'class-list' && activeCourse ? (
           <ClassListView
@@ -609,6 +645,8 @@ export default function App() {
             getCourseTag={getCourseTag}
             initialCourse={sharedCourse}
             initialLevel={sharedLevel}
+            dynamicGroups={studentGroups}
+            onSyncGroups={setStudentGroups}
           />
         ) : view === 'formative-evaluation' ? (
           <FormativeEvaluationView
@@ -622,6 +660,7 @@ export default function App() {
             getCourseTag={getCourseTag}
             initialCourse={sharedCourse}
             initialLevel={sharedLevel}
+            dynamicGroups={studentGroups}
           />
         ) : view === 'dashboard-general' ? (
           <DashboardGeneralView
@@ -635,6 +674,7 @@ export default function App() {
             onNavigateToTracking={handleNavigateToTracking}
             onNavigateToEvaluation={handleNavigateToEvaluation}
             onNavigateToRiskRadar={() => setView('student-risk-radar')}
+            dynamicGroups={studentGroups}
           />
         ) : view === 'student-risk-radar' ? (
           <StudentRiskRadarView
@@ -646,6 +686,7 @@ export default function App() {
             setFormativeEvaluations={setFormativeEvaluations}
             getCourseTag={getCourseTag}
             onBackToDashboard={() => setView('dashboard-general')}
+            dynamicGroups={studentGroups}
           />
         ) : null}
       </main>

@@ -12,8 +12,6 @@ import {
   GraduationCap,
   Activity
 } from 'lucide-react';
-import { studentGroups2M } from '../utils/studentGroups';
-
 interface DashboardGeneralViewProps {
   courses1M: string[];
   courses2M: string[];
@@ -24,6 +22,7 @@ interface DashboardGeneralViewProps {
   onNavigateToTracking?: (courseName: string) => void;
   onNavigateToEvaluation?: (courseName: string) => void;
   onNavigateToRiskRadar?: () => void;
+  dynamicGroups: Record<string, any>;
 }
 
 
@@ -61,25 +60,14 @@ export default function DashboardGeneralView({
   getCourseTag,
   onNavigateToTracking,
   onNavigateToEvaluation,
-  onNavigateToRiskRadar
+  onNavigateToRiskRadar,
+  dynamicGroups
 }: DashboardGeneralViewProps) {
   // Filtros principales
   const [levelFilter, setLevelFilter] = useState<'All' | '1M' | '2M'>('All');
   const [courseFilter, setCourseFilter] = useState<string>('All');
   const [selectedStudentKey, setSelectedStudentKey] = useState<string>('All');
   const [studentSearchQuery, setStudentSearchQuery] = useState<string>('');
-
-  const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>(studentGroups2M);
-
-  // Cargar grupos dinámicos guardados
-  useEffect(() => {
-    const saved = localStorage.getItem('zenit_student_groups');
-    if (saved) {
-      try {
-        setDynamicGroups(JSON.parse(saved));
-      } catch (e) {}
-    }
-  }, []);
 
   // Ajustar filtro de curso si cambia el nivel
   useEffect(() => {

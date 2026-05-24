@@ -13,7 +13,6 @@ import {
   HelpCircle,
   Trash2
 } from 'lucide-react';
-import { studentGroups2M } from '../utils/studentGroups';
 import Toast from './Toast';
 import StudentDetailModal from './StudentDetailModal';
 
@@ -27,6 +26,7 @@ interface FormativeEvaluationViewProps {
   getCourseTag: (course: string) => string;
   initialLevel?: '1M' | '2M';
   initialCourse?: string;
+  dynamicGroups: Record<string, any>;
 }
 
 const formatGrade = (grade: any): string => {
@@ -45,7 +45,8 @@ export default function FormativeEvaluationView({
   setFormativeEvaluations,
   getCourseTag,
   initialLevel,
-  initialCourse
+  initialCourse,
+  dynamicGroups
 }: FormativeEvaluationViewProps) {
   const [selectedLevel, setSelectedLevel] = useState<'1M' | '2M'>(
     initialLevel || (initialCourse ? (initialCourse.startsWith('1') ? '1M' : '2M') : '1M')
@@ -53,20 +54,9 @@ export default function FormativeEvaluationView({
   const [selectedCourse, setSelectedCourse] = useState<string>(initialCourse || '');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>(studentGroups2M);
   const [editingStudentKey, setEditingStudentKey] = useState<string | null>(null);
   const [tempComment, setTempComment] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
-
-  // Cargar grupos dinámicos guardados (sincronizados desde Sheets)
-  useEffect(() => {
-    const saved = localStorage.getItem('zenit_student_groups');
-    if (saved) {
-      try {
-        setDynamicGroups(JSON.parse(saved));
-      } catch (e) {}
-    }
-  }, []);
 
   const courses = selectedLevel === '1M' ? courses1M : courses2M;
   const levelClasses = selectedLevel === '1M' ? globalData.pm : globalData.sm;

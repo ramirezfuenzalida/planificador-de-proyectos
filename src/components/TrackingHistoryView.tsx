@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   History, 
@@ -19,6 +19,7 @@ interface TrackingHistoryViewProps {
   globalData: { pm: any[]; sm: any[] };
   getCourseTag: (course: string) => string;
   onDeleteRegistration: (id: string) => void;
+  dynamicGroups: Record<string, any>;
 }
 
 const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
@@ -27,21 +28,12 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
   formativeRegistrations,
   globalData,
   getCourseTag,
-  onDeleteRegistration
+  onDeleteRegistration,
+  dynamicGroups
 }) => {
   const allCourses = [...courses1M, ...courses2M];
   const [selectedCourse, setSelectedCourse] = useState<string>(allCourses[0] || '');
   const [recordToDelete, setRecordToDelete] = useState<string>('');
-  const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>({});
-
-  useEffect(() => {
-    const saved = localStorage.getItem('zenit_student_groups');
-    if (saved) {
-      try {
-        setDynamicGroups(JSON.parse(saved));
-      } catch (e) {}
-    }
-  }, []);
 
   const courseTag = getCourseTag(selectedCourse);
 

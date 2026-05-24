@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Toast from './Toast';
 import { 
@@ -15,8 +15,6 @@ import {
   Telescope,
   RefreshCw
 } from 'lucide-react';
-import { studentGroups2M } from '../utils/studentGroups';
-
 interface FormativeTrackingViewProps {
   courses1M: string[];
   courses2M: string[];
@@ -26,6 +24,8 @@ interface FormativeTrackingViewProps {
   getCourseTag: (course: string) => string;
   initialLevel?: '1M' | '2M';
   initialCourse?: string;
+  dynamicGroups: Record<string, any>;
+  onSyncGroups: (groups: Record<string, any>) => void;
 }
 
 // Mapeo oficial de estados de evaluación formativa y calificación
@@ -69,7 +69,9 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   setFormativeRegistrations,
   getCourseTag,
   initialLevel,
-  initialCourse
+  initialCourse,
+  dynamicGroups,
+  onSyncGroups
 }) => {
   const [selectedLevel, setSelectedLevel] = useState<'1M' | '2M'>(
     initialLevel || (initialCourse ? (initialCourse.startsWith('1') ? '1M' : '2M') : '1M')
@@ -77,17 +79,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   const [selectedCourse, setSelectedCourse] = useState<string>(initialCourse || '');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>(studentGroups2M);
   const [isSyncing, setIsSyncing] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('zenit_student_groups');
-    if (saved) {
-      try {
-        setDynamicGroups(JSON.parse(saved));
-      } catch(e) {}
-    }
-  }, []);
 
   const handleSyncSheets = async () => {
     setIsSyncing(true);
@@ -182,8 +174,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
         }
       }
 
-      setDynamicGroups(newGroups);
-      localStorage.setItem('zenit_student_groups', JSON.stringify(newGroups));
+      onSyncGroups(newGroups);
       setToastMessage('Sincronización Completada con Éxito');
       setTimeout(() => setToastMessage(null), 3000);
     } catch (e) {
