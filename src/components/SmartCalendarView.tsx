@@ -668,6 +668,50 @@ export default function SmartCalendarView({
           border-color: rgba(255, 0, 127, 0.6) !important;
         }
 
+        /* Highlighted style for Hitos (Milestones) */
+        .sc-event-card.highlight-hitos {
+          background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%) !important;
+          border: 1.5px solid rgba(251, 191, 36, 0.35) !important;
+          box-shadow: 0 4px 15px rgba(251, 191, 36, 0.06) !important;
+        }
+        .sc-event-card.highlight-hitos:hover {
+          box-shadow: 0 8px 25px rgba(251, 191, 36, 0.12) !important;
+          border-color: rgba(251, 191, 36, 0.55) !important;
+        }
+
+        /* Highlighted style for Evaluaciones */
+        .sc-event-card.highlight-evaluaciones {
+          background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%) !important;
+          border: 1.5px solid rgba(192, 132, 252, 0.35) !important;
+          box-shadow: 0 4px 15px rgba(192, 132, 252, 0.06) !important;
+        }
+        .sc-event-card.highlight-evaluaciones:hover {
+          box-shadow: 0 8px 25px rgba(192, 132, 252, 0.12) !important;
+          border-color: rgba(192, 132, 252, 0.55) !important;
+        }
+
+        /* Highlighted style for Reuniones */
+        .sc-event-card.highlight-reuniones {
+          background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%) !important;
+          border: 1.5px solid rgba(16, 185, 129, 0.35) !important;
+          box-shadow: 0 4px 15px rgba(16, 185, 129, 0.06) !important;
+        }
+        .sc-event-card.highlight-reuniones:hover {
+          box-shadow: 0 8px 25px rgba(16, 185, 129, 0.12) !important;
+          border-color: rgba(16, 185, 129, 0.55) !important;
+        }
+
+        /* Highlighted style for Custom Proyectos events */
+        .sc-event-card.highlight-proyectos-custom {
+          background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%) !important;
+          border: 1.5px solid rgba(59, 130, 246, 0.35) !important;
+          box-shadow: 0 4px 15px rgba(59, 130, 246, 0.06) !important;
+        }
+        .sc-event-card.highlight-proyectos-custom:hover {
+          box-shadow: 0 8px 25px rgba(59, 130, 246, 0.12) !important;
+          border-color: rgba(59, 130, 246, 0.55) !important;
+        }
+
         .sc-event-accent-line {
           position: absolute;
           left: 0;
@@ -759,6 +803,35 @@ export default function SmartCalendarView({
           border: 1px solid rgba(225, 29, 72, 0.25) !important;
           box-shadow: 0 2px 6px rgba(225, 29, 72, 0.08);
           font-weight: 800;
+        }
+
+        /* Custom category tag styles */
+        .sc-meta-tag.hitos-tag {
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+          color: #b45309 !important;
+          border: 1px solid rgba(180, 83, 9, 0.25) !important;
+          font-weight: 850;
+        }
+
+        .sc-meta-tag.evaluaciones-tag {
+          background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%) !important;
+          color: #6b21a8 !important;
+          border: 1px solid rgba(107, 33, 168, 0.25) !important;
+          font-weight: 850;
+        }
+
+        .sc-meta-tag.reuniones-tag {
+          background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
+          color: #15803d !important;
+          border: 1px solid rgba(21, 128, 61, 0.25) !important;
+          font-weight: 850;
+        }
+
+        .sc-meta-tag.proyectos-custom-tag {
+          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+          color: #1d4ed8 !important;
+          border: 1px solid rgba(29, 78, 216, 0.25) !important;
+          font-weight: 850;
         }
 
         .sc-meta-tag.course-badge {
@@ -1003,6 +1076,26 @@ export default function SmartCalendarView({
           border: 1px solid rgba(255, 0, 127, 0.25) !important;
         }
 
+        .sc-detail-notes-card.hitos-detail {
+          background: linear-gradient(135deg, #fffbeb 0%, #f8fafc 100%) !important;
+          border: 1px solid rgba(251, 191, 36, 0.25) !important;
+        }
+
+        .sc-detail-notes-card.evaluaciones-detail {
+          background: linear-gradient(135deg, #faf5ff 0%, #f8fafc 100%) !important;
+          border: 1px solid rgba(192, 132, 252, 0.25) !important;
+        }
+
+        .sc-detail-notes-card.reuniones-detail {
+          background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%) !important;
+          border: 1px solid rgba(16, 185, 129, 0.25) !important;
+        }
+
+        .sc-detail-notes-card.proyectos-custom-detail {
+          background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%) !important;
+          border: 1px solid rgba(59, 130, 246, 0.25) !important;
+        }
+
         .sc-detail-notes-card label {
           font-size: 0.68rem;
           font-weight: 800;
@@ -1220,7 +1313,14 @@ export default function SmartCalendarView({
               return (
                 <motion.div
                   key={event.id}
-                  className={`sc-event-card ${event.category === 'muestra' ? 'muestra-publica' : ''}`}
+                  className={`sc-event-card ${
+                    event.category === 'muestra' ? 'muestra-publica' :
+                    event.category === 'hitos' ? 'highlight-hitos' :
+                    event.category === 'evaluaciones' ? 'highlight-evaluaciones' :
+                    event.category === 'reuniones' ? 'highlight-reuniones' :
+                    event.category === 'proyectos' && !event.isAcademic ? 'highlight-proyectos-custom' :
+                    ''
+                  }`}
                   whileHover={{ scale: 1.005 }}
                   onClick={() => setSelectedEvent(event)}
                 >
@@ -1237,17 +1337,31 @@ export default function SmartCalendarView({
                   <div className="sc-event-details">
                     <div className="sc-event-title-row">
                       <h4 className="sc-event-title">{event.title}</h4>
-                      {event.category === 'muestra' && (
+                      {event.category === 'muestra' ? (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#ff007f', fontSize: '0.7rem', fontWeight: 800 }}>
                           <Sparkles size={12} /> DESTACADO
                         </span>
-                      )}
+                      ) : !event.isAcademic ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: accentColor, fontSize: '0.7rem', fontWeight: 800 }}>
+                          <Bookmark size={12} /> AGENDADO
+                        </span>
+                      ) : null}
                     </div>
 
                     <div className="sc-event-meta-tags">
-                      {/* Category Badge - Highlighted if Muestra Pública */}
-                      <span className={`sc-meta-tag ${event.category === 'muestra' ? 'muestra-publica-tag' : 'category-badge'}`}>
-                        {event.category === 'muestra' ? <Award size={10} /> : <Tag size={10} />}
+                      {/* Category Badge - Highlighted if custom or special */}
+                      <span className={`sc-meta-tag ${
+                        event.category === 'muestra' ? 'muestra-publica-tag' :
+                        event.category === 'hitos' ? 'hitos-tag' :
+                        event.category === 'evaluaciones' ? 'evaluaciones-tag' :
+                        event.category === 'reuniones' ? 'reuniones-tag' :
+                        event.category === 'proyectos' && !event.isAcademic ? 'proyectos-custom-tag' :
+                        'category-badge'
+                      }`}>
+                        {event.category === 'muestra' ? <Award size={10} /> :
+                         event.category === 'hitos' ? <Sparkles size={10} /> :
+                         event.category === 'evaluaciones' ? <BookOpen size={10} /> :
+                         <Tag size={10} />}
                         {meta?.label || 'General'}
                       </span>
 
@@ -1564,14 +1678,21 @@ export default function SmartCalendarView({
                 </div>
 
                 {/* Notes/Descriptions card */}
-                {selectedEvent.notes && (
-                  <div className={`sc-detail-notes-card ${selectedEvent.category === 'muestra' ? 'muestra-publica-detail' : ''}`}>
-                    <label><Layers size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} /> Actividad / Descripción</label>
-                    <div className="sc-detail-notes-content">
-                      {selectedEvent.notes}
+                  {selectedEvent.notes && (
+                    <div className={`sc-detail-notes-card ${
+                      selectedEvent.category === 'muestra' ? 'muestra-publica-detail' :
+                      selectedEvent.category === 'hitos' ? 'hitos-detail' :
+                      selectedEvent.category === 'evaluaciones' ? 'evaluaciones-detail' :
+                      selectedEvent.category === 'reuniones' ? 'reuniones-detail' :
+                      selectedEvent.category === 'proyectos' && !selectedEvent.isAcademic ? 'proyectos-custom-detail' :
+                      ''
+                    }`}>
+                      <label><Layers size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} /> Actividad / Descripción</label>
+                      <div className="sc-detail-notes-content">
+                        {selectedEvent.notes}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Actions */}
                 <div className="sc-form-actions">
