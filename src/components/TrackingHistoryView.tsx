@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Trash2
 } from 'lucide-react';
+import { studentGroups2M } from '../utils/studentGroups';
 
 interface TrackingHistoryViewProps {
   courses1M: string[];
@@ -101,6 +102,19 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
       return;
     }
 
+    let localGroups = dynamicGroups;
+    if (!localGroups || Object.keys(localGroups).length === 0) {
+      const saved = localStorage.getItem('zenit_student_groups');
+      if (saved) {
+        try {
+          localGroups = JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+    if (!localGroups) {
+      localGroups = {};
+    }
+
     import('jspdf').then(({ default: jsPDF }) => {
       import('jspdf-autotable').then(({ default: autoTable }) => {
         const doc = new jsPDF('landscape');
@@ -135,9 +149,9 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
           const s3 = record.students['s3'] || record.students['3'] || 'none';
           const s4 = record.students['s4'] || record.students['4'] || 'none';
 
-          // Buscar nombres reales en dynamicGroups usando courseTag y groupId
+          // Buscar nombres reales en dynamicGroups usando courseTag y groupId, con triple fallback
           const groupKey = `${courseTag}-G${record.groupId}`;
-          const groupInfo = dynamicGroups[groupKey] || [];
+          const groupInfo = localGroups[groupKey] || studentGroups2M[groupKey] || [];
           
           const name1 = groupInfo[0]?.name || 'Coordinador(a)';
           const name2 = groupInfo[1]?.name || 'Investigador(a)';
@@ -354,9 +368,9 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
                         let studentName = `Estudiante ${i + 1}`;
                         let studentRole = '';
                         const groupKey = `${courseTag}-G${record.groupId}`;
-                        const groupInfo = dynamicGroups[groupKey];
+                        const groupInfo = dynamicGroups[groupKey] || studentGroups2M[groupKey];
                         if (groupInfo && groupInfo[i]) {
-                          studentName = groupInfo[i].name;
+                          studentName = groupInfo[i].name || `Estudiante ${i + 1}`;
                           studentRole = groupInfo[i].role;
                         }
 
