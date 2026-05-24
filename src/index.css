@@ -6148,37 +6148,89 @@ to {
 }
 
 /* ============================================================
-   STUDENT DETAILED DASHBOARD & GRAPH
-   ZenitApp 1.02.08 · May 2026
+   STUDENT DETAILED DASHBOARD & GRAPH - GLASSMORPHIC REDESIGN
+   ZenitApp 1.02.09 · May 2026
    ============================================================ */
 
-.student-dashboard-modal {
-  background: rgba(255, 255, 255, 0.85) !important;
-  -webkit-backdrop-filter: blur(25px) !important;
-  backdrop-filter: blur(25px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+/* Rediseño del Overlay a un Slate Traslúcido de Última Generación */
+.modal-overlay-cosmic {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2050 !important;
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 2rem !important;
+  animation: 0.25s cubic-bezier(0.16, 1, 0.3, 1) fadeInOverlay;
 }
 
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Ficha del Alumno - Contenedor Principal Glassmorphic */
+.student-dashboard-modal {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(35px) !important;
+  -webkit-backdrop-filter: blur(35px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  border-radius: 28px !important;
+  box-shadow: 0 35px 80px rgba(15, 23, 42, 0.18), 
+              inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Cabecera del Modal con Efecto de Cristal Esmerilado */
+.student-modal-header {
+  background: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+  padding-right: 75px !important; /* Espacio de protección para el botón cerrar */
+}
+
+/* Secciones de Tarjeta Internas Translúcidas */
+.student-dashboard-modal .premium-card-section {
+  background: rgba(255, 255, 255, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-radius: 20px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.01) !important;
+  margin-bottom: 0 !important; /* Manejado por el stack vertical */
+}
+
+/* Grid de Métricas */
 .stats-scorecards-grid {
   margin-top: 1rem;
 }
 
+/* Tarjetas de Métricas Individuales */
 .stat-card-item {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
   border-radius: 16px;
   padding: 0.85rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
 }
 
 .stat-card-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
 .stat-card-item .sc-label {
@@ -6196,52 +6248,71 @@ to {
   color: #1e293b;
 }
 
-/* Color accents for cards */
+/* Variantes de Color con Bordes de Acentuación */
 .stat-card-item.purple {
-  border-left: 4px solid #8b5cf6;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(139, 92, 246, 0.03) 100%);
+  border-left: 4px solid #8b5cf6 !important;
+  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(139, 92, 246, 0.04) 100%) !important;
+}
+.stat-card-item.purple:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(139, 92, 246, 0.06) 100%) !important;
 }
 .stat-card-item.purple .sc-val {
   color: #8b5cf6;
 }
 
 .stat-card-item.green {
-  border-left: 4px solid #10b981;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(16, 185, 129, 0.03) 100%);
+  border-left: 4px solid #10b981 !important;
+  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(16, 185, 129, 0.04) 100%) !important;
+}
+.stat-card-item.green:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(16, 185, 129, 0.06) 100%) !important;
 }
 .stat-card-item.green .sc-val {
   color: #10b981;
 }
 
 .stat-card-item.yellow {
-  border-left: 4px solid #f59e0b;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(245, 158, 11, 0.03) 100%);
+  border-left: 4px solid #f59e0b !important;
+  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(245, 158, 11, 0.04) 100%) !important;
+}
+.stat-card-item.yellow:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(245, 158, 11, 0.06) 100%) !important;
 }
 .stat-card-item.yellow .sc-val {
   color: #d97706;
 }
 
 .stat-card-item.red {
-  border-left: 4px solid #ef4444;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(239, 68, 68, 0.03) 100%);
+  border-left: 4px solid #ef4444 !important;
+  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(239, 68, 68, 0.04) 100%) !important;
+}
+.stat-card-item.red:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(239, 68, 68, 0.06) 100%) !important;
 }
 .stat-card-item.red .sc-val {
   color: #ef4444;
 }
 
 .stat-card-item.proposed {
-  border-left: 4px solid #6366f1;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(99, 102, 241, 0.03) 100%);
+  border-left: 4px solid #6366f1 !important;
+  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(99, 102, 241, 0.04) 100%) !important;
+}
+.stat-card-item.proposed:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(99, 102, 241, 0.06) 100%) !important;
 }
 .stat-card-item.proposed .sc-val {
   color: #6366f1;
 }
 
 .stat-card-item.grade {
-  border-left: 4px solid #06b6d4;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(6, 182, 212, 0.03) 100%);
+  border-left: 4px solid #06b6d4 !important;
+  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(6, 182, 212, 0.04) 100%) !important;
+}
+.stat-card-item.grade:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(6, 182, 212, 0.06) 100%) !important;
 }
 
+/* Botón de Exportación PDF */
 .export-pdf-btn {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -6255,7 +6326,34 @@ to {
   transform: translateY(0) !important;
 }
 
-/* Custom Scrollbar for observations and timeline scroll */
+/* Contenedor del Gráfico de Evolución */
+.student-dashboard-modal .horizontal-chart-scroll-wrapper {
+  background: rgba(248, 250, 252, 0.5) !important;
+  border: 1px solid rgba(226, 232, 240, 0.7) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+  border-radius: 20px !important;
+  box-shadow: inset 0 2px 8px rgba(15, 23, 42, 0.02) !important;
+  padding: 1.25rem 0 !important;
+}
+
+/* Muro de Observaciones y Bitácoras del Docente */
+.student-dashboard-modal .observations-timeline-wall > div {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.student-dashboard-modal .observations-timeline-wall > div:hover {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.08) !important;
+}
+
+/* Custom Scrollbars Premium */
 .observations-timeline-wall::-webkit-scrollbar,
 .horizontal-chart-scroll-wrapper::-webkit-scrollbar {
   width: 6px;
@@ -6264,27 +6362,46 @@ to {
 
 .observations-timeline-wall::-webkit-scrollbar-track,
 .horizontal-chart-scroll-wrapper::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.02);
+  background: rgba(0, 0, 0, 0.01);
   border-radius: 10px;
 }
 
 .observations-timeline-wall::-webkit-scrollbar-thumb,
 .horizontal-chart-scroll-wrapper::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.22);
   border-radius: 10px;
   transition: all 0.3s;
 }
 
 .observations-timeline-wall::-webkit-scrollbar-thumb:hover,
 .horizontal-chart-scroll-wrapper::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.45);
+}
+
+/* Media Queries Responsivas de Ajuste Fino */
+@media (width <= 768px) {
+  .modal-overlay-cosmic {
+    align-items: center !important;
+    padding: 1rem !important;
+  }
 }
 
 @media (max-width: 640px) {
+  .student-dashboard-modal .modal-scroll-area {
+    padding: 1.25rem 1rem !important;
+  }
+  .student-dashboard-modal .premium-card-section {
+    padding: 1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .student-dashboard-modal .observations-timeline-wall {
+    max-height: 250px !important;
+  }
   .modal-header-compact {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 12px !important;
+    padding-right: 55px !important;
   }
   .export-pdf-btn {
     width: 100% !important;

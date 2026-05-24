@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { 
   X, 
@@ -105,7 +106,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
     }
   };
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -130,7 +131,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         </button>
 
         {/* ── CABECERA DE LA FICHA ── */}
-        <div className="modal-header-compact">
+        <div className="modal-header-compact student-modal-header">
           <div className="modal-header-left" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <div style={{
               width: '48px',
@@ -396,7 +397,8 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
           </div>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 };
 
