@@ -6482,29 +6482,67 @@ to {
 }
 
 @media (max-width: 640px) {
+  /* Hacer que la tarjeta del modal completa sea la que tenga scroll vertical */
+  .student-dashboard-modal {
+    display: block !important;
+    max-height: 90dvh !important;
+    overflow-y: auto !important;
+  }
+
+  /* Desactivar pegajosidad del header para que se deslice libremente hacia arriba */
+  .student-dashboard-modal .student-modal-header {
+    position: relative !important;
+    top: auto !important;
+    z-index: 5 !important;
+    padding: 1.25rem 1rem !important;
+    padding-right: 65px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    background: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  /* Desactivar el scroll y límites internos de la sección inferior */
   .student-dashboard-modal .modal-scroll-area {
+    max-height: none !important;
+    overflow-y: visible !important;
     padding: 1.25rem 1rem !important;
   }
+
   .student-dashboard-modal .premium-card-section {
     padding: 1rem !important;
     margin-bottom: 0.5rem !important;
   }
+
   .student-dashboard-modal .observations-timeline-wall {
     max-height: 250px !important;
   }
-  .modal-header-compact {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 12px !important;
-    padding-right: 55px !important;
-  }
+
   .export-pdf-btn {
     width: 100% !important;
     justify-content: center !important;
     margin-left: 0 !important;
   }
+
   .stats-scorecards-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Ajuste de fuentes y empaques en móviles muy estrechos */
+  .student-dashboard-modal .student-modal-header h2 {
+    font-size: 1.2rem !important;
+  }
+  .student-dashboard-modal .student-modal-header p {
+    font-size: 0.74rem !important;
+    line-height: 1.45 !important;
+  }
+  .student-dashboard-modal .stat-card-item .sc-val {
+    font-size: 1.25rem !important;
+  }
+  .student-dashboard-modal .stat-card-item {
+    padding: 0.75rem !important;
   }
 }
 
