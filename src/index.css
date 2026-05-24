@@ -6146,3 +6146,153 @@ to {
     padding-top: 2.5rem;
   }
 }
+
+/* ============================================================
+   STUDENT DETAILED DASHBOARD & GRAPH
+   ZenitApp 1.02.08 · May 2026
+   ============================================================ */
+
+.student-dashboard-modal {
+  background: rgba(255, 255, 255, 0.85) !important;
+  -webkit-backdrop-filter: blur(25px) !important;
+  backdrop-filter: blur(25px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+.stats-scorecards-grid {
+  margin-top: 1rem;
+}
+
+.stat-card-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.stat-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card-item .sc-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.stat-card-item .sc-val {
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-family: 'Outfit', sans-serif;
+  color: #1e293b;
+}
+
+/* Color accents for cards */
+.stat-card-item.purple {
+  border-left: 4px solid #8b5cf6;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(139, 92, 246, 0.03) 100%);
+}
+.stat-card-item.purple .sc-val {
+  color: #8b5cf6;
+}
+
+.stat-card-item.green {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(16, 185, 129, 0.03) 100%);
+}
+.stat-card-item.green .sc-val {
+  color: #10b981;
+}
+
+.stat-card-item.yellow {
+  border-left: 4px solid #f59e0b;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(245, 158, 11, 0.03) 100%);
+}
+.stat-card-item.yellow .sc-val {
+  color: #d97706;
+}
+
+.stat-card-item.red {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(239, 68, 68, 0.03) 100%);
+}
+.stat-card-item.red .sc-val {
+  color: #ef4444;
+}
+
+.stat-card-item.proposed {
+  border-left: 4px solid #6366f1;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(99, 102, 241, 0.03) 100%);
+}
+.stat-card-item.proposed .sc-val {
+  color: #6366f1;
+}
+
+.stat-card-item.grade {
+  border-left: 4px solid #06b6d4;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(6, 182, 212, 0.03) 100%);
+}
+
+.export-pdf-btn {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.export-pdf-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45) !important;
+}
+
+.export-pdf-btn:active {
+  transform: translateY(0) !important;
+}
+
+/* Custom Scrollbar for observations and timeline scroll */
+.observations-timeline-wall::-webkit-scrollbar,
+.horizontal-chart-scroll-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.observations-timeline-wall::-webkit-scrollbar-track,
+.horizontal-chart-scroll-wrapper::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.02);
+  border-radius: 10px;
+}
+
+.observations-timeline-wall::-webkit-scrollbar-thumb,
+.horizontal-chart-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+.observations-timeline-wall::-webkit-scrollbar-thumb:hover,
+.horizontal-chart-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.4);
+}
+
+@media (max-width: 640px) {
+  .modal-header-compact {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .export-pdf-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    margin-left: 0 !important;
+  }
+  .stats-scorecards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+

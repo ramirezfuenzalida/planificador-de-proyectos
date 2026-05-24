@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { 
   Award,
   Users,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { studentGroups2M } from '../utils/studentGroups';
 import Toast from './Toast';
+import StudentDetailModal from './StudentDetailModal';
 
 interface FormativeEvaluationViewProps {
   courses1M: string[];
@@ -54,6 +56,7 @@ export default function FormativeEvaluationView({
   const [dynamicGroups, setDynamicGroups] = useState<Record<string, any>>(studentGroups2M);
   const [editingStudentKey, setEditingStudentKey] = useState<string | null>(null);
   const [tempComment, setTempComment] = useState<string>('');
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
 
   // Cargar grupos dinámicos guardados (sincronizados desde Sheets)
   useEffect(() => {
@@ -565,7 +568,7 @@ export default function FormativeEvaluationView({
                     </div>
                     <div>
                       <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#1f2937' }}>{student.name}</h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
                         <span style={{
                           fontSize: '0.65rem',
                           textTransform: 'uppercase',
@@ -580,6 +583,34 @@ export default function FormativeEvaluationView({
                         <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280' }}>
                           Grupo {student.groupId}
                         </span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedStudent(student)}
+                          style={{
+                            marginLeft: '8px',
+                            background: 'rgba(139, 92, 246, 0.08)',
+                            color: '#8b5cf6',
+                            border: '1px solid rgba(139, 92, 246, 0.2)',
+                            borderRadius: '8px',
+                            padding: '3px 8px',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(139, 92, 246, 0.16)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(139, 92, 246, 0.08)';
+                          }}
+                        >
+                          <Info size={11} />
+                          Ver Ficha
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -767,6 +798,17 @@ export default function FormativeEvaluationView({
           )}
         </div>
       </div>
+      <AnimatePresence>
+        {selectedStudent && (
+          <StudentDetailModal
+            student={selectedStudent}
+            courseTag={courseTag}
+            selectedCourse={selectedCourse}
+            levelClasses={levelClasses}
+            onClose={() => setSelectedStudent(null)}
+          />
+        )}
+      </AnimatePresence>
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
     </div>
   );
