@@ -234,20 +234,44 @@ export default function AdminPanelView({
 
         @media (max-width: 768px) {
           .ap-wrapper {
-            padding: 20px 16px;
+            padding: 16px 12px;
           }
           .ap-header {
-            padding: 24px;
-            border-radius: 20px;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 24px 16px;
+            border-radius: 18px;
             gap: 16px;
           }
           .ap-header h1 {
-            font-size: 1.45rem;
-            gap: 10px;
+            font-size: 1.35rem;
+            gap: 8px;
+            justify-content: center;
+          }
+          .ap-header p {
+            font-size: 0.85rem;
+            margin: 6px 0 0 0;
+            text-align: center;
+          }
+          .ap-back-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 10px 16px;
           }
           .ap-card {
-            padding: 28px 20px !important;
-            border-radius: 20px !important;
+            padding: 24px 16px !important;
+            border-radius: 18px !important;
+          }
+          .ap-card h2 {
+            justify-content: center;
+            text-align: center;
+            font-size: 1.15rem;
+          }
+          .ap-card-desc {
+            text-align: center;
+            font-size: 0.82rem;
+            margin-bottom: 20px;
           }
           .ap-form-inline {
             flex-direction: column;
@@ -261,6 +285,10 @@ export default function AdminPanelView({
           .ap-add-btn {
             width: 100%;
             justify-content: center;
+          }
+          .ap-table th, .ap-table td {
+            padding: 12px 10px !important;
+            font-size: 0.8rem !important;
           }
           .ap-matrix-row {
             grid-template-columns: 1fr 75px 75px !important;
@@ -277,24 +305,12 @@ export default function AdminPanelView({
         }
 
         @media (max-width: 480px) {
-          .ap-header {
-            flex-direction: column;
-            align-items: stretch;
-            text-align: center;
-          }
-          .ap-header h1 {
-            justify-content: center;
-          }
-          .ap-header p {
-            font-size: 0.85rem;
-          }
-          .ap-back-btn {
-            width: 100%;
-            justify-content: center;
-            padding: 10px 16px;
+          .ap-table th, .ap-table td {
+            padding: 10px 6px !important;
+            font-size: 0.75rem !important;
           }
           .ap-matrix-row {
-            grid-template-columns: 1.1fr 60px 60px !important;
+            grid-template-columns: 1fr 65px 65px !important;
             font-size: 0.78rem !important;
             padding: 12px 6px !important;
           }
