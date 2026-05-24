@@ -207,12 +207,12 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
 
   const lastClickRef = React.useRef<Record<string, number>>({});
 
-  const handleStatusChange = (groupId: number, studentId: string | 'group', newStatus: string) => {
-    const targetKey = `${selectedCourse}-${selectedClass}-${groupId}-${studentId}`;
+  const handleStatusChange = (groupId: number, studentId: string | 'group', status: 'red' | 'yellow' | 'green') => {
+    const targetKey = `${selectedCourse}-${selectedClass}-${groupId}-${studentId}-${status}`;
     const now = Date.now();
     const lastClickTime = lastClickRef.current[targetKey] || 0;
     
-    // Throttle rapid clicks/taps within 400ms on the same target to eliminate mobile touch ghost-clicks
+    // Throttle rapid clicks/taps on the same color button within 400ms to eliminate mobile ghost double-taps
     if (now - lastClickTime < 400) {
       return;
     }
@@ -229,9 +229,15 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
 
       const updated = { ...current };
       if (studentId === 'group') {
-        updated.group = newStatus;
+        // Toggle: if clicked status is already active, revert to 'none'
+        updated.group = current.group === status ? 'none' : status;
       } else {
-        updated.students = { ...updated.students, [studentId]: newStatus };
+        const currentStudentStatus = current.students?.[studentId] || 'none';
+        // Toggle: if clicked status is already active, revert to 'none'
+        updated.students = { 
+          ...current.students, 
+          [studentId]: currentStudentStatus === status ? 'none' : status 
+        };
       }
 
       return {
