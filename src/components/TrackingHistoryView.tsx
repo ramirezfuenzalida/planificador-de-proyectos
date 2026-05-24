@@ -115,7 +115,7 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
         doc.text(`Generado el ${new Date().toLocaleDateString()}`, 14, 30);
 
         const headers = [
-          ['Fecha', 'Clase', 'Objetivo', 'Grupo', 'Global', 'Est. 1', 'Est. 2', 'Est. 3', 'Est. 4']
+          ['Fecha', 'Clase', 'Objetivo', 'Grupo', 'Global', 'Coordinador(a)', 'Investigador(a)', 'Mediador(a)', 'Secretario(a)']
         ];
 
         const sortedForPdf = [...historyData].sort((a, b) => {
@@ -135,16 +135,25 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
           const s3 = record.students['s3'] || record.students['3'] || 'none';
           const s4 = record.students['s4'] || record.students['4'] || 'none';
 
+          // Buscar nombres reales en dynamicGroups usando courseTag y groupId
+          const groupKey = `${courseTag}-G${record.groupId}`;
+          const groupInfo = dynamicGroups[groupKey] || [];
+          
+          const name1 = groupInfo[0]?.name || 'Coordinador(a)';
+          const name2 = groupInfo[1]?.name || 'Investigador(a)';
+          const name3 = groupInfo[2]?.name || 'Mediador(a)';
+          const name4 = groupInfo[3]?.name || 'Secretario(a)';
+
           return [
             `${record.date} ${record.time}`,
             `N° ${record.clase}`,
             record.objective || '',
             `Grupo ${record.groupId}`,
             getStatusText(record.groupStatus),
-            getStatusText(s1),
-            getStatusText(s2),
-            getStatusText(s3),
-            getStatusText(s4)
+            `${name1}\n(${getStatusText(s1)})`,
+            `${name2}\n(${getStatusText(s2)})`,
+            `${name3}\n(${getStatusText(s3)})`,
+            `${name4}\n(${getStatusText(s4)})`
           ];
         });
 
@@ -160,20 +169,20 @@ const TrackingHistoryView: React.FC<TrackingHistoryViewProps> = ({
           didParseCell: function(cellData) {
             // Colorize student and global statuses
             if (cellData.section === 'body' && cellData.column.index >= 4) {
-              const text = cellData.cell.raw as string;
-              if (text === 'Logrado') {
+              const text = (cellData.cell.raw as string) || '';
+              if (text.includes('Logrado') && !text.includes('No logrado')) {
                 cellData.cell.styles.fillColor = [209, 250, 229]; // light emerald
                 cellData.cell.styles.textColor = [5, 150, 105];   // emerald
                 cellData.cell.styles.fontStyle = 'bold';
-              } else if (text === 'Por lograr') {
+              } else if (text.includes('Por lograr')) {
                 cellData.cell.styles.fillColor = [254, 243, 199]; // light amber
                 cellData.cell.styles.textColor = [217, 119, 6];   // amber
                 cellData.cell.styles.fontStyle = 'bold';
-              } else if (text === 'No logrado') {
+              } else if (text.includes('No logrado')) {
                 cellData.cell.styles.fillColor = [254, 226, 226]; // light red
                 cellData.cell.styles.textColor = [220, 38, 38];   // red
                 cellData.cell.styles.fontStyle = 'bold';
-              } else if (text === 'Sin evaluar') {
+              } else if (text.includes('Sin evaluar')) {
                 cellData.cell.styles.textColor = [148, 163, 184]; // slate
               }
             }
