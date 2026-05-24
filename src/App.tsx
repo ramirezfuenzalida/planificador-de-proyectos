@@ -22,6 +22,7 @@ import Toast from './components/Toast';
 import FormativeEvaluationView from './components/FormativeEvaluationView';
 import DashboardGeneralView from './components/DashboardGeneralView';
 import SmartCalendarView from './components/SmartCalendarView';
+import StudentRiskRadarView from './components/StudentRiskRadarView';
 import type { CalendarEvent } from './components/SmartCalendarView';
 
 // Utils
@@ -633,6 +634,18 @@ export default function App() {
             getCourseTag={getCourseTag}
             onNavigateToTracking={handleNavigateToTracking}
             onNavigateToEvaluation={handleNavigateToEvaluation}
+            onNavigateToRiskRadar={() => setView('student-risk-radar')}
+          />
+        ) : view === 'student-risk-radar' ? (
+          <StudentRiskRadarView
+            courses1M={courses1M}
+            courses2M={courses2M}
+            globalData={globalData}
+            formativeRegistrations={formativeRegistrations}
+            formativeEvaluations={formativeEvaluations}
+            setFormativeEvaluations={setFormativeEvaluations}
+            getCourseTag={getCourseTag}
+            onBackToDashboard={() => setView('dashboard-general')}
           />
         ) : null}
       </main>

@@ -9,7 +9,8 @@ import {
   Info, 
   ArrowLeft, 
   Sparkles,
-  GraduationCap
+  GraduationCap,
+  Activity
 } from 'lucide-react';
 import { studentGroups2M } from '../utils/studentGroups';
 
@@ -22,6 +23,7 @@ interface DashboardGeneralViewProps {
   getCourseTag: (course: string) => string;
   onNavigateToTracking?: (courseName: string) => void;
   onNavigateToEvaluation?: (courseName: string) => void;
+  onNavigateToRiskRadar?: () => void;
 }
 
 
@@ -58,7 +60,8 @@ export default function DashboardGeneralView({
   formativeEvaluations,
   getCourseTag,
   onNavigateToTracking,
-  onNavigateToEvaluation
+  onNavigateToEvaluation,
+  onNavigateToRiskRadar
 }: DashboardGeneralViewProps) {
   // Filtros principales
   const [levelFilter, setLevelFilter] = useState<'All' | '1M' | '2M'>('All');
@@ -313,8 +316,33 @@ export default function DashboardGeneralView({
           display: flex;
           justify-content: space-between;
           align-items: center;
+          flex-wrap: wrap;
+          gap: 20px;
           position: relative;
           overflow: hidden;
+        }
+
+        .dg-risk-radar-btn {
+          background: white;
+          color: #4f46e5;
+          border: none;
+          padding: 12px 22px;
+          border-radius: 14px;
+          font-weight: 850;
+          font-size: 0.85rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+          transition: all 0.2s ease;
+          z-index: 10;
+        }
+
+        .dg-risk-radar-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(255, 255, 255, 0.35);
+          background: #f8fafc;
         }
         
         .dg-header::after {
@@ -729,6 +757,11 @@ export default function DashboardGeneralView({
           <h1><GraduationCap size={36} /> Dashboard Ejecutivo</h1>
           <p>Visión global y analítica consolidada de los aprendizajes y evaluaciones.</p>
         </div>
+        {onNavigateToRiskRadar && (
+          <button className="dg-risk-radar-btn" onClick={onNavigateToRiskRadar}>
+            <Activity size={18} /> Radar de Alerta Temprana
+          </button>
+        )}
         <Sparkles size={70} style={{ opacity: 0.25 }} />
       </div>
 
