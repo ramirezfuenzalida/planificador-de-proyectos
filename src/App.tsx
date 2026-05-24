@@ -23,45 +23,58 @@ import FormativeEvaluationView from './components/FormativeEvaluationView';
 import DashboardGeneralView from './components/DashboardGeneralView';
 import SmartCalendarView from './components/SmartCalendarView';
 import StudentRiskRadarView from './components/StudentRiskRadarView';
+import LoginView from './components/LoginView';
+import AdminPanelView from './components/AdminPanelView';
 import type { CalendarEvent } from './components/SmartCalendarView';
 import { studentGroups2M } from './utils/studentGroups';
 
-// Utils
+// ─── CONSTANTES DE AUTENTICACIÓN ────────────────────────────────────────────
+const ADMIN_EMAIL = 'exequiel.ramirez@cmwt.cl';
 
+// Permisos por defecto para cada rol al inicializar el sistema
+const DEFAULT_MENU_PERMISSIONS: Record<string, string[]> = {
+  admin: [
+    'courses', 'analytics', 'reports', 'formative-tracking',
+    'tracking-history', 'smart-calendar', 'formative-evaluation',
+    'dashboard-general', 'student-risk-radar', 'admin-panel'
+  ],
+  editor: [
+    'courses', 'analytics', 'reports', 'formative-tracking',
+    'tracking-history', 'smart-calendar', 'formative-evaluation',
+    'dashboard-general', 'student-risk-radar'
+  ],
+  reader: [
+    'courses', 'analytics', 'dashboard-general'
+  ],
+};
+
+// Correos pre-autorizados (se usará como lista maestra de acceso)
+// El administrador los puede gestionar desde el panel. Esta lista inicial
+// se sincroniza con Supabase en la primera carga.
+const DEFAULT_TEACHER_ROLES: Record<string, string> = {
+  [ADMIN_EMAIL]: 'admin',
+};
+
+// ─── TIPOS ───────────────────────────────────────────────────────────────────
 type Course = '1 Medio A' | '1 Medio B' | '1 Medio C' | '1 Medio D' |
   '2 Medio A' | '2 Medio B' | '2 Medio C' | '2 Medio D' | 'Resumen';
 
 const courses1M: Course[] = ['1 Medio A', '1 Medio B', '1 Medio C', '1 Medio D'];
 const courses2M: Course[] = ['2 Medio A', '2 Medio B', '2 Medio C', '2 Medio D'];
 
-
 export default function App() {
+  // ─── ESTADOS DE AUTENTICACIÓN ───────────────────────────────────────────
+  const [session, setSession] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('reader');
+  const [teacherRoles, setTeacherRoles] = useState<Record<string, string>>(DEFAULT_TEACHER_ROLES);
+  const [menuPermissions, setMenuPermissions] = useState<Record<string, string[]>>(DEFAULT_MENU_PERMISSIONS);
+
+  // ─── ESTADOS GENERALES ──────────────────────────────────────────────────
   const [view, setView] = useState('courses');
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [sharedCourse, setSharedCourse] = useState<string>('');
   const [sharedLevel, setSharedLevel] = useState<'1M' | '2M'>('1M');
-
-  const handleSetView = (newView: string) => {
-    // Si se navega de forma normal por el menú, limpiamos el estado deep-link
-    setSharedCourse('');
-    setSharedLevel('1M');
-    setView(newView);
-  };
-
-  const handleNavigateToTracking = (courseName: string) => {
-    setSharedCourse(courseName);
-    const level = courseName.startsWith('1') ? '1M' : '2M';
-    setSharedLevel(level);
-    setView('formative-tracking');
-  };
-
-  const handleNavigateToEvaluation = (courseName: string) => {
-    setSharedCourse(courseName);
-    const level = courseName.startsWith('1') ? '1M' : '2M';
-    setSharedLevel(level);
-    setView('formative-evaluation');
-  };
-
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [registrations, setRegistrations] = useState<Record<string, string>>({});
   const [formativeRegistrations, setFormativeRegistrations] = useState<Record<string, any>>({});
@@ -79,9 +92,7 @@ export default function App() {
   const [studentGroups, setStudentGroups] = useState<Record<string, any>>(() => {
     const saved = localStorage.getItem('zenit_student_groups');
     if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {}
+      try { return JSON.parse(saved); } catch (e) {}
     }
     return studentGroups2M;
   });
@@ -96,109 +107,234 @@ export default function App() {
 
   const lastSupabaseData = useRef<Record<string, string>>({});
 
+  // ─── EFECTO: VERIFICAR SESIÓN SUPABASE AL INICIO ───────────────────────
   useEffect(() => {
-    fetchData();
-
-    const loadAndSubscribe = async () => {
-      // 1. Initial Load from Supabase
-      const { data: initialData } = await supabase.from('app_sync').select('*');
-
-      if (initialData) {
-        const regs = initialData.find(d => d.key === 'registrations')?.data;
-        if (regs) {
-          setRegistrations(regs);
-          lastSupabaseData.current['registrations'] = JSON.stringify(regs);
-          localStorage.setItem('zenit_regs', JSON.stringify(regs));
-        }
-
-        const formative = initialData.find(d => d.key === 'formativeRegistrations')?.data;
-        if (formative) {
-          setFormativeRegistrations(formative);
-          lastSupabaseData.current['formativeRegistrations'] = JSON.stringify(formative);
-          localStorage.setItem('zenit_formative_regs', JSON.stringify(formative));
-        }
-
-        const obs = initialData.find(d => d.key === 'observations')?.data;
-        if (obs) {
-          setObservations(obs);
-          lastSupabaseData.current['observations'] = JSON.stringify(obs);
-          localStorage.setItem('zenit_observations', JSON.stringify(obs));
-        }
-
-        const evaluations = initialData.find(d => d.key === 'formativeEvaluations')?.data;
-        if (evaluations) {
-          setFormativeEvaluations(evaluations);
-          lastSupabaseData.current['formativeEvaluations'] = JSON.stringify(evaluations);
-          localStorage.setItem('zenit_formative_evaluations', JSON.stringify(evaluations));
-        }
-
-        const calEvents = initialData.find(d => d.key === 'calendarEvents')?.data;
-        if (calEvents) {
-          setCustomEvents(calEvents);
-          lastSupabaseData.current['calendarEvents'] = JSON.stringify(calEvents);
-          localStorage.setItem('zenit_calendar_events', JSON.stringify(calEvents));
-        }
-
-        const groups = initialData.find(d => d.key === 'studentGroups')?.data;
-        if (groups) {
-          setStudentGroups(groups);
-          lastSupabaseData.current['studentGroups'] = JSON.stringify(groups);
-          localStorage.setItem('zenit_student_groups', JSON.stringify(groups));
-        }
-      } else {
-        // Fallback to localStorage if no network data
-        const saved = localStorage.getItem('zenit_regs');
-        if (saved) setRegistrations(jsonParseSafe(saved, {}));
-        const savedFormative = localStorage.getItem('zenit_formative_regs');
-        if (savedFormative) setFormativeRegistrations(jsonParseSafe(savedFormative, {}));
-        const savedObservations = localStorage.getItem('zenit_observations');
-        if (savedObservations) setObservations(jsonParseSafe(savedObservations, {}));
-        const savedEvaluations = localStorage.getItem('zenit_formative_evaluations');
-        if (savedEvaluations) setFormativeEvaluations(jsonParseSafe(savedEvaluations, {}));
-        const savedEvents = localStorage.getItem('zenit_calendar_events');
-        if (savedEvents) setCustomEvents(jsonParseSafe(savedEvents, []));
+    const initAuth = async () => {
+      // Obtener sesión actual
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (existingSession) {
+        setSession(existingSession);
+        await loadRolesAndPermissions(existingSession.user.email?.toLowerCase() || '');
       }
+      setAuthLoading(false);
 
-      // 2. Real-time Subscription
-      const channel = supabase
-        .channel('app_sync_changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync' }, (payload: any) => {
-          if (!payload.new) return;
-          const { key, data } = payload.new;
-          const dataStr = JSON.stringify(data);
+      // Escuchar cambios de sesión (login / logout)
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+        setSession(newSession);
+        if (newSession?.user?.email) {
+          await loadRolesAndPermissions(newSession.user.email.toLowerCase());
+        } else {
+          setCurrentUserRole('reader');
+        }
+      });
 
-          lastSupabaseData.current[key] = dataStr;
-          localStorage.setItem(
-            `zenit_${
-              key === 'registrations' ? 'regs' : 
-              key === 'formativeRegistrations' ? 'formative_regs' : 
-              key === 'formativeEvaluations' ? 'formative_evaluations' : 
-              key === 'calendarEvents' ? 'calendar_events' : 
-              key === 'studentGroups' ? 'student_groups' :
-              'observations'
-            }`, 
-            dataStr
-          );
-
-          if (key === 'registrations') setRegistrations(data);
-          else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
-          else if (key === 'observations') setObservations(data);
-          else if (key === 'formativeEvaluations') setFormativeEvaluations(data);
-          else if (key === 'calendarEvents') setCustomEvents(data);
-          else if (key === 'studentGroups') setStudentGroups(data);
-
-          setLastSyncTime(new Date());
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      return () => subscription.unsubscribe();
     };
 
-    loadAndSubscribe();
+    initAuth();
   }, []);
 
+  // ─── CARGA DE DATOS PRINCIPAL (solo cuando hay sesión) ─────────────────
+  useEffect(() => {
+    if (!session) return;
+
+    fetchData();
+    const cleanup = loadAndSubscribe();
+    return () => {
+      cleanup.then(fn => fn && fn());
+    };
+  }, [session]);
+
+  // ─── FUNCIÓN: CARGAR ROLES Y PERMISOS DESDE SUPABASE ──────────────────
+  const loadRolesAndPermissions = async (userEmail: string) => {
+    try {
+      const { data } = await supabase.from('app_sync').select('*').in('key', ['teacherRoles', 'menuPermissions']);
+
+      if (data) {
+        const rolesRow = data.find(d => d.key === 'teacherRoles');
+        const permsRow = data.find(d => d.key === 'menuPermissions');
+
+        let roles = DEFAULT_TEACHER_ROLES;
+        let perms = DEFAULT_MENU_PERMISSIONS;
+
+        if (rolesRow?.data && Object.keys(rolesRow.data).length > 0) {
+          roles = rolesRow.data;
+        } else {
+          // Inicializar en Supabase si no existen
+          await supabase.from('app_sync').upsert({ key: 'teacherRoles', data: DEFAULT_TEACHER_ROLES });
+        }
+
+        if (permsRow?.data && Object.keys(permsRow.data).length > 0) {
+          perms = permsRow.data;
+        } else {
+          // Inicializar permisos por defecto
+          await supabase.from('app_sync').upsert({ key: 'menuPermissions', data: DEFAULT_MENU_PERMISSIONS });
+        }
+
+        setTeacherRoles(roles);
+        setMenuPermissions(perms);
+
+        // Admin siempre es admin sin importar lo que diga la DB
+        const role = userEmail === ADMIN_EMAIL ? 'admin' : (roles[userEmail] || 'reader');
+        setCurrentUserRole(role);
+      }
+    } catch (err) {
+      console.error('Error loading roles:', err);
+      // Fallback seguro
+      const role = userEmail === ADMIN_EMAIL ? 'admin' : 'reader';
+      setCurrentUserRole(role);
+    }
+  };
+
+  // ─── SINCRONIZAR ROLES Y PERMISOS EN TIEMPO REAL ──────────────────────
+  useEffect(() => {
+    if (!session) return;
+
+    const rolesChannel = supabase
+      .channel('roles_perms_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync' }, async (payload: any) => {
+        if (!payload.new) return;
+        const { key, data } = payload.new;
+
+        if (key === 'teacherRoles') {
+          setTeacherRoles(data);
+          const userEmail = session?.user?.email?.toLowerCase() || '';
+          if (userEmail !== ADMIN_EMAIL) {
+            const newRole = data[userEmail] || 'reader';
+            setCurrentUserRole(newRole);
+          }
+        }
+        if (key === 'menuPermissions') {
+          setMenuPermissions(data);
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(rolesChannel); };
+  }, [session]);
+
+  // ─── PERSISTIR ROLES CUANDO CAMBIAN (solo admin) ──────────────────────
+  useEffect(() => {
+    if (!session || currentUserRole !== 'admin') return;
+    const key = 'teacherRoles';
+    const dataStr = JSON.stringify(teacherRoles);
+    if (dataStr !== lastSupabaseData.current[key]) {
+      lastSupabaseData.current[key] = dataStr;
+      const timer = setTimeout(() => {
+        supabase.from('app_sync').upsert({ key, data: teacherRoles });
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [teacherRoles, session, currentUserRole]);
+
+  // ─── PERSISTIR PERMISOS CUANDO CAMBIAN (solo admin) ───────────────────
+  useEffect(() => {
+    if (!session || currentUserRole !== 'admin') return;
+    const key = 'menuPermissions';
+    const dataStr = JSON.stringify(menuPermissions);
+    if (dataStr !== lastSupabaseData.current[key]) {
+      lastSupabaseData.current[key] = dataStr;
+      const timer = setTimeout(() => {
+        supabase.from('app_sync').upsert({ key, data: menuPermissions });
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [menuPermissions, session, currentUserRole]);
+
+  // ─── SUSCRIPCIÓN PRINCIPAL (datos de planificación) ──────────────────
+  const loadAndSubscribe = async () => {
+    const { data: initialData } = await supabase.from('app_sync').select('*');
+
+    if (initialData) {
+      const regs = initialData.find(d => d.key === 'registrations')?.data;
+      if (regs) {
+        setRegistrations(regs);
+        lastSupabaseData.current['registrations'] = JSON.stringify(regs);
+        localStorage.setItem('zenit_regs', JSON.stringify(regs));
+      }
+
+      const formative = initialData.find(d => d.key === 'formativeRegistrations')?.data;
+      if (formative) {
+        setFormativeRegistrations(formative);
+        lastSupabaseData.current['formativeRegistrations'] = JSON.stringify(formative);
+        localStorage.setItem('zenit_formative_regs', JSON.stringify(formative));
+      }
+
+      const obs = initialData.find(d => d.key === 'observations')?.data;
+      if (obs) {
+        setObservations(obs);
+        lastSupabaseData.current['observations'] = JSON.stringify(obs);
+        localStorage.setItem('zenit_observations', JSON.stringify(obs));
+      }
+
+      const evaluations = initialData.find(d => d.key === 'formativeEvaluations')?.data;
+      if (evaluations) {
+        setFormativeEvaluations(evaluations);
+        lastSupabaseData.current['formativeEvaluations'] = JSON.stringify(evaluations);
+        localStorage.setItem('zenit_formative_evaluations', JSON.stringify(evaluations));
+      }
+
+      const calEvents = initialData.find(d => d.key === 'calendarEvents')?.data;
+      if (calEvents) {
+        setCustomEvents(calEvents);
+        lastSupabaseData.current['calendarEvents'] = JSON.stringify(calEvents);
+        localStorage.setItem('zenit_calendar_events', JSON.stringify(calEvents));
+      }
+
+      const groups = initialData.find(d => d.key === 'studentGroups')?.data;
+      if (groups) {
+        setStudentGroups(groups);
+        lastSupabaseData.current['studentGroups'] = JSON.stringify(groups);
+        localStorage.setItem('zenit_student_groups', JSON.stringify(groups));
+      }
+    } else {
+      const saved = localStorage.getItem('zenit_regs');
+      if (saved) setRegistrations(jsonParseSafe(saved, {}));
+      const savedFormative = localStorage.getItem('zenit_formative_regs');
+      if (savedFormative) setFormativeRegistrations(jsonParseSafe(savedFormative, {}));
+      const savedObservations = localStorage.getItem('zenit_observations');
+      if (savedObservations) setObservations(jsonParseSafe(savedObservations, {}));
+      const savedEvaluations = localStorage.getItem('zenit_formative_evaluations');
+      if (savedEvaluations) setFormativeEvaluations(jsonParseSafe(savedEvaluations, {}));
+      const savedEvents = localStorage.getItem('zenit_calendar_events');
+      if (savedEvents) setCustomEvents(jsonParseSafe(savedEvents, []));
+    }
+
+    const channel = supabase
+      .channel('app_sync_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync' }, (payload: any) => {
+        if (!payload.new) return;
+        const { key, data } = payload.new;
+        const dataStr = JSON.stringify(data);
+
+        lastSupabaseData.current[key] = dataStr;
+        localStorage.setItem(
+          `zenit_${
+            key === 'registrations' ? 'regs' :
+            key === 'formativeRegistrations' ? 'formative_regs' :
+            key === 'formativeEvaluations' ? 'formative_evaluations' :
+            key === 'calendarEvents' ? 'calendar_events' :
+            key === 'studentGroups' ? 'student_groups' :
+            'observations'
+          }`,
+          dataStr
+        );
+
+        if (key === 'registrations') setRegistrations(data);
+        else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
+        else if (key === 'observations') setObservations(data);
+        else if (key === 'formativeEvaluations') setFormativeEvaluations(data);
+        else if (key === 'calendarEvents') setCustomEvents(data);
+        else if (key === 'studentGroups') setStudentGroups(data);
+
+        setLastSyncTime(new Date());
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  };
+
+  // ─── SINCRONIZACIÓN DE DATOS ──────────────────────────────────────────
   useEffect(() => {
     const dataStr = JSON.stringify(registrations);
     if (Object.keys(registrations).length > 0 && dataStr !== lastSupabaseData.current['registrations']) {
@@ -295,6 +431,54 @@ export default function App() {
     }
   }, [studentGroups]);
 
+  // ─── HELPERS ─────────────────────────────────────────────────────────
+  const jsonParseSafe = (str: string, fallback: any) => {
+    try { return JSON.parse(str); } catch { return fallback; }
+  };
+
+  const hasPermission = (viewId: string): boolean => {
+    if (currentUserRole === 'admin') return true;
+    const allowedViews = menuPermissions[currentUserRole] || [];
+    return allowedViews.includes(viewId);
+  };
+
+  const handleSetView = (newView: string) => {
+    if (!hasPermission(newView)) {
+      setToastMessage('No tienes permiso para acceder a esta sección.');
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
+    setSharedCourse('');
+    setSharedLevel('1M');
+    setView(newView);
+  };
+
+  const handleNavigateToTracking = (courseName: string) => {
+    setSharedCourse(courseName);
+    const level = courseName.startsWith('1') ? '1M' : '2M';
+    setSharedLevel(level);
+    setView('formative-tracking');
+  };
+
+  const handleNavigateToEvaluation = (courseName: string) => {
+    setSharedCourse(courseName);
+    const level = courseName.startsWith('1') ? '1M' : '2M';
+    setSharedLevel(level);
+    setView('formative-evaluation');
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setCurrentUserRole('reader');
+    setView('courses');
+    localStorage.removeItem('zenit_regs');
+    localStorage.removeItem('zenit_formative_regs');
+    localStorage.removeItem('zenit_observations');
+    localStorage.removeItem('zenit_formative_evaluations');
+    localStorage.removeItem('zenit_calendar_events');
+  };
+
   const deleteFormativeRegistration = (idOrPrefix: string) => {
     setFormativeRegistrations(prev => {
       const newRegs = { ...prev };
@@ -305,10 +489,6 @@ export default function App() {
       });
       return newRegs;
     });
-  };
-
-  const jsonParseSafe = (str: string, fallback: any) => {
-    try { return JSON.parse(str); } catch { return fallback; }
   };
 
   const fetchData = async (isManual = false) => {
@@ -355,9 +535,6 @@ export default function App() {
       ]);
 
       const normalize = (data: any[], type: 'pm' | 'sm') => data.map(item => {
-        // Specific column mapping per level
-        // PM: Link is col_12, Docente is col_14
-        // SM: Link is col_11, Docente is col_12
         const rawLink = type === 'pm' ? (item.link_clase || item.col_12 || '') : (item.link_clase || item.col_11 || '');
         const rawDocente = type === 'pm' ? (item.docente_que_realiza_la_clase || item.col_14 || '') : (item.docente_que_realiza_la_clase || item.col_12 || '');
 
@@ -397,9 +574,7 @@ export default function App() {
             const month = p[1].padStart(2, '0');
             const day = p[0].padStart(2, '0');
             return new Date(`${year}-${month}-${day}T12:00:00`).getTime();
-          } catch {
-            return 0;
-          }
+          } catch { return 0; }
         };
         return parse(a.fecha) - parse(b.fecha);
       });
@@ -477,7 +652,6 @@ export default function App() {
     const tag = getCourseTag(course);
     const rawStr = String(raw);
 
-    // Improved logic: find the section starting with the tag
     const regex = /(1MA|1MB|1MC|1MD|2MA|2MB|2MC|2MD)\s*[:\-]/g;
     const segments: { tag: string, start: number }[] = [];
     let match;
@@ -494,11 +668,8 @@ export default function App() {
     const end = nextSeg ? nextSeg.start : rawStr.length;
 
     let content = rawStr.substring(targetSeg.start, end);
-    // Correctly strip the tag at the beginning (e.g., 1MA:, 1MB-, etc)
     content = content.replace(/^[12]M[A-D]\s*[:\-]\s*/i, '').trim();
 
-    // According to rule: // separates courses, / separates teammates
-    // Strip the course end separator if present
     const courseEndIndex = content.indexOf('//');
     if (courseEndIndex !== -1) {
       content = content.substring(0, courseEndIndex).trim();
@@ -524,7 +695,80 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  // ─── PANTALLA DE CARGA DE AUTENTICACIÓN ──────────────────────────────
+  if (authLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(160deg, #100b3b 0%, #07061b 55%, #02030a 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '20px',
+        fontFamily: 'Inter, sans-serif',
+      }}>
+        <div style={{
+          width: '60px', height: '60px', borderRadius: '50%',
+          border: '3px solid rgba(234, 179, 8, 0.15)',
+          borderTop: '3px solid #fbbf24',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>Verificando acceso seguro...</p>
+      </div>
+    );
+  }
 
+  // ─── PANTALLA DE LOGIN SI NO HAY SESIÓN ──────────────────────────────
+  if (!session) {
+    return (
+      <LoginView
+        onLoginSuccess={(newSession) => setSession(newSession)}
+        authorizedEmails={teacherRoles}
+      />
+    );
+  }
+
+  // ─── PANEL DE ADMINISTRACIÓN ──────────────────────────────────────────
+  if (view === 'admin-panel') {
+    return (
+      <div className="app-window no-flicker">
+        <Sidebar
+          view={view}
+          setView={handleSetView}
+          activeCourse={activeCourse}
+          setActiveCourse={(c) => setActiveCourse(c as Course | null)}
+          isMobileSidebarOpen={isMobileSidebarOpen}
+          setIsMobileSidebarOpen={setIsMobileSidebarOpen}
+          courses1M={courses1M}
+          courses2M={courses2M}
+          handleBackToCourses={handleBackToCourses}
+          handleCourseSelect={handleCourseSelect}
+          isSyncing={isSyncing}
+          lastSyncTime={lastSyncTime}
+          onRefreshData={() => fetchData(true)}
+          isLoadingData={loading}
+          currentUserRole={currentUserRole}
+          userEmail={session?.user?.email || ''}
+          menuPermissions={menuPermissions}
+          onSignOut={handleSignOut}
+        />
+        <main className="main-board no-flicker">
+          <AdminPanelView
+            teacherRoles={teacherRoles}
+            setTeacherRoles={setTeacherRoles}
+            menuPermissions={menuPermissions}
+            setMenuPermissions={setMenuPermissions}
+            onBackToDashboard={() => setView('courses')}
+          />
+        </main>
+        <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+      </div>
+    );
+  }
+
+  // ─── APLICACIÓN PRINCIPAL ─────────────────────────────────────────────
   return (
     <div className="app-window no-flicker">
       <Sidebar
@@ -542,6 +786,10 @@ export default function App() {
         lastSyncTime={lastSyncTime}
         onRefreshData={() => fetchData(true)}
         isLoadingData={loading}
+        currentUserRole={currentUserRole}
+        userEmail={session?.user?.email || ''}
+        menuPermissions={menuPermissions}
+        onSignOut={handleSignOut}
       />
 
       <main className="main-board no-flicker">

@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 .vercel
 .env*.local
+
+# Virtual environments
+venv-sheet/
+venv/
+.venv/
