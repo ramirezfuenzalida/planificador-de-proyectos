@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 interface StudentData {
   name: string;
@@ -23,7 +23,7 @@ export const exportStudentPDF = (
     format: 'a4'
   });
 
-  const primaryColor = [109, 40, 217]; // Violeta #6d28d9
+  const primaryColor: [number, number, number] = [109, 40, 217]; // Violeta #6d28d9
 
   // 1. ENCABEZADO INSTITUCIONAL
   doc.setFillColor(109, 40, 217);
@@ -55,7 +55,7 @@ export const exportStudentPDF = (
   doc.text(`Periodo Escolar: Año Académico 2026 · Reporte emitido el: ${new Date().toLocaleDateString()}`, 14, 43);
 
   // 2. TABLA DE IDENTIFICACIÓN DEL ESTUDIANTE
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: 48,
     theme: 'plain',
     styles: {
@@ -65,10 +65,10 @@ export const exportStudentPDF = (
       font: 'Helvetica'
     },
     columnStyles: {
-      0: { fontStyle: 'bold', textColor: primaryColor, width: 40 },
-      1: { width: 60 },
-      2: { fontStyle: 'bold', textColor: primaryColor, width: 35 },
-      3: { width: 55 }
+      0: { fontStyle: 'bold', textColor: primaryColor, cellWidth: 40 },
+      1: { cellWidth: 60 },
+      2: { fontStyle: 'bold', textColor: primaryColor, cellWidth: 35 },
+      3: { cellWidth: 55 }
     },
     body: [
       ['Estudiante:', student.name.toUpperCase(), 'Curso:', courseTag],
@@ -80,7 +80,7 @@ export const exportStudentPDF = (
   const nextY = (doc as any).lastAutoTable.finalY + 6;
 
   // 3. TABLA DE MÉTRICAS Y CALIFICACIONES
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: nextY,
     theme: 'grid',
     styles: {
@@ -131,7 +131,7 @@ export const exportStudentPDF = (
     ];
   });
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: tableY + 3,
     theme: 'striped',
     styles: {
@@ -146,10 +146,10 @@ export const exportStudentPDF = (
       fontStyle: 'bold'
     },
     columnStyles: {
-      0: { fontStyle: 'bold', width: 25, halign: 'center' },
-      1: { width: 22, halign: 'center' },
-      2: { width: 105 },
-      3: { fontStyle: 'bold', width: 38, halign: 'center' }
+      0: { fontStyle: 'bold', cellWidth: 25, halign: 'center' },
+      1: { cellWidth: 22, halign: 'center' },
+      2: { cellWidth: 105 },
+      3: { fontStyle: 'bold', cellWidth: 38, halign: 'center' }
     },
     head: [['Sesión', 'Fecha', 'Objetivo de Aprendizaje / Hito', 'Desempeño']],
     body: histBody.length > 0 ? histBody : [['—', '—', 'No se registran sesiones evaluadas para el estudiante en este periodo.', '—']]
