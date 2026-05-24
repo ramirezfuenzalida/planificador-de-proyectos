@@ -6583,3 +6583,11 @@ to {
   }
 }
 
+@media (max-width: 768px) {
+  .main-board {
+    scrollbar-gutter: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+

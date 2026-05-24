@@ -290,18 +290,20 @@ export default function AdminPanelView({
         }
 
         .ap-card {
-          background: white;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 20px;
           padding: 24px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-          border: 1px solid rgba(148, 163, 184, 0.1);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
           margin-bottom: 24px;
         }
 
         .ap-card h2 {
           font-size: 1.1rem;
           font-weight: 800;
-          color: #0f172a;
+          color: #ffffff;
           margin: 0 0 6px 0;
           display: flex;
           align-items: center;
@@ -310,7 +312,7 @@ export default function AdminPanelView({
 
         .ap-card-desc {
           font-size: 0.8rem;
-          color: #64748b;
+          color: #94a3b8;
           font-weight: 500;
           margin: 0 0 20px 0;
         }
@@ -332,6 +334,19 @@ export default function AdminPanelView({
           min-width: 180px;
         }
 
+        .ap-role-select-group {
+          flex: 0 0 130px;
+          min-width: 130px;
+        }
+
+        @media (max-width: 768px) {
+          .ap-role-select-group {
+            flex: 1;
+            min-width: 0;
+            width: 100%;
+          }
+        }
+
         .ap-input-group label {
           font-size: 0.68rem;
           font-weight: 800;
@@ -343,18 +358,28 @@ export default function AdminPanelView({
         .ap-input, .ap-select {
           padding: 10px 14px;
           border-radius: 10px;
-          border: 1px solid #e2e8f0;
-          background: #f8fafc;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.05);
           font-size: 0.82rem;
           font-weight: 600;
-          color: #334155;
+          color: #ffffff;
           outline: none;
           transition: all 0.2s;
         }
 
         .ap-input:focus, .ap-select:focus {
           border-color: #fbbf24;
-          background: white;
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 0 8px rgba(251, 191, 36, 0.2);
+        }
+
+        .ap-input::placeholder {
+          color: rgba(255, 255, 255, 0.3);
+        }
+
+        .ap-select option {
+          background: #0f172a;
+          color: white;
         }
 
         .ap-add-btn {
@@ -376,11 +401,12 @@ export default function AdminPanelView({
 
         .ap-add-btn:hover {
           transform: translateY(-1px);
+          box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
         }
 
         .ap-table-wrapper {
           overflow-x: auto;
-          border: 1px solid #e2e8f0;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 14px;
         }
 
@@ -392,11 +418,11 @@ export default function AdminPanelView({
         }
 
         .ap-table th {
-          background: #f8fafc;
+          background: rgba(255, 255, 255, 0.03);
           padding: 12px 14px;
           font-weight: 750;
-          color: #64748b;
-          border-bottom: 1px solid #e2e8f0;
+          color: #94a3b8;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           text-transform: uppercase;
           font-size: 0.68rem;
           letter-spacing: 0.05em;
@@ -404,12 +430,13 @@ export default function AdminPanelView({
 
         .ap-table td {
           padding: 12px 14px;
-          border-bottom: 1px solid #f1f5f9;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
           vertical-align: middle;
+          color: #e2e8f0;
         }
 
         .ap-tr:hover {
-          background: #f8fafc;
+          background: rgba(255, 255, 255, 0.02);
         }
 
         .ap-role-badge {
@@ -434,17 +461,21 @@ export default function AdminPanelView({
           padding: 5px;
           border-radius: 6px;
           transition: all 0.2s;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .ap-trash-btn:hover {
-          background: #fee2e2;
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
         }
 
         .ap-matrix-wrapper {
-          border: 1px solid #e2e8f0;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 14px;
           overflow-x: auto;
-          background: white;
+          background: transparent;
           width: 100%;
           -webkit-overflow-scrolling: touch;
         }
@@ -454,19 +485,20 @@ export default function AdminPanelView({
           display: grid;
           grid-template-columns: 1fr 100px 100px;
           padding: 12px 14px;
-          border-bottom: 1px solid #f1f5f9;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
           align-items: center;
           font-size: 0.84rem;
+          color: #e2e8f0;
         }
 
         .ap-matrix-row.head {
-          background: #f8fafc;
+          background: rgba(255, 255, 255, 0.03);
           font-weight: 800;
-          color: #64748b;
+          color: #94a3b8;
           text-transform: uppercase;
           font-size: 0.68rem;
           letter-spacing: 0.05em;
-          border-bottom: 2px solid #e2e8f0;
+          border-bottom: 2px solid rgba(255, 255, 255, 0.08);
           border-radius: 12px 12px 0 0;
         }
 
@@ -480,7 +512,7 @@ export default function AdminPanelView({
           background: none;
           border: none;
           cursor: pointer;
-          color: #64748b;
+          color: rgba(255, 255, 255, 0.3);
           padding: 4px;
           border-radius: 6px;
           transition: all 0.15s;
@@ -494,7 +526,8 @@ export default function AdminPanelView({
         }
 
         .ap-check-icon-btn:hover {
-          background: #f1f5f9;
+          background: rgba(255, 255, 255, 0.08);
+          color: rgba(255, 255, 255, 0.8);
         }
 
         /* TOAST */
@@ -508,11 +541,12 @@ export default function AdminPanelView({
           border-radius: 12px;
           font-size: 0.82rem;
           font-weight: 700;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
           display: flex;
           align-items: center;
           gap: 8px;
           z-index: 1000;
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
       `}</style>
 
@@ -545,7 +579,7 @@ export default function AdminPanelView({
               />
             </div>
             
-            <div className="ap-input-group" style={{ flex: '0 0 130px', minWidth: '130px' }}>
+            <div className="ap-input-group ap-role-select-group">
               <label>Rol Inicial</label>
               <select 
                 value={newRole} 

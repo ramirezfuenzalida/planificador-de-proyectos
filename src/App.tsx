@@ -755,6 +755,12 @@ export default function App() {
           onSignOut={handleSignOut}
         />
         <main className="main-board no-flicker">
+          <header className="mobile-nav-header">
+            <button className="mobile-menu-btn" onClick={() => setIsMobileSidebarOpen(true)}>
+              <Menu size={28} />
+            </button>
+            <div className="mobile-nav-brand">ZenitApp</div>
+          </header>
           <AdminPanelView
             teacherRoles={teacherRoles}
             setTeacherRoles={setTeacherRoles}
