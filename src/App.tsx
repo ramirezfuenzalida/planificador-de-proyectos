@@ -354,8 +354,8 @@ export default function App() {
       const sortByDate = (arr: any[]) => arr.sort((a, b) => {
         const parse = (f: string) => {
           try {
-            if (!f || typeof f !== 'string' || !f.includes('/')) return 0;
-            const p = f.split('/');
+            if (!f || typeof f !== 'string') return 0;
+            const p = f.split(/[\/\-]/);
             if (p.length < 3) return 0;
             const year = p[2].length === 2 ? '20' + p[2] : p[2];
             const month = p[1].padStart(2, '0');

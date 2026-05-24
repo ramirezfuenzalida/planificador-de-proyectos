@@ -77,12 +77,21 @@ export default function SmartCalendarView({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
   // Helper: Parse DD/MM/YYYY to YYYY-MM-DD
+  // Helper: Parse DD/MM/YYYY or YYYY-MM-DD or DD-MM-YYYY to YYYY-MM-DD
   const formatFechaToISO = (fechaStr: string) => {
     if (!fechaStr) return '';
-    const parts = fechaStr.split('/');
+    const cleaned = String(fechaStr).trim();
+    // Support slash and dash delimiters
+    const parts = cleaned.split(/[\/\-]/);
     if (parts.length === 3) {
+      // If first part is 4 digits, it is likely already YYYY-MM-DD
+      if (parts[0].length === 4) {
+        return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+      }
       const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
-      return `${year}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      const month = parts[1].padStart(2, '0');
+      const day = parts[0].padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
     return '';
   };
@@ -113,10 +122,19 @@ export default function SmartCalendarView({
             end = hrParts[1].trim();
           }
 
+          // Detect if this session represents the showcase ("Muestra Pública")
+          const isMuestra = 
+            isoDate === '2026-06-04' || 
+            (clase.etapa && String(clase.etapa).toLowerCase().includes('muestra')) ||
+            (clase.objetivo && String(clase.objetivo).toLowerCase().includes('muestra')) ||
+            (clase.actividad && String(clase.actividad).toLowerCase().includes('muestra'));
+
           academicEvents.push({
             id: `academic-${courseTag}-${clsId}`,
-            title: `Sesión ${clase.clase}: ${clase.objetivo || 'Proyecto ' + course}`,
-            category: 'proyectos',
+            title: isMuestra 
+              ? `Muestra Pública (${courseTag}): ${clase.etapa || 'Presentación Final'}` 
+              : `Sesión ${clase.clase}: ${clase.objetivo || 'Proyecto ' + course}`,
+            category: isMuestra ? 'muestra' : 'proyectos',
             date: isoDate,
             startTime: start,
             endTime: end,
