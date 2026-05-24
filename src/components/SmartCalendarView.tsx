@@ -1044,13 +1044,13 @@ export default function SmartCalendarView({
                 className={`sc-toggle-btn ${viewMode === 'month' ? 'active' : ''}`}
                 onClick={() => setViewMode('month')}
               >
-                Month
+                Mes
               </button>
               <button 
                 className={`sc-toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
                 onClick={() => setViewMode('week')}
               >
-                Week
+                Semana
               </button>
             </div>
 
