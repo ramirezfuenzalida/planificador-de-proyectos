@@ -212,6 +212,83 @@ export default function AdminPanelView({
           }
         }
 
+        /* ── RESPONSIVE MOBILE OPTIMIZATIONS ── */
+        @media (max-width: 768px) {
+          .ap-wrapper {
+            padding: 12px;
+          }
+          .ap-header {
+            padding: 20px;
+            border-radius: 16px;
+            gap: 12px;
+          }
+          .ap-header h1 {
+            font-size: 1.3rem;
+            gap: 8px;
+          }
+          .ap-card {
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+          }
+          .ap-form-inline {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .ap-input-group {
+            width: 100%;
+            min-width: 0;
+          }
+          .ap-add-btn {
+            width: 100%;
+            justify-content: center;
+          }
+          .ap-matrix-row {
+            grid-template-columns: 1fr 80px 80px;
+            padding: 10px 8px;
+            font-size: 0.78rem;
+          }
+          .ap-matrix-row.head {
+            font-size: 0.65rem;
+          }
+          .ap-table th, .ap-table td {
+            padding: 10px 8px;
+            font-size: 0.76rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .ap-header {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+          }
+          .ap-header h1 {
+            justify-content: center;
+          }
+          .ap-header p {
+            font-size: 0.78rem;
+          }
+          .ap-back-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 8px 14px;
+          }
+          .ap-matrix-row {
+            grid-template-columns: 1.1fr 65px 65px;
+            font-size: 0.72rem;
+            padding: 8px 4px;
+          }
+          .ap-matrix-row.head {
+            font-size: 0.6rem;
+          }
+          .ap-check-icon-btn svg {
+            width: 16px;
+            height: 16px;
+          }
+        }
+
         .ap-card {
           background: white;
           border-radius: 20px;
@@ -361,6 +438,15 @@ export default function AdminPanelView({
 
         .ap-trash-btn:hover {
           background: #fee2e2;
+        }
+
+        .ap-matrix-wrapper {
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          overflow-x: auto;
+          background: white;
+          width: 100%;
+          -webkit-overflow-scrolling: touch;
         }
 
         /* MATRIX STYLE */
@@ -526,7 +612,7 @@ export default function AdminPanelView({
           <h2><ShieldAlert size={20} color="#a78bfa" /> Permisos Dinámicos de la Sidebar</h2>
           <p className="ap-card-desc">Controla exactamente qué secciones tiene permitido ver y usar cada rol. Los cambios se propagan en tiempo real.</p>
 
-          <div style={{ border: '1px solid #e2e8f0', borderRadius: '14px', overflow: 'hidden' }}>
+          <div className="ap-matrix-wrapper">
             <div className="ap-matrix-row head">
               <div>Sección de la Barra Lateral</div>
               <div className="ap-matrix-col-check">Lector</div>
