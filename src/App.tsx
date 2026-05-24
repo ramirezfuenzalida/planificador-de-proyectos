@@ -21,6 +21,8 @@ import TrackingHistoryView from './components/TrackingHistoryView';
 import Toast from './components/Toast';
 import FormativeEvaluationView from './components/FormativeEvaluationView';
 import DashboardGeneralView from './components/DashboardGeneralView';
+import SmartCalendarView from './components/SmartCalendarView';
+import type { CalendarEvent } from './components/SmartCalendarView';
 
 // Utils
 
@@ -71,6 +73,7 @@ export default function App() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successInfo, setSuccessInfo] = useState({ title: '', sub: '' });
   const [lastRegisteredColor, setLastRegisteredColor] = useState<string | null>(null);
+  const [customEvents, setCustomEvents] = useState<CalendarEvent[]>([]);
 
   // Analytics & Calendar States
   const [analyticsLevel, setAnalyticsLevel] = useState('All');
@@ -117,6 +120,13 @@ export default function App() {
           lastSupabaseData.current['formativeEvaluations'] = JSON.stringify(evaluations);
           localStorage.setItem('zenit_formative_evaluations', JSON.stringify(evaluations));
         }
+
+        const calEvents = initialData.find(d => d.key === 'calendarEvents')?.data;
+        if (calEvents) {
+          setCustomEvents(calEvents);
+          lastSupabaseData.current['calendarEvents'] = JSON.stringify(calEvents);
+          localStorage.setItem('zenit_calendar_events', JSON.stringify(calEvents));
+        }
       } else {
         // Fallback to localStorage if no network data
         const saved = localStorage.getItem('zenit_regs');
@@ -127,6 +137,8 @@ export default function App() {
         if (savedObservations) setObservations(jsonParseSafe(savedObservations, {}));
         const savedEvaluations = localStorage.getItem('zenit_formative_evaluations');
         if (savedEvaluations) setFormativeEvaluations(jsonParseSafe(savedEvaluations, {}));
+        const savedEvents = localStorage.getItem('zenit_calendar_events');
+        if (savedEvents) setCustomEvents(jsonParseSafe(savedEvents, []));
       }
 
       // 2. Real-time Subscription
@@ -143,6 +155,7 @@ export default function App() {
               key === 'registrations' ? 'regs' : 
               key === 'formativeRegistrations' ? 'formative_regs' : 
               key === 'formativeEvaluations' ? 'formative_evaluations' : 
+              key === 'calendarEvents' ? 'calendar_events' : 
               'observations'
             }`, 
             dataStr
@@ -152,6 +165,7 @@ export default function App() {
           else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
           else if (key === 'observations') setObservations(data);
           else if (key === 'formativeEvaluations') setFormativeEvaluations(data);
+          else if (key === 'calendarEvents') setCustomEvents(data);
 
           setLastSyncTime(new Date());
         })
@@ -228,6 +242,22 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [formativeEvaluations]);
+
+  useEffect(() => {
+    const dataStr = JSON.stringify(customEvents);
+    if (lastSupabaseData.current['calendarEvents'] !== undefined && dataStr !== lastSupabaseData.current['calendarEvents']) {
+      lastSupabaseData.current['calendarEvents'] = dataStr;
+      localStorage.setItem('zenit_calendar_events', dataStr);
+      setIsSyncing(true);
+      const timer = setTimeout(() => {
+        supabase.from('app_sync').upsert({ key: 'calendarEvents', data: customEvents }).then(() => {
+          setIsSyncing(false);
+          setLastSyncTime(new Date());
+        });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [customEvents]);
 
   const deleteFormativeRegistration = (idOrPrefix: string) => {
     setFormativeRegistrations(prev => {
@@ -441,6 +471,18 @@ export default function App() {
     return content.replace(/\/+$/, '').trim() || 'Sin asignar';
   };
 
+  const handleAddCalendarEvent = (event: CalendarEvent) => {
+    setCustomEvents(prev => [...prev, event]);
+    setToastMessage("Evento agendado correctamente");
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleDeleteCalendarEvent = (id: string) => {
+    setCustomEvents(prev => prev.filter(e => e.id !== id));
+    setToastMessage("Evento eliminado correctamente");
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const handleSaveObservation = () => {
     setToastMessage("Observación guardada correctamente");
     setTimeout(() => setToastMessage(null), 3000);
@@ -534,6 +576,17 @@ export default function App() {
             registrations={registrations}
             getTeacherForCourse={getTeacherForCourse}
             getCourseTag={getCourseTag}
+          />
+        ) : view === 'smart-calendar' ? (
+          <SmartCalendarView
+            key="smart-calendar"
+            globalData={globalData}
+            registrations={registrations}
+            getTeacherForCourse={getTeacherForCourse}
+            getCourseTag={getCourseTag}
+            customEvents={customEvents}
+            onAddEvent={handleAddCalendarEvent}
+            onDeleteEvent={handleDeleteCalendarEvent}
           />
         ) : view === 'reports' ? (
           <ReportsView

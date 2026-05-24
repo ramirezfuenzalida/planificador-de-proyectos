@@ -12,7 +12,8 @@ import {
   History,
   RefreshCw,
   Wifi,
-  Award
+  Award,
+  Calendar
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -66,6 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'reports', label: 'Reportes', icon: <ClipboardCheck size={17} />, onClick: () => { setView('reports'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-emerald' },
     { id: 'formative-tracking', label: 'Seguimiento Formativo', icon: <Sparkles size={17} />, onClick: () => { setView('formative-tracking'); setIsMobileSidebarOpen(false); }, colorClass: 'icon-violet' },
     { id: 'tracking-history', label: 'Historial', icon: <History size={17} />, onClick: () => { setView('tracking-history'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-amber' },
+    { id: 'smart-calendar', label: 'Calendario Inteligente', icon: <Calendar size={17} />, onClick: () => { setView('smart-calendar'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-blue' },
   ];
 
   return (
