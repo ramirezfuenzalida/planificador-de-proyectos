@@ -754,7 +754,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '4px 8px' }} />
 
                   <button
-                    onClick={() => { setShowProfileMenu(false); onSignOut?.(); }}
+                    onClick={() => { 
+                      if (window.confirm('¿Estás seguro de que deseas cerrar sesión en ZenitApp?')) {
+                        setShowProfileMenu(false); 
+                        onSignOut?.(); 
+                      }
+                    }}
                     style={{
                       width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
                       padding: '10px 12px', borderRadius: '10px', border: 'none',

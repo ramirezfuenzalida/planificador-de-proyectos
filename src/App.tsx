@@ -456,15 +456,20 @@ export default function App() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-    setCurrentUserRole('reader');
-    setView('courses');
-    localStorage.removeItem('zenit_regs');
-    localStorage.removeItem('zenit_formative_regs');
-    localStorage.removeItem('zenit_observations');
-    localStorage.removeItem('zenit_formative_evaluations');
-    localStorage.removeItem('zenit_calendar_events');
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Supabase signOut error:', err);
+    } finally {
+      setSession(null);
+      setCurrentUserRole('reader');
+      setView('courses');
+      localStorage.removeItem('zenit_regs');
+      localStorage.removeItem('zenit_formative_regs');
+      localStorage.removeItem('zenit_observations');
+      localStorage.removeItem('zenit_formative_evaluations');
+      localStorage.removeItem('zenit_calendar_events');
+    }
   };
 
   const deleteFormativeRegistration = (idOrPrefix: string) => {
