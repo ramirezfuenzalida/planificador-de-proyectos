@@ -340,10 +340,8 @@ export default function App() {
     if (Object.keys(registrations).length > 0 && dataStr !== lastSupabaseData.current['registrations']) {
       lastSupabaseData.current['registrations'] = dataStr;
       localStorage.setItem('zenit_regs', dataStr);
-      setIsSyncing(true);
       const timer = setTimeout(() => {
         supabase.from('app_sync').upsert({ key: 'registrations', data: registrations }).then(() => {
-          setIsSyncing(false);
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -356,10 +354,8 @@ export default function App() {
     if (Object.keys(formativeRegistrations).length > 0 && dataStr !== lastSupabaseData.current['formativeRegistrations']) {
       lastSupabaseData.current['formativeRegistrations'] = dataStr;
       localStorage.setItem('zenit_formative_regs', dataStr);
-      setIsSyncing(true);
       const timer = setTimeout(() => {
         supabase.from('app_sync').upsert({ key: 'formativeRegistrations', data: formativeRegistrations }).then(() => {
-          setIsSyncing(false);
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -372,10 +368,8 @@ export default function App() {
     if (Object.keys(observations).length > 0 && dataStr !== lastSupabaseData.current['observations']) {
       lastSupabaseData.current['observations'] = dataStr;
       localStorage.setItem('zenit_observations', dataStr);
-      setIsSyncing(true);
       const timer = setTimeout(() => {
         supabase.from('app_sync').upsert({ key: 'observations', data: observations }).then(() => {
-          setIsSyncing(false);
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -388,10 +382,8 @@ export default function App() {
     if (Object.keys(formativeEvaluations).length > 0 && dataStr !== lastSupabaseData.current['formativeEvaluations']) {
       lastSupabaseData.current['formativeEvaluations'] = dataStr;
       localStorage.setItem('zenit_formative_evaluations', dataStr);
-      setIsSyncing(true);
       const timer = setTimeout(() => {
         supabase.from('app_sync').upsert({ key: 'formativeEvaluations', data: formativeEvaluations }).then(() => {
-          setIsSyncing(false);
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -404,10 +396,8 @@ export default function App() {
     if (lastSupabaseData.current['calendarEvents'] !== undefined && dataStr !== lastSupabaseData.current['calendarEvents']) {
       lastSupabaseData.current['calendarEvents'] = dataStr;
       localStorage.setItem('zenit_calendar_events', dataStr);
-      setIsSyncing(true);
       const timer = setTimeout(() => {
         supabase.from('app_sync').upsert({ key: 'calendarEvents', data: customEvents }).then(() => {
-          setIsSyncing(false);
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -420,10 +410,8 @@ export default function App() {
     if (Object.keys(studentGroups).length > 0 && dataStr !== lastSupabaseData.current['studentGroups']) {
       lastSupabaseData.current['studentGroups'] = dataStr;
       localStorage.setItem('zenit_student_groups', dataStr);
-      setIsSyncing(true);
       const timer = setTimeout(() => {
         supabase.from('app_sync').upsert({ key: 'studentGroups', data: studentGroups }).then(() => {
-          setIsSyncing(false);
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -493,6 +481,7 @@ export default function App() {
 
   const fetchData = async (isManual = false) => {
     setLoading(true);
+    if (isManual) setIsSyncing(true);
     try {
       const PM_SHEET_ID = '1i3s_Qwcw0tJv9hxfIrWsrPMhztB5lv88NcAa0aOQwcc';
       const SM_SHEET_ID = '1kagImj0aUR4iaGFwUSUji0RhtOzKcr2JlEMWKHAX7Fo';
@@ -593,6 +582,7 @@ export default function App() {
       setToastMessage("Error al sincronizar con Google Sheets");
     } finally {
       setLoading(false);
+      setIsSyncing(false);
     }
   };
 
