@@ -700,22 +700,42 @@ export default function App() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(160deg, #100b3b 0%, #07061b 55%, #02030a 100%)',
+        background: '#0a0518',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '20px',
-        fontFamily: 'Inter, sans-serif',
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
       }}>
-        <div style={{
-          width: '60px', height: '60px', borderRadius: '50%',
-          border: '3px solid rgba(234, 179, 8, 0.15)',
-          borderTop: '3px solid #fbbf24',
-          animation: 'spin 1s linear infinite',
-        }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>Verificando acceso seguro...</p>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          animation: 'pulse 1.8s ease-in-out infinite' 
+        }}>
+          <img 
+            src="/zenit_app_icon.png" 
+            alt="ZenitApp Logo" 
+            style={{ 
+              width: '84px', 
+              height: '84px', 
+              borderRadius: '20px', 
+              boxShadow: '0 12px 36px rgba(124, 58, 237, 0.25)',
+              border: '2px solid rgba(255, 255, 255, 0.08)'
+            }} 
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        </div>
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { transform: scale(0.96); opacity: 0.85; filter: brightness(0.95); }
+            50% { transform: scale(1.04); opacity: 1; filter: brightness(1.15) drop-shadow(0 0 24px rgba(124, 58, 237, 0.35)); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -736,40 +756,42 @@ export default function App() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(160deg, #100b3b 0%, #07061b 55%, #02030a 100%)',
+        background: '#0a0518',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '24px',
-        fontFamily: "'Outfit', 'Inter', sans-serif",
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
       }}>
-        <div style={{ position: 'relative', width: '80px', height: '80px' }}>
-          <div style={{
-            position: 'absolute', inset: 0, borderRadius: '50%',
-            border: '4px solid rgba(124, 58, 237, 0.1)',
-            borderTop: '4px solid #7c3aed',
-            animation: 'spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite',
-          }} />
-          <div style={{
-            position: 'absolute', inset: '10px', borderRadius: '50%',
-            border: '4px solid rgba(251, 191, 36, 0.05)',
-            borderTop: '4px solid #fbbf24',
-            animation: 'spin-reverse 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite',
-          }} />
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          animation: 'pulse 1.8s ease-in-out infinite' 
+        }}>
+          <img 
+            src="/zenit_app_icon.png" 
+            alt="ZenitApp Logo" 
+            style={{ 
+              width: '84px', 
+              height: '84px', 
+              borderRadius: '20px', 
+              boxShadow: '0 12px 36px rgba(124, 58, 237, 0.25)',
+              border: '2px solid rgba(255, 255, 255, 0.08)'
+            }} 
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
         </div>
         <style>{`
-          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-          @keyframes spin-reverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+          @keyframes pulse {
+            0%, 100% { transform: scale(0.96); opacity: 0.85; filter: brightness(0.95); }
+            50% { transform: scale(1.04); opacity: 1; filter: brightness(1.15) drop-shadow(0 0 24px rgba(124, 58, 237, 0.35)); }
+          }
         `}</style>
-        <div style={{ textAlign: 'center' }}>
-          <h3 style={{ color: '#ffffff', margin: 0, fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-            Inicializando Portal Docente
-          </h3>
-          <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', fontWeight: 500, marginTop: '6px' }}>
-            Sincronizando con base de datos de Liceo Bicentenario...
-          </p>
-        </div>
       </div>
     );
   }
