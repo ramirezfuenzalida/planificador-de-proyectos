@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react';
-import { supabase } from '../lib/supabase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 // Variable de entorno para Sentry
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
@@ -19,7 +20,7 @@ if (SENTRY_DSN) {
   });
   console.log('Sentry inicializado correctamente.');
 } else {
-  console.log('Sentry DSN no configurado. El monitoreo de errores se guardará localmente en logs_auditoria de Supabase.');
+  console.log('Sentry DSN no configurado. El monitoreo de errores se guardará en logs_auditoria de Firestore.');
 }
 
 export interface ErrorDetails {
@@ -76,20 +77,16 @@ export const monitoringService = {
       client_resolucion: resolution,
     };
 
-    // 1. Guardar en Supabase (Backend colector primario)
+    // 1. Guardar en Firestore (Backend colector primario)
     try {
-      // Como logs_auditoria permite inserción pública, esto no fallará por autenticación
-      const { error: dbError } = await supabase
-        .from('logs_auditoria')
-        .insert(logData);
-
-      if (dbError) {
-        console.error('Error al guardar log de auditoría en Supabase:', dbError);
-      } else {
-        console.log('Log de auditoría guardado con éxito en Supabase.');
-      }
+      // La colección logs_auditoria permite escritura pública en las reglas,
+      // de modo que esto no falla por autenticación.
+      await addDoc(collection(db, 'logs_auditoria'), {
+        ...logData,
+        creado_en: serverTimestamp(),
+      });
     } catch (e) {
-      console.error('Fallo en la llamada de red a Supabase para registrar el log:', e);
+      console.error('Fallo al registrar el log de auditoría en Firestore:', e);
     }
 
     // 2. Reportar a Sentry
