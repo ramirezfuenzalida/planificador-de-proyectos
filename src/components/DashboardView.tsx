@@ -1,10 +1,6 @@
-import React from 'react';
-import { 
-  Sparkles, 
-  TrendingUp, 
-  Users,
-} from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { ChevronDown, GraduationCap, Layers } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DashboardViewProps {
   courses1M: string[];
@@ -15,302 +11,375 @@ interface DashboardViewProps {
   handleCourseSelect: (course: string) => void;
 }
 
+// Cuenta clases realizadas (verde) de un curso contra su planificación.
+const courseStats = (
+  course: string,
+  levelData: any[],
+  registrations: Record<string, string>,
+  getCourseTag: (c: string | null) => string,
+) => {
+  const courseTag = getCourseTag(course);
+  const total = levelData.length || 1;
+  let realizadas = 0;
+  levelData.forEach((clase: any) => {
+    const clsId = String(clase.clase || '').replace(/[^0-9]/g, '');
+    if (registrations[`${courseTag}-${clsId}`] === 'green') realizadas++;
+  });
+  return { total, realizadas, adherence: Math.round((realizadas / total) * 100) };
+};
+
 const DashboardView: React.FC<DashboardViewProps> = ({
   courses1M,
   courses2M,
   registrations,
   globalData,
   getCourseTag,
-  handleCourseSelect
+  handleCourseSelect,
 }) => {
+  const [open, setOpen] = useState<{ '1M': boolean; '2M': boolean }>({ '1M': false, '2M': false });
+  const toggle = (g: '1M' | '2M') => setOpen((o) => ({ ...o, [g]: !o[g] }));
+
+  // Pinta el shell (html/body/main-board/header) en oscuro cósmico SOLO mientras
+  // esta portada está montada, para que en iPhone no asome blanco en bordes,
+  // overscroll ni zonas seguras. Al salir de la vista se restaura el tema claro.
+  useEffect(() => {
+    document.documentElement.classList.add('dv-cosmic');
+    document.body.classList.add('dv-cosmic');
+    return () => {
+      document.documentElement.classList.remove('dv-cosmic');
+      document.body.classList.remove('dv-cosmic');
+    };
+  }, []);
+
+  const groups = [
+    {
+      id: '1M' as const,
+      title: 'Primeros Medios',
+      courses: courses1M,
+      levelData: globalData.pm,
+      icon: <GraduationCap size={26} />,
+    },
+    {
+      id: '2M' as const,
+      title: 'Segundos Medios',
+      courses: courses2M,
+      levelData: globalData.sm,
+      icon: <Layers size={26} />,
+    },
+  ];
+
+  // Adherencia global (todos los cursos), para el encabezado.
   const allCourses = [...courses1M, ...courses2M];
-  
-  let totalPossible = 0;
-  let realizadas = 0;
-  
-  allCourses.forEach(course => {
-    const levelData = course.startsWith('1') ? globalData.pm : globalData.sm;
-    totalPossible += levelData.length;
-    const courseTag = getCourseTag(course);
-    levelData.forEach((clase: any) => {
-      const clsId = String(clase.clase || "").replace(/[^0-9]/g, '');
-      if (registrations[`${courseTag}-${clsId}`] === 'green') realizadas++;
-    });
+  let gTotal = 0;
+  let gReal = 0;
+  allCourses.forEach((c) => {
+    const s = courseStats(c, c.startsWith('1') ? globalData.pm : globalData.sm, registrations, getCourseTag);
+    gTotal += s.total;
+    gReal += s.realizadas;
   });
-  
-  const adherence = totalPossible > 0 ? Math.round((realizadas / totalPossible) * 100) : 0;
+  const globalAdherence = gTotal > 0 ? Math.round((gReal / gTotal) * 100) : 0;
+
+  const spring = { type: 'spring' as const, bounce: 0, duration: 0.45 };
 
   return (
-    <motion.div 
-      className="dv-main-container"
-      initial={{ opacity: 1, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.1 }}
-    >
+    <div className="dv-root">
       <style>{`
-        .dv-main-container {
-          padding: 20px;
-          background: #f8fafc;
-          min-height: 100vh;
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+        /* Shell oscuro cósmico mientras la portada está activa (evita blancos en iPhone) */
+        html.dv-cosmic, body.dv-cosmic { background: #070311 !important; }
+        body.dv-cosmic .main-board { background: transparent !important; }
+        body.dv-cosmic .main-board:before { display: none !important; }
+        body.dv-cosmic .mobile-nav-header {
+          background: rgba(10,7,22,0.72) !important;
+          -webkit-backdrop-filter: blur(20px) saturate(160%);
+          backdrop-filter: blur(20px) saturate(160%);
+          border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+          padding-top: env(safe-area-inset-top, 0px);
         }
-        .dv-welcome-banner {
-          background: linear-gradient(135deg, #0f172a 0%, #312e81 100%);
-          border-radius: 24px;
-          padding: 40px;
-          color: white;
-          margin-bottom: 30px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+        body.dv-cosmic .mobile-nav-brand { color: #fff !important; }
+        body.dv-cosmic .mobile-menu-btn { background: rgba(255,255,255,0.08) !important; color: #5eead4 !important; }
+
+        .dv-root {
           position: relative;
+          min-height: 100vh;
+          padding:
+            max(32px, calc(env(safe-area-inset-top, 0px) + 16px))
+            calc(20px + env(safe-area-inset-right, 0px))
+            160px
+            calc(20px + env(safe-area-inset-left, 0px));
+          font-family: 'Manrope', sans-serif;
+          background:
+            radial-gradient(1200px 600px at 15% -10%, rgba(13,148,136,0.20), transparent 60%),
+            radial-gradient(1000px 700px at 100% 0%, rgba(79,70,229,0.22), transparent 55%),
+            radial-gradient(900px 900px at 50% 120%, rgba(6,182,212,0.12), transparent 60%),
+            linear-gradient(180deg, #0a0716 0%, #0c0822 45%, #070311 100%);
+          overflow-x: hidden;
+        }
+        /* Grano/estrellas sutiles */
+        .dv-root::before {
+          content: '';
+          position: fixed; inset: 0; pointer-events: none;
+          background-image:
+            radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.5), transparent),
+            radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.35), transparent),
+            radial-gradient(1.5px 1.5px at 45% 15%, rgba(165,243,252,0.4), transparent),
+            radial-gradient(1px 1px at 85% 25%, rgba(255,255,255,0.3), transparent),
+            radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.25), transparent);
+          opacity: 0.6;
+        }
+
+        .dv-shell { position: relative; z-index: 1; max-width: 660px; margin: 0 auto; }
+
+        /* ── ENCABEZADO ── */
+        .dv-head { text-align: center; margin-bottom: 34px; }
+        .dv-eyebrow {
+          font-size: 0.72rem; font-weight: 700; letter-spacing: 0.22em;
+          text-transform: uppercase; color: rgba(165,243,252,0.6); margin-bottom: 12px;
+        }
+        .dv-title {
+          font-family: 'Outfit', sans-serif; font-weight: 800;
+          font-size: clamp(1.9rem, 6vw, 2.7rem); line-height: 1.05;
+          letter-spacing: -0.03em; color: #fff; margin-bottom: 8px;
+        }
+        .dv-title span {
+          background: linear-gradient(120deg, #5eead4, #22d3ee 55%, #818cf8);
+          -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .dv-sub { font-size: 0.92rem; color: rgba(255,255,255,0.45); font-weight: 500; }
+
+        .dv-chips { display: flex; justify-content: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+        .dv-chip {
+          display: flex; align-items: center; gap: 8px;
+          padding: 9px 16px; border-radius: 100px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.09);
+          border-top-color: rgba(255,255,255,0.16);
+          backdrop-filter: blur(18px) saturate(160%);
+          -webkit-backdrop-filter: blur(18px) saturate(160%);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+        }
+        .dv-chip b { font-family: 'Outfit', sans-serif; font-size: 1.05rem; color: #fff; font-weight: 800; }
+        .dv-chip span { font-size: 0.75rem; color: rgba(255,255,255,0.5); font-weight: 600; }
+
+        /* ── COLUMNA DE GRUPOS ── */
+        .dv-groups { display: flex; flex-direction: column; gap: 20px; }
+        .dv-group-block { display: flex; flex-direction: column; }
+
+        /* Tarjeta grande de grupo: vidrio gloss + relieve */
+        .dv-group-card {
+          position: relative; cursor: pointer; user-select: none;
+          border-radius: 26px; padding: 26px 26px;
+          display: flex; align-items: center; gap: 20px;
+          background: linear-gradient(135deg, rgba(255,255,255,0.11) 0%, rgba(13,148,136,0.08) 40%, rgba(12,6,26,0.55) 100%);
+          border: 1px solid rgba(13,148,136,0.22);
+          border-top: 1px solid rgba(165,243,252,0.30);
+          backdrop-filter: blur(30px) saturate(180%);
+          -webkit-backdrop-filter: blur(30px) saturate(180%);
+          box-shadow:
+            0 24px 50px rgba(0,0,0,0.55),
+            0 0 40px rgba(13,148,136,0.10),
+            inset 0 1px 0 rgba(255,255,255,0.20),
+            inset 0 -1px 0 rgba(0,0,0,0.35);
           overflow: hidden;
+          transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease;
         }
-        .dv-welcome-content h1 {
-          font-size: 2.5rem;
-          font-weight: 800;
-          margin-bottom: 10px;
+        .dv-group-card::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 52%;
+          background: linear-gradient(180deg, rgba(255,255,255,0.10), transparent);
+          pointer-events: none;
         }
-        .dv-welcome-content p {
-          font-size: 1.1rem;
-          opacity: 0.9;
+        .dv-group-card::after {
+          content: ''; position: absolute; top: 0; left: 14%; right: 14%; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(165,243,252,0.7), transparent);
         }
-        .dv-summary-row {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 20px;
-          margin-bottom: 40px;
+        .dv-group-card:hover { transform: translateY(-3px); box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 60px rgba(13,148,136,0.18), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.35); }
+        .dv-group-card:active { transform: translateY(-1px) scale(0.994); }
+
+        .dv-gicon {
+          width: 58px; height: 58px; flex-shrink: 0; border-radius: 18px;
+          display: flex; align-items: center; justify-content: center; color: #5eead4;
+          background: rgba(6,3,18,0.4);
+          border: 1px solid rgba(165,243,252,0.18);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 6px 16px rgba(0,0,0,0.4);
         }
-        .dv-stat-card {
-          background: white;
-          padding: 24px;
-          border-radius: 20px;
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        .dv-ginfo { flex: 1; min-width: 0; }
+        .dv-gname {
+          font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.4rem;
+          letter-spacing: -0.02em; color: #fff; margin-bottom: 6px; line-height: 1.1;
         }
-        .dv-stat-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .dv-stat-value {
-          font-size: 1.5rem;
-          font-weight: 800;
-          display: block;
-        }
-        .dv-stat-label {
-          color: #64748b;
-          font-size: 0.875rem;
-        }
-        .dv-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-          gap: 24px;
-          width: 100%;
-          max-width: 1400px;
-          margin: 0 auto;
+        .dv-gmeta { font-size: 0.82rem; color: rgba(255,255,255,0.55); font-weight: 600; margin-bottom: 10px; }
+        .dv-gmeta b { color: #5eead4; font-weight: 800; }
+        .dv-gbar { height: 7px; border-radius: 100px; background: rgba(255,255,255,0.10); overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.4); }
+        .dv-gbar-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, #5eead4, #22d3ee); box-shadow: 0 0 12px rgba(34,211,238,0.6); }
+
+        .dv-chevron { flex-shrink: 0; color: rgba(255,255,255,0.5); display: flex; }
+
+        /* ── SUB-GRILLA DE CURSOS ── */
+        .dv-course-grid {
+          display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+          padding: 16px 4px 4px;
         }
         .dv-course-card {
-          border-radius: 24px;
-          padding: 24px;
-          position: relative;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          border: none;
-          min-height: 160px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          overflow: hidden;
-          color: white;
+          position: relative; cursor: pointer; border-radius: 20px; padding: 18px;
+          min-height: 150px; display: flex; flex-direction: column; justify-content: space-between;
+          color: #fff; overflow: hidden;
+          background: linear-gradient(140deg, var(--tint1) 0%, var(--tint2) 46%, rgba(9,5,20,0.62) 100%);
+          border: 1px solid var(--edge-soft);
+          border-top: 1px solid var(--edge);
+          backdrop-filter: blur(24px) saturate(180%);
+          -webkit-backdrop-filter: blur(24px) saturate(180%);
+          box-shadow:
+            0 16px 34px rgba(0,0,0,0.45),
+            0 0 30px var(--accent-glow),
+            inset 0 1px 0 rgba(255,255,255,0.24),
+            inset 0 -1px 0 rgba(0,0,0,0.40);
+          transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease;
         }
-        .dv-course-card:hover {
-          transform: translateY(-8px) scale(1.02);
+        /* Glow de color desde arriba */
+        .dv-course-card::before {
+          content: ''; position: absolute; inset: 0; pointer-events: none;
+          background: radial-gradient(135% 95% at 50% -25%, var(--accent-glow), transparent 62%);
+          opacity: 0.95;
         }
-        /* Media Queries for Mobile Centering */
-        @media (max-width: 768px) {
-          .dv-main-container {
-            padding: 16px;
-            padding-bottom: 260px;
-          }
-          .dv-welcome-banner {
-            padding: 24px;
-            flex-direction: column;
-            text-align: center;
-            gap: 20px;
-          }
-          .dv-welcome-content h1 {
-            font-size: 1.75rem;
-          }
-          .dv-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            padding-bottom: 120px;
-          }
-          .dv-course-card {
-            padding: 16px;
-            min-height: 140px;
-            border-radius: 20px;
-          }
-          .dv-course-name {
-            font-size: 1.2rem;
-          }
-          .dv-level-tag {
-            font-size: 0.65rem;
-            padding: 2px 8px;
-          }
-          .dv-stats {
-            font-size: 0.75rem;
-          }
+        /* Barrido gloss superior (línea de luz del material) */
+        .dv-course-card::after {
+          content: ''; position: absolute; top: 0; left: 12%; right: 12%; height: 1px;
+          background: linear-gradient(90deg, transparent, var(--edge), transparent);
+        }
+        .dv-course-card:hover { transform: translateY(-4px); box-shadow: 0 26px 52px rgba(0,0,0,0.55), 0 0 48px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -1px 0 rgba(0,0,0,0.40); }
+        .dv-course-card:active { transform: translateY(-1px) scale(0.99); }
+
+        /* Cada curso: vidrio gloss tintado con su propio color vivo */
+        .dv-course-card.a { --accent: #bfdbfe; --accent-glow: rgba(59,130,246,0.50); --tint1: rgba(59,130,246,0.46); --tint2: rgba(59,130,246,0.12); --edge: rgba(191,219,254,0.62); --edge-soft: rgba(59,130,246,0.34); }
+        .dv-course-card.b { --accent: #a7f3d0; --accent-glow: rgba(16,185,129,0.50); --tint1: rgba(16,185,129,0.46); --tint2: rgba(16,185,129,0.12); --edge: rgba(167,243,208,0.62); --edge-soft: rgba(16,185,129,0.34); }
+        .dv-course-card.c { --accent: #fde68a; --accent-glow: rgba(245,158,11,0.48); --tint1: rgba(245,158,11,0.44); --tint2: rgba(245,158,11,0.12); --edge: rgba(253,230,138,0.62); --edge-soft: rgba(245,158,11,0.34); }
+        .dv-course-card.d { --accent: #fbcfe8; --accent-glow: rgba(236,72,153,0.50); --tint1: rgba(236,72,153,0.46); --tint2: rgba(236,72,153,0.12); --edge: rgba(251,207,232,0.62); --edge-soft: rgba(236,72,153,0.34); }
+
+        .dv-cc-head { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; }
+        .dv-cc-tag {
+          font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+          padding: 4px 10px; border-radius: 100px; color: var(--accent); white-space: nowrap;
+          background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+        }
+        .dv-cc-pct { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.05rem; color: #fff; }
+        .dv-cc-name {
+          font-family: 'Outfit', sans-serif; font-weight: 900;
+          font-size: clamp(1.15rem, 3.4vw, 1.5rem);
+          letter-spacing: -0.02em; line-height: 1.05; position: relative; z-index: 1;
+        }
+        .dv-cc-foot { position: relative; z-index: 1; }
+        .dv-cc-stat { font-size: 0.74rem; color: rgba(255,255,255,0.68); font-weight: 600; margin-bottom: 7px; }
+        .dv-cc-bar { height: 6px; border-radius: 100px; background: rgba(255,255,255,0.14); overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.4); }
+        .dv-cc-bar-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--accent), #fff); box-shadow: 0 0 10px var(--accent-glow); }
+
+        @media (min-width: 720px) {
+          .dv-course-grid { grid-template-columns: repeat(4, 1fr); }
         }
         @media (max-width: 380px) {
-          .dv-grid {
-            gap: 8px;
-          }
-          .dv-course-name {
-            font-size: 1.1rem;
-          }
+          .dv-group-card { padding: 20px; gap: 14px; }
+          .dv-gicon { width: 48px; height: 48px; }
+          .dv-gname { font-size: 1.2rem; }
+          .dv-course-grid { gap: 10px; }
+          .dv-course-card { padding: 15px; min-height: 138px; border-radius: 18px; }
+          .dv-cc-tag { font-size: 0.56rem; padding: 3px 8px; }
+          .dv-cc-stat { font-size: 0.7rem; }
         }
-        /* KILL THE WHITE BLOB - NO BEFORE/AFTER ALLOWED */
-        .dv-course-card::before, .dv-course-card::after {
-          content: none !important;
-          display: none !important;
+        @media (prefers-reduced-motion: reduce) {
+          .dv-group-card, .dv-course-card { transition: none; }
         }
-        .dv-card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-        .dv-level-tag {
-          background: rgba(255, 255, 255, 0.2);
-          color: white;
-          padding: 4px 12px;
-          border-radius: 100px;
-          font-size: 0.75rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          backdrop-filter: blur(4px);
-        }
-        .dv-adherence {
-          font-weight: 800;
-          color: white;
-        }
-        .dv-course-name {
-          font-size: 1.75rem;
-          font-weight: 900;
-          color: white;
-          margin: 0;
-          line-height: 1.2;
-        }
-        .dv-footer {
-          margin-top: 20px;
-        }
-        .dv-stats {
-          font-size: 0.875rem;
-          color: rgba(255, 255, 255, 0.8);
-          margin-bottom: 8px;
-        }
-        .dv-progress-track {
-          height: 6px;
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 100px;
-          overflow: hidden;
-        }
-        .dv-progress-fill {
-          height: 100%;
-          background: white;
-          border-radius: 100px;
-          box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-        /* Solid Modern Card Colors */
-        .dv-course-card.a { background: #0284c7; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4); }
-        .dv-course-card.b { background: #0ea5e9; box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4); }
-        .dv-course-card.c { background: #facc15; box-shadow: 0 10px 25px -5px rgba(250, 204, 21, 0.4); }
-        .dv-course-card.d { background: #ec4899; box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.4); }
-        
-        .dv-course-card.a:hover { box-shadow: 0 20px 40px -10px rgba(2, 132, 199, 0.6); }
-        .dv-course-card.b:hover { box-shadow: 0 20px 40px -10px rgba(14, 165, 233, 0.6); }
-        .dv-course-card.c:hover { box-shadow: 0 20px 40px -10px rgba(250, 204, 21, 0.6); }
-        .dv-course-card.d:hover { box-shadow: 0 20px 40px -10px rgba(236, 72, 153, 0.6); }
       `}</style>
 
-      <div className="dv-welcome-banner">
-        <div className="dv-welcome-content">
-          <h1>Bienvenido al sistema de seguimiento</h1>
-          <p>Liceo Bicentenario William Taylor de Alto Hospicio</p>
-        </div>
-        <Sparkles size={80} opacity={0.2} />
-      </div>
-
-      <div className="dv-summary-row">
-        <div className="dv-stat-card">
-          <div className="dv-stat-icon" style={{ background: '#e0e7ff' }}>
-            <Users size={24} color="#0284c7" />
-          </div>
-          <div>
-            <span className="dv-stat-value">{allCourses.length}</span>
-            <span className="dv-stat-label">Cursos Activos</span>
+      <div className="dv-shell">
+        {/* Encabezado */}
+        <div className="dv-head">
+          <div className="dv-eyebrow">ZenitApp · Seguimiento 2026</div>
+          <h1 className="dv-title">Bienvenido al <span>sistema de seguimiento</span></h1>
+          <p className="dv-sub">Liceo Bicentenario William Taylor de Alto Hospicio</p>
+          <div className="dv-chips">
+            <div className="dv-chip"><b>{allCourses.length}</b><span>Cursos activos</span></div>
+            <div className="dv-chip"><b>{globalAdherence}%</b><span>Adherencia global</span></div>
           </div>
         </div>
-        <div className="dv-stat-card">
-          <div className="dv-stat-icon" style={{ background: '#ecfdf5' }}>
-            <TrendingUp size={24} color="#10b981" />
-          </div>
-          <div>
-            <span className="dv-stat-value">{adherence}%</span>
-            <span className="dv-stat-label">Adherencia Global</span>
-          </div>
-        </div>
-      </div>
 
-      <div className="dv-grid">
-        {allCourses.map((course) => {
-          const courseTag = getCourseTag(course);
-          const levelData = course.startsWith('1') ? globalData.pm : globalData.sm;
-          const totalCourseClasses = levelData.length || 1;
-          
-          let courseRealizadas = 0;
-          levelData.forEach((clase: any) => {
-            const clsId = String(clase.clase || "").replace(/[^0-9]/g, '');
-            if (registrations[`${courseTag}-${clsId}`] === 'green') courseRealizadas++;
-          });
-          const courseAdherence = Math.round((courseRealizadas / totalCourseClasses) * 100);
-          const letter = course.split(' ').pop()?.toLowerCase();
+        {/* Grupos */}
+        <div className="dv-groups">
+          {groups.map((g) => {
+            const isOpen = open[g.id];
+            // Agregado del grupo: total y realizadas sumadas de sus 4 cursos.
+            let total = 0;
+            let real = 0;
+            g.courses.forEach((c) => {
+              const s = courseStats(c, g.levelData, registrations, getCourseTag);
+              total += s.total;
+              real += s.realizadas;
+            });
+            const pct = total > 0 ? Math.round((real / total) * 100) : 0;
 
-          return (
-            <motion.div
-              key={course}
-              className={`dv-course-card ${letter}`}
-              onClick={() => handleCourseSelect(course)}
-              whileHover={{ y: -5 }}
-            >
-              <div className="dv-card-header">
-                <span className="dv-level-tag">
-                  {course.startsWith('1') ? '1° Medio' : '2° Medio'}
-                </span>
-                <span className="dv-adherence">{courseAdherence}%</span>
+            return (
+              <div className="dv-group-block" key={g.id}>
+                <motion.div
+                  className="dv-group-card"
+                  onClick={() => toggle(g.id)}
+                  whileTap={{ scale: 0.994 }}
+                >
+                  <div className="dv-gicon">{g.icon}</div>
+                  <div className="dv-ginfo">
+                    <div className="dv-gname">{g.title}</div>
+                    <div className="dv-gmeta"><b>{real}</b> / {total} Clases Realizadas</div>
+                    <div className="dv-gbar"><div className="dv-gbar-fill" style={{ width: `${pct}%` }} /></div>
+                  </div>
+                  <motion.div className="dv-chevron" animate={{ rotate: isOpen ? 180 : 0 }} transition={spring}>
+                    <ChevronDown size={24} />
+                  </motion.div>
+                </motion.div>
+
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      key="grid"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={spring}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div className="dv-course-grid">
+                        {g.courses.map((course, i) => {
+                          const s = courseStats(course, g.levelData, registrations, getCourseTag);
+                          const letter = course.split(' ').pop()?.toLowerCase();
+                          return (
+                            <motion.div
+                              key={course}
+                              className={`dv-course-card ${letter}`}
+                              onClick={() => handleCourseSelect(course)}
+                              initial={{ opacity: 0, y: 14, scale: 0.96 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              transition={{ ...spring, delay: 0.04 * i }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <div className="dv-cc-head">
+                                <span className="dv-cc-tag">{course.startsWith('1') ? '1° Medio' : '2° Medio'}</span>
+                                <span className="dv-cc-pct">{s.adherence}%</span>
+                              </div>
+                              <div className="dv-cc-name">{course}</div>
+                              <div className="dv-cc-foot">
+                                <div className="dv-cc-stat">{s.realizadas} / {s.total} Clases Realizadas</div>
+                                <div className="dv-cc-bar"><div className="dv-cc-bar-fill" style={{ width: `${s.adherence}%` }} /></div>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-
-              <h3 className="dv-course-name">{course}</h3>
-
-              <div className="dv-footer">
-                <div className="dv-stats">
-                  {courseRealizadas} / {totalCourseClasses} Clases Realizadas
-                </div>
-                <div className="dv-progress-track">
-                  <div className="dv-progress-fill" style={{ width: `${courseAdherence}%` }}></div>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
