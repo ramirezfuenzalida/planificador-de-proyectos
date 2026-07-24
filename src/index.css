@@ -6591,3 +6591,23 @@ to {
   }
 }
 
+/* ── RESPONSIVIDAD: tablas anchas en celular ──────────────────────────────
+   El único scroll de la app es .main-board con overflow-x: hidden, así que
+   cualquier tabla más ancha que la pantalla se RECORTABA y su contenido
+   quedaba invisible. Aquí cada tabla se vuelve un bloque con scroll horizontal
+   propio: el usuario desliza dentro de la tabla para ver todas las columnas,
+   sin romper el layout de la página. Patrón responsive estándar. */
+@media (max-width: 768px) {
+  .main-board table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+  /* Pista visual de que se puede deslizar */
+  .main-board table::-webkit-scrollbar { height: 6px; }
+  .main-board table::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.5); border-radius: 100px; }
+}
+
