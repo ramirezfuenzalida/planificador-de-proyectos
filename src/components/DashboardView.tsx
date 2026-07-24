@@ -86,34 +86,43 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap');
 
-        /* Shell oscuro cósmico mientras la portada está activa (evita blancos en iPhone) */
+        /* Shell oscuro cósmico mientras la portada está activa: UNA sola superficie
+           continua (tablero + header) para que no haya costura ni franja gris,
+           y para que en iPhone no asome blanco en bordes ni zonas seguras. */
         html.dv-cosmic, body.dv-cosmic { background: #070311 !important; }
-        body.dv-cosmic .main-board { background: transparent !important; }
+        body.dv-cosmic .main-board {
+          background:
+            radial-gradient(1200px 600px at 15% -10%, rgba(13,148,136,0.20), transparent 60%),
+            radial-gradient(1000px 700px at 100% 0%, rgba(79,70,229,0.22), transparent 55%),
+            radial-gradient(900px 900px at 50% 120%, rgba(6,182,212,0.12), transparent 60%),
+            linear-gradient(180deg, #0a0716 0%, #0c0822 45%, #070311 100%) !important;
+        }
         body.dv-cosmic .main-board:before { display: none !important; }
+        /* Header transparente: deja ver el mismo fondo cósmico del tablero */
         body.dv-cosmic .mobile-nav-header {
-          background: rgba(10,7,22,0.72) !important;
-          -webkit-backdrop-filter: blur(20px) saturate(160%);
-          backdrop-filter: blur(20px) saturate(160%);
-          border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+          background: transparent !important;
+          border-bottom: none !important;
+          -webkit-backdrop-filter: none !important;
+          backdrop-filter: none !important;
           padding-top: env(safe-area-inset-top, 0px);
         }
         body.dv-cosmic .mobile-nav-brand { color: #fff !important; }
-        body.dv-cosmic .mobile-menu-btn { background: rgba(255,255,255,0.08) !important; color: #5eead4 !important; }
+        body.dv-cosmic .mobile-menu-btn {
+          background: rgba(255,255,255,0.07) !important;
+          color: #5eead4 !important;
+          border: 1px solid rgba(165,243,252,0.16) !important;
+        }
 
         .dv-root {
           position: relative;
           min-height: 100vh;
           padding:
-            max(32px, calc(env(safe-area-inset-top, 0px) + 16px))
+            max(20px, calc(env(safe-area-inset-top, 0px) + 8px))
             calc(20px + env(safe-area-inset-right, 0px))
             160px
             calc(20px + env(safe-area-inset-left, 0px));
           font-family: 'Manrope', sans-serif;
-          background:
-            radial-gradient(1200px 600px at 15% -10%, rgba(13,148,136,0.20), transparent 60%),
-            radial-gradient(1000px 700px at 100% 0%, rgba(79,70,229,0.22), transparent 55%),
-            radial-gradient(900px 900px at 50% 120%, rgba(6,182,212,0.12), transparent 60%),
-            linear-gradient(180deg, #0a0716 0%, #0c0822 45%, #070311 100%);
+          background: transparent;
           overflow-x: hidden;
         }
         /* Grano/estrellas sutiles */
