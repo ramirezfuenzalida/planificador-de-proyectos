@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 
 // Variable de entorno para Sentry
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
@@ -50,14 +50,14 @@ export const monitoringService = {
     let userRole = null;
 
     try {
-      // Intentar obtener la sesión activa de Supabase de manera segura
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (!sessionError && session?.user) {
-        userId = session.user.id;
-        userRole = session.user.user_metadata?.role || 'reader';
+      // Obtener el usuario autenticado de Firebase de manera segura
+      const user = auth.currentUser;
+      if (user) {
+        userId = user.uid;
+        userRole = 'reader';
       }
     } catch (e) {
-      console.error('Error al intentar obtener la sesión de Supabase:', e);
+      console.error('Error al intentar obtener la sesión de Firebase:', e);
     }
 
     // Preparar el log de auditoría

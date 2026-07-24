@@ -24,7 +24,7 @@ import {
   CheckCircle2,
   Shield
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { cambiarContrasena, traducirError } from '../services/authService';
 
 interface SidebarProps {
   view: string;
@@ -132,8 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     if (newPassword !== confirmPassword) { setPwError('Las contraseñas no coinciden.'); return; }
     setPwLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw new Error(error.message);
+      await cambiarContrasena(newPassword);
       setPwSuccess(true);
       setTimeout(() => {
         setShowChangePwModal(false);
@@ -142,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         setConfirmPassword('');
       }, 2200);
     } catch (err: any) {
-      setPwError(err.message || 'Error al cambiar contraseña.');
+      setPwError(err?.code ? traducirError(err.code) : (err.message || 'Error al cambiar contraseña.'));
     } finally {
       setPwLoading(false);
     }

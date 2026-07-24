@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@sentry/react": "^10.67.0",
-    "@supabase/supabase-js": "^2.105.3",
     "firebase": "^12.16.0",
     "framer-motion": "^12.4.7",
     "html2pdf.js": "^0.14.0",

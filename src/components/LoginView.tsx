@@ -1,43 +1,46 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
+import { iniciarSesion, recuperarContrasena, traducirError } from '../services/authService';
 import { Lock, Mail, Eye, EyeOff, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface LoginViewProps {
-  onLoginSuccess: (session: any) => void;
-  authorizedEmails: Record<string, string>;
+  onLoginSuccess: (user: unknown) => void;
 }
 
-export default function LoginView({ onLoginSuccess, authorizedEmails }: LoginViewProps) {
+export default function LoginView({ onLoginSuccess }: LoginViewProps) {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]     = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
+  const [aviso, setAviso]       = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed || !password) { setError('Completa todos los campos.'); return; }
+    setAviso(null);
+    if (!email.trim() || !password) { setError('Completa todos los campos.'); return; }
     setLoading(true);
     try {
-      const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email: trimmed, password });
-      if (signInErr) {
-        const isAuth = Object.keys(authorizedEmails).some(k => k.toLowerCase() === trimmed);
-        if (isAuth && signInErr.message.includes('Invalid login credentials')) {
-          await supabase.auth.signUp({ email: trimmed, password, options: { data: { role: authorizedEmails[trimmed] || 'reader' } } });
-          const { data: retry, error: retryErr } = await supabase.auth.signInWithPassword({ email: trimmed, password });
-          if (retryErr) throw new Error(retryErr.message);
-          if (retry?.session) onLoginSuccess(retry.session);
-        } else {
-          setError('Correo o contraseña incorrectos.');
-        }
-      } else if (data?.session) {
-        onLoginSuccess(data.session);
-      }
+      const user = await iniciarSesion(email, password);
+      onLoginSuccess(user);
     } catch (err: any) {
-      setError(err.message || 'Error de conexión.');
+      setError(traducirError(err?.code ?? ''));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRecuperar = async () => {
+    setError(null);
+    setAviso(null);
+    if (!email.trim()) { setError('Escribe tu correo para enviarte el enlace.'); return; }
+    setLoading(true);
+    try {
+      await recuperarContrasena(email);
+      setAviso('Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo.');
+    } catch (err: any) {
+      setError(traducirError(err?.code ?? ''));
     } finally {
       setLoading(false);
     }
@@ -304,6 +307,23 @@ export default function LoginView({ onLoginSuccess, authorizedEmails }: LoginVie
               <span>{error}</span>
             </motion.div>
           )}
+          {aviso && (
+            <motion.div
+              className="lv-error"
+              style={{
+                background: 'rgba(16,185,129,0.1)',
+                borderColor: 'rgba(16,185,129,0.2)',
+                color: '#6ee7b7',
+              }}
+              initial={{ opacity: 0, y: -8, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              <AlertCircle size={14} style={{ flexShrink: 0 }} />
+              <span>{aviso}</span>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* Form */}
@@ -345,6 +365,20 @@ export default function LoginView({ onLoginSuccess, authorizedEmails }: LoginVie
             }
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={handleRecuperar}
+          disabled={loading}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(251,191,36,0.75)', fontSize: '0.75rem',
+            fontFamily: "'Inter', sans-serif", fontWeight: 600,
+            marginTop: 14, width: '100%', textAlign: 'center',
+          }}
+        >
+          ¿Olvidaste tu contraseña?
+        </button>
 
         <div className="lv-footer">© 2026 Liceo Bicentenario William Taylor</div>
       </motion.div>

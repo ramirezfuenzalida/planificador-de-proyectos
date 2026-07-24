@@ -1,7 +1,8 @@
 import { initializeApp, deleteApp } from 'firebase/app';
 import {
   getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
-  sendPasswordResetEmail, createUserWithEmailAndPassword, type User,
+  sendPasswordResetEmail, createUserWithEmailAndPassword, updatePassword,
+  type User,
 } from 'firebase/auth';
 import { auth, firebaseConfig } from '../lib/firebase';
 
@@ -22,6 +23,12 @@ export function alCambiarSesion(cb: (user: User | null) => void): () => void {
 
 export async function recuperarContrasena(email: string): Promise<void> {
   await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+}
+
+/** Cambia la contraseña del usuario actualmente autenticado. */
+export async function cambiarContrasena(nuevaPassword: string): Promise<void> {
+  if (!auth.currentUser) throw new Error('No hay una sesión activa.');
+  await updatePassword(auth.currentUser, nuevaPassword);
 }
 
 /**

@@ -5,7 +5,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useRef } from 'react';
-import { supabase } from './lib/supabase';
+import { alCambiarSesion, cerrarSesion } from './services/authService';
+import { loadAll, save, subscribe } from './services/dataService';
 import './App.css';
 
 // Components
@@ -50,31 +51,9 @@ const DEFAULT_MENU_PERMISSIONS: Record<string, string[]> = {
 
 // Correos pre-autorizados (se usará como lista maestra de acceso)
 // El administrador los puede gestionar desde el panel. Esta lista inicial
-// se sincroniza con Supabase en la primera carga.
+// se sincroniza con Firebase en la primera carga.
 const DEFAULT_TEACHER_ROLES: Record<string, string> = {
   [ADMIN_EMAIL]: 'admin',
-};
-
-// ─── BYPASS TEMPORAL DE LOGIN (SOLO DESARROLLO LOCAL) ───────────────────────
-// Doble seguro para que jamás llegue a producción:
-//   1. import.meta.env.DEV es true solo con `npm run dev`; en `npm run build`
-//      Vite lo reemplaza por false y el bloque se elimina del bundle.
-//   2. Además exige VITE_AUTH_BYPASS=true, definido en .env.local (ignorado
-//      por git). Sin esa variable el login normal sigue vigente.
-// Para volver al login real: borra la variable de .env.local y reinicia `npm run dev`.
-const DEV_BYPASS_AUTH =
-  import.meta.env.DEV && import.meta.env.VITE_AUTH_BYPASS === 'true';
-
-// Sesión ficticia: imita la forma de una sesión de Supabase lo justo para que
-// la app arranque. No es un JWT válido, así que las tablas con RLS activo
-// seguirán devolviendo vacío; la app cae a sus valores por defecto.
-const DEV_SESSION = {
-  user: {
-    id: 'dev-bypass-user',
-    email: ADMIN_EMAIL,
-    user_metadata: { role: 'admin' },
-  },
-  access_token: 'dev-bypass-no-es-un-token-real',
 };
 
 // ─── TIPOS ───────────────────────────────────────────────────────────────────
@@ -86,8 +65,8 @@ const courses2M: Course[] = ['2 Medio A', '2 Medio B', '2 Medio C', '2 Medio D']
 
 export default function App() {
   // ─── ESTADOS DE AUTENTICACIÓN ───────────────────────────────────────────
-  const [session, setSession] = useState<any>(DEV_BYPASS_AUTH ? DEV_SESSION : null);
-  const [authLoading, setAuthLoading] = useState(!DEV_BYPASS_AUTH);
+  const [session, setSession] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [currentUserRole, setCurrentUserRole] = useState<string>('reader');
   const [teacherRoles, setTeacherRoles] = useState<Record<string, string>>(DEFAULT_TEACHER_ROLES);
   const [menuPermissions, setMenuPermissions] = useState<Record<string, string[]>>(DEFAULT_MENU_PERMISSIONS);
@@ -127,42 +106,24 @@ export default function App() {
   const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<Date | null>(null);
 
-  const lastSupabaseData = useRef<Record<string, string>>({});
+  const lastRemoteData = useRef<Record<string, string>>({});
 
-  // ─── EFECTO: VERIFICAR SESIÓN SUPABASE AL INICIO ───────────────────────
+  // ─── EFECTO: ESCUCHAR LA SESIÓN DE FIREBASE ───────────────────────────
   useEffect(() => {
+    // onAuthStateChanged dispara también en la carga inicial, de modo que
+    // sustituye a getSession y al listener en una sola llamada.
     const initAuth = async () => {
-      // Bypass de desarrollo: entra directo como admin, sin tocar Supabase Auth.
-      if (DEV_BYPASS_AUTH) {
-        console.warn(
-          '%c[ZenitApp] BYPASS DE LOGIN ACTIVO — solo desarrollo local. ' +
-          'Quita VITE_AUTH_BYPASS de .env.local para restaurar el login.',
-          'background:#f59e0b;color:#0c0822;font-weight:bold;padding:2px 6px;border-radius:4px'
-        );
-        await loadRolesAndPermissions(ADMIN_EMAIL);
-        setAuthLoading(false);
-        return;
-      }
-
-      // Obtener sesión actual
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
-      if (existingSession) {
-        setSession(existingSession);
-        await loadRolesAndPermissions(existingSession.user.email?.toLowerCase() || '');
-      }
-      setAuthLoading(false);
-
-      // Escuchar cambios de sesión (login / logout)
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-        setSession(newSession);
-        if (newSession?.user?.email) {
-          await loadRolesAndPermissions(newSession.user.email.toLowerCase());
+      const baja = alCambiarSesion(async (user) => {
+        setSession(user);
+        if (user?.email) {
+          await loadRolesAndPermissions(user.email.toLowerCase());
         } else {
           setCurrentUserRole('reader');
         }
+        setAuthLoading(false);
       });
 
-      return () => subscription.unsubscribe();
+      return () => baja();
     };
 
     initAuth();
@@ -182,36 +143,34 @@ export default function App() {
   // ─── FUNCIÓN: CARGAR ROLES Y PERMISOS DESDE SUPABASE ──────────────────
   const loadRolesAndPermissions = async (userEmail: string) => {
     try {
-      const { data } = await supabase.from('app_sync').select('*').in('key', ['teacherRoles', 'menuPermissions']);
+      const data = await loadAll();
 
-      if (data) {
-        const rolesRow = data.find(d => d.key === 'teacherRoles');
-        const permsRow = data.find(d => d.key === 'menuPermissions');
+      const rolesData = data.teacherRoles as Record<string, string> | undefined;
+      const permsData = data.menuPermissions as Record<string, string[]> | undefined;
 
-        let roles = DEFAULT_TEACHER_ROLES;
-        let perms = DEFAULT_MENU_PERMISSIONS;
+      let roles = DEFAULT_TEACHER_ROLES;
+      let perms = DEFAULT_MENU_PERMISSIONS;
 
-        if (rolesRow?.data && Object.keys(rolesRow.data).length > 0) {
-          roles = rolesRow.data;
-        } else {
-          // Inicializar en Supabase si no existen
-          await supabase.from('app_sync').upsert({ key: 'teacherRoles', data: DEFAULT_TEACHER_ROLES });
-        }
-
-        if (permsRow?.data && Object.keys(permsRow.data).length > 0) {
-          perms = permsRow.data;
-        } else {
-          // Inicializar permisos por defecto
-          await supabase.from('app_sync').upsert({ key: 'menuPermissions', data: DEFAULT_MENU_PERMISSIONS });
-        }
-
-        setTeacherRoles(roles);
-        setMenuPermissions(perms);
-
-        // Admin siempre es admin sin importar lo que diga la DB
-        const role = userEmail === ADMIN_EMAIL ? 'admin' : (roles[userEmail] || 'reader');
-        setCurrentUserRole(role);
+      if (rolesData && Object.keys(rolesData).length > 0) {
+        roles = rolesData;
+      } else {
+        // Inicializar en Firebase si no existen
+        await save('teacherRoles', DEFAULT_TEACHER_ROLES);
       }
+
+      if (permsData && Object.keys(permsData).length > 0) {
+        perms = permsData;
+      } else {
+        // Inicializar permisos por defecto
+        await save('menuPermissions', DEFAULT_MENU_PERMISSIONS);
+      }
+
+      setTeacherRoles(roles);
+      setMenuPermissions(perms);
+
+      // Admin siempre es admin sin importar lo que diga la DB
+      const role = userEmail === ADMIN_EMAIL ? 'admin' : (roles[userEmail] || 'reader');
+      setCurrentUserRole(role);
     } catch (err) {
       console.error('Error loading roles:', err);
       // Fallback seguro
@@ -220,42 +179,15 @@ export default function App() {
     }
   };
 
-  // ─── SINCRONIZAR ROLES Y PERMISOS EN TIEMPO REAL ──────────────────────
-  useEffect(() => {
-    if (!session) return;
-
-    const rolesChannel = supabase
-      .channel(`roles_perms_changes_${Math.random().toString(36).substring(7)}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync' }, async (payload: any) => {
-        if (!payload.new) return;
-        const { key, data } = payload.new;
-
-        if (key === 'teacherRoles') {
-          setTeacherRoles(data);
-          const userEmail = session?.user?.email?.toLowerCase() || '';
-          if (userEmail !== ADMIN_EMAIL) {
-            const newRole = data[userEmail] || 'reader';
-            setCurrentUserRole(newRole);
-          }
-        }
-        if (key === 'menuPermissions') {
-          setMenuPermissions(data);
-        }
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(rolesChannel); };
-  }, [session]);
-
   // ─── PERSISTIR ROLES CUANDO CAMBIAN (solo admin) ──────────────────────
   useEffect(() => {
     if (!session || currentUserRole !== 'admin') return;
     const key = 'teacherRoles';
     const dataStr = JSON.stringify(teacherRoles);
-    if (dataStr !== lastSupabaseData.current[key]) {
-      lastSupabaseData.current[key] = dataStr;
+    if (dataStr !== lastRemoteData.current[key]) {
+      lastRemoteData.current[key] = dataStr;
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key, data: teacherRoles });
+        save(key, teacherRoles);
       }, 800);
       return () => clearTimeout(timer);
     }
@@ -266,62 +198,57 @@ export default function App() {
     if (!session || currentUserRole !== 'admin') return;
     const key = 'menuPermissions';
     const dataStr = JSON.stringify(menuPermissions);
-    if (dataStr !== lastSupabaseData.current[key]) {
-      lastSupabaseData.current[key] = dataStr;
+    if (dataStr !== lastRemoteData.current[key]) {
+      lastRemoteData.current[key] = dataStr;
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key, data: menuPermissions });
+        save(key, menuPermissions);
       }, 800);
       return () => clearTimeout(timer);
     }
   }, [menuPermissions, session, currentUserRole]);
 
-  // ─── SUSCRIPCIÓN PRINCIPAL (datos de planificación) ──────────────────
+  // ─── CARGA INICIAL Y SUSCRIPCIÓN EN TIEMPO REAL ──────────────────────
+  // Una sola suscripción de dataService cubre las 8 claves (datos, roles y
+  // permisos). El estado de React recibe el mismo diccionario plano de antes.
   const loadAndSubscribe = async () => {
-    const { data: initialData } = await supabase.from('app_sync').select('*');
+    const localFallbackKey: Record<string, string> = {
+      registrations: 'zenit_regs',
+      formativeRegistrations: 'zenit_formative_regs',
+      formativeEvaluations: 'zenit_formative_evaluations',
+      calendarEvents: 'zenit_calendar_events',
+      studentGroups: 'zenit_student_groups',
+      observations: 'zenit_observations',
+    };
 
-    if (initialData) {
-      const regs = initialData.find(d => d.key === 'registrations')?.data;
-      if (regs) {
-        setRegistrations(regs);
-        lastSupabaseData.current['registrations'] = JSON.stringify(regs);
-        localStorage.setItem('zenit_regs', JSON.stringify(regs));
-      }
+    // Aplica cada clave al estado y refresca el espejo en localStorage.
+    const aplicar = (key: string, data: any) => {
+      const dataStr = JSON.stringify(data);
+      lastRemoteData.current[key] = dataStr;
+      if (localFallbackKey[key]) localStorage.setItem(localFallbackKey[key], dataStr);
 
-      const formative = initialData.find(d => d.key === 'formativeRegistrations')?.data;
-      if (formative) {
-        setFormativeRegistrations(formative);
-        lastSupabaseData.current['formativeRegistrations'] = JSON.stringify(formative);
-        localStorage.setItem('zenit_formative_regs', JSON.stringify(formative));
+      if (key === 'registrations') setRegistrations(data);
+      else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
+      else if (key === 'observations') setObservations(data);
+      else if (key === 'formativeEvaluations') setFormativeEvaluations(data);
+      else if (key === 'calendarEvents') setCustomEvents(data);
+      else if (key === 'studentGroups') setStudentGroups(data);
+      else if (key === 'teacherRoles') {
+        setTeacherRoles(data);
+        const userEmail = session?.email?.toLowerCase() || '';
+        if (userEmail !== ADMIN_EMAIL) setCurrentUserRole(data[userEmail] || 'reader');
       }
+      else if (key === 'menuPermissions') setMenuPermissions(data);
+    };
 
-      const obs = initialData.find(d => d.key === 'observations')?.data;
-      if (obs) {
-        setObservations(obs);
-        lastSupabaseData.current['observations'] = JSON.stringify(obs);
-        localStorage.setItem('zenit_observations', JSON.stringify(obs));
-      }
-
-      const evaluations = initialData.find(d => d.key === 'formativeEvaluations')?.data;
-      if (evaluations) {
-        setFormativeEvaluations(evaluations);
-        lastSupabaseData.current['formativeEvaluations'] = JSON.stringify(evaluations);
-        localStorage.setItem('zenit_formative_evaluations', JSON.stringify(evaluations));
-      }
-
-      const calEvents = initialData.find(d => d.key === 'calendarEvents')?.data;
-      if (calEvents) {
-        setCustomEvents(calEvents);
-        lastSupabaseData.current['calendarEvents'] = JSON.stringify(calEvents);
-        localStorage.setItem('zenit_calendar_events', JSON.stringify(calEvents));
-      }
-
-      const groups = initialData.find(d => d.key === 'studentGroups')?.data;
-      if (groups) {
-        setStudentGroups(groups);
-        lastSupabaseData.current['studentGroups'] = JSON.stringify(groups);
-        localStorage.setItem('zenit_student_groups', JSON.stringify(groups));
-      }
-    } else {
+    try {
+      const initialData = await loadAll();
+      Object.entries(initialData).forEach(([key, data]) => {
+        if (data && (typeof data !== 'object' || Object.keys(data).length > 0)) {
+          aplicar(key, data);
+        }
+      });
+    } catch (err) {
+      console.error('Error en la carga inicial, usando localStorage:', err);
       const saved = localStorage.getItem('zenit_regs');
       if (saved) setRegistrations(jsonParseSafe(saved, {}));
       const savedFormative = localStorage.getItem('zenit_formative_regs');
@@ -334,48 +261,21 @@ export default function App() {
       if (savedEvents) setCustomEvents(jsonParseSafe(savedEvents, []));
     }
 
-    const channel = supabase
-      .channel(`app_sync_changes_${Math.random().toString(36).substring(7)}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync' }, (payload: any) => {
-        if (!payload.new) return;
-        const { key, data } = payload.new;
-        const dataStr = JSON.stringify(data);
-
-        lastSupabaseData.current[key] = dataStr;
-        localStorage.setItem(
-          `zenit_${
-            key === 'registrations' ? 'regs' :
-            key === 'formativeRegistrations' ? 'formative_regs' :
-            key === 'formativeEvaluations' ? 'formative_evaluations' :
-            key === 'calendarEvents' ? 'calendar_events' :
-            key === 'studentGroups' ? 'student_groups' :
-            'observations'
-          }`,
-          dataStr
-        );
-
-        if (key === 'registrations') setRegistrations(data);
-        else if (key === 'formativeRegistrations') setFormativeRegistrations(data);
-        else if (key === 'observations') setObservations(data);
-        else if (key === 'formativeEvaluations') setFormativeEvaluations(data);
-        else if (key === 'calendarEvents') setCustomEvents(data);
-        else if (key === 'studentGroups') setStudentGroups(data);
-
-        setLastSyncTime(new Date());
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    const unsubscribe = subscribe((key, data) => {
+      aplicar(key, data);
+      setLastSyncTime(new Date());
+    });
+    return unsubscribe;
   };
 
   // ─── SINCRONIZACIÓN DE DATOS ──────────────────────────────────────────
   useEffect(() => {
     const dataStr = JSON.stringify(registrations);
-    if (Object.keys(registrations).length > 0 && dataStr !== lastSupabaseData.current['registrations']) {
-      lastSupabaseData.current['registrations'] = dataStr;
+    if (Object.keys(registrations).length > 0 && dataStr !== lastRemoteData.current['registrations']) {
+      lastRemoteData.current['registrations'] = dataStr;
       localStorage.setItem('zenit_regs', dataStr);
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key: 'registrations', data: registrations }).then(() => {
+        save('registrations', registrations).then(() => {
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -385,11 +285,11 @@ export default function App() {
 
   useEffect(() => {
     const dataStr = JSON.stringify(formativeRegistrations);
-    if (Object.keys(formativeRegistrations).length > 0 && dataStr !== lastSupabaseData.current['formativeRegistrations']) {
-      lastSupabaseData.current['formativeRegistrations'] = dataStr;
+    if (Object.keys(formativeRegistrations).length > 0 && dataStr !== lastRemoteData.current['formativeRegistrations']) {
+      lastRemoteData.current['formativeRegistrations'] = dataStr;
       localStorage.setItem('zenit_formative_regs', dataStr);
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key: 'formativeRegistrations', data: formativeRegistrations }).then(() => {
+        save('formativeRegistrations', formativeRegistrations).then(() => {
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -399,11 +299,11 @@ export default function App() {
 
   useEffect(() => {
     const dataStr = JSON.stringify(observations);
-    if (Object.keys(observations).length > 0 && dataStr !== lastSupabaseData.current['observations']) {
-      lastSupabaseData.current['observations'] = dataStr;
+    if (Object.keys(observations).length > 0 && dataStr !== lastRemoteData.current['observations']) {
+      lastRemoteData.current['observations'] = dataStr;
       localStorage.setItem('zenit_observations', dataStr);
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key: 'observations', data: observations }).then(() => {
+        save('observations', observations).then(() => {
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -413,11 +313,11 @@ export default function App() {
 
   useEffect(() => {
     const dataStr = JSON.stringify(formativeEvaluations);
-    if (Object.keys(formativeEvaluations).length > 0 && dataStr !== lastSupabaseData.current['formativeEvaluations']) {
-      lastSupabaseData.current['formativeEvaluations'] = dataStr;
+    if (Object.keys(formativeEvaluations).length > 0 && dataStr !== lastRemoteData.current['formativeEvaluations']) {
+      lastRemoteData.current['formativeEvaluations'] = dataStr;
       localStorage.setItem('zenit_formative_evaluations', dataStr);
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key: 'formativeEvaluations', data: formativeEvaluations }).then(() => {
+        save('formativeEvaluations', formativeEvaluations).then(() => {
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -427,11 +327,11 @@ export default function App() {
 
   useEffect(() => {
     const dataStr = JSON.stringify(customEvents);
-    if (lastSupabaseData.current['calendarEvents'] !== undefined && dataStr !== lastSupabaseData.current['calendarEvents']) {
-      lastSupabaseData.current['calendarEvents'] = dataStr;
+    if (lastRemoteData.current['calendarEvents'] !== undefined && dataStr !== lastRemoteData.current['calendarEvents']) {
+      lastRemoteData.current['calendarEvents'] = dataStr;
       localStorage.setItem('zenit_calendar_events', dataStr);
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key: 'calendarEvents', data: customEvents }).then(() => {
+        save('calendarEvents', customEvents).then(() => {
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -441,11 +341,11 @@ export default function App() {
 
   useEffect(() => {
     const dataStr = JSON.stringify(studentGroups);
-    if (Object.keys(studentGroups).length > 0 && dataStr !== lastSupabaseData.current['studentGroups']) {
-      lastSupabaseData.current['studentGroups'] = dataStr;
+    if (Object.keys(studentGroups).length > 0 && dataStr !== lastRemoteData.current['studentGroups']) {
+      lastRemoteData.current['studentGroups'] = dataStr;
       localStorage.setItem('zenit_student_groups', dataStr);
       const timer = setTimeout(() => {
-        supabase.from('app_sync').upsert({ key: 'studentGroups', data: studentGroups }).then(() => {
+        save('studentGroups', studentGroups).then(() => {
           setLastSyncTime(new Date());
         });
       }, 1000);
@@ -491,9 +391,9 @@ export default function App() {
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await cerrarSesion();
     } catch (err) {
-      console.error('Supabase signOut error:', err);
+      console.error('Error al cerrar sesión:', err);
     } finally {
       setSession(null);
       setCurrentUserRole('reader');
@@ -773,8 +673,7 @@ export default function App() {
   if (!session) {
     return (
       <LoginView
-        onLoginSuccess={(newSession) => setSession(newSession)}
-        authorizedEmails={teacherRoles}
+        onLoginSuccess={(user) => setSession(user)}
       />
     );
   }
@@ -850,7 +749,7 @@ export default function App() {
           onRefreshData={() => fetchData(true)}
           isLoadingData={loading}
           currentUserRole={currentUserRole}
-          userEmail={session?.user?.email || ''}
+          userEmail={session?.email || ''}
           menuPermissions={menuPermissions}
           onSignOut={handleSignOut}
         />
@@ -898,7 +797,7 @@ export default function App() {
         onRefreshData={() => fetchData(true)}
         isLoadingData={loading}
         currentUserRole={currentUserRole}
-        userEmail={session?.user?.email || ''}
+        userEmail={session?.email || ''}
         menuPermissions={menuPermissions}
         onSignOut={handleSignOut}
       />

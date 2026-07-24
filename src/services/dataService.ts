@@ -32,16 +32,18 @@ export async function loadAll(): Promise<Record<string, unknown>> {
   return salida;
 }
 
-/** Dirige la escritura al documento correcto según la clave. */
+/** Dirige la escritura al documento correcto según la clave. Las claves de
+ *  documento único pueden guardar arreglos (p. ej. calendarEvents); las
+ *  particionadas son siempre diccionarios con el curso como prefijo. */
 export async function save(
   key: string,
-  data: Record<string, unknown>,
+  data: Record<string, unknown> | unknown[],
 ): Promise<void> {
   if (!esParticionada(key)) {
     await setDoc(doc(db, 'app_sync', key), { data });
     return;
   }
-  const partes = partitionByCourse(data);
+  const partes = partitionByCourse(data as Record<string, unknown>);
   await Promise.all(
     Object.entries(partes).map(([curso, datos]) =>
       setDoc(doc(db, key, curso), { data: datos }),

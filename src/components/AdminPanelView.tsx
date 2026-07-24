@@ -8,9 +8,10 @@ import {
   Check, 
   Sparkles, 
   Activity, 
-  UserPlus, 
+  UserPlus,
   ArrowLeft
 } from 'lucide-react';
+import { crearCuentaDocente, traducirError } from '../services/authService';
 
 interface AdminPanelViewProps {
   teacherRoles: Record<string, string>;
@@ -29,6 +30,8 @@ export default function AdminPanelView({
 }: AdminPanelViewProps) {
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState('editor');
+  const [newPassword, setNewPassword] = useState('');
+  const [creating, setCreating] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // List of all customizable sidebar sections
@@ -44,7 +47,7 @@ export default function AdminPanelView({
     { id: 'student-risk-radar', label: '🔴 Radar de Alerta Temprana & Bitácora' },
   ];
 
-  const handleAddTeacher = (e: React.FormEvent) => {
+  const handleAddTeacher = async (e: React.FormEvent) => {
     e.preventDefault();
     const email = newEmail.trim().toLowerCase();
 
@@ -60,6 +63,22 @@ export default function AdminPanelView({
       triggerToast('Este docente ya está registrado.');
       return;
     }
+    if (newPassword.length < 6) {
+      triggerToast('La contraseña inicial debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    // Se crea la cuenta de acceso en Firebase Auth y, solo si tiene éxito, se
+    // le asigna el rol. La creación usa una segunda instancia de Firebase, de
+    // modo que no expulsa al administrador de su sesión.
+    setCreating(true);
+    try {
+      await crearCuentaDocente(email, newPassword);
+    } catch (err: any) {
+      triggerToast(traducirError(err?.code ?? ''));
+      setCreating(false);
+      return;
+    }
 
     setTeacherRoles(prev => ({
       ...prev,
@@ -67,7 +86,9 @@ export default function AdminPanelView({
     }));
 
     setNewEmail('');
-    triggerToast(`Docente ${email} agregado como ${newRole === 'editor' ? 'Editor' : newRole === 'admin' ? 'Administrador' : 'Lector'}`);
+    setNewPassword('');
+    setCreating(false);
+    triggerToast(`Cuenta creada para ${email} como ${newRole === 'editor' ? 'Editor' : newRole === 'admin' ? 'Administrador' : 'Lector'}`);
   };
 
   const handleRemoveTeacher = (email: string) => {
@@ -710,7 +731,7 @@ export default function AdminPanelView({
           {/* LEFT COLUMN: GESTIÓN DE DOCENTES */}
           <div className="ap-card">
             <h2><Users size={20} color="#14b8a6" /> Control de Acceso de Docentes</h2>
-            <p className="ap-card-desc">Registra los correos autorizados y asígnales rol de Administrador, Editor o Lector.</p>
+            <p className="ap-card-desc">Crea la cuenta de acceso del docente con una contraseña inicial y asígnale rol de Administrador, Editor o Lector. Podrá cambiar su contraseña desde "¿Olvidaste tu contraseña?" en el login.</p>
 
             <form className="ap-form-inline" onSubmit={handleAddTeacher}>
               <div className="ap-input-group">
@@ -723,11 +744,23 @@ export default function AdminPanelView({
                   className="ap-input"
                 />
               </div>
-              
+
+              <div className="ap-input-group">
+                <label>Contraseña Inicial</label>
+                <input
+                  type="password"
+                  placeholder="mínimo 6 caracteres"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="ap-input"
+                  autoComplete="new-password"
+                />
+              </div>
+
               <div className="ap-input-group ap-role-select-group">
                 <label>Rol Inicial</label>
-                <select 
-                  value={newRole} 
+                <select
+                  value={newRole}
                   onChange={(e) => setNewRole(e.target.value)}
                   className="ap-select"
                 >
@@ -737,8 +770,8 @@ export default function AdminPanelView({
                 </select>
               </div>
 
-              <button type="submit" className="ap-add-btn">
-                <UserPlus size={16} /> Agregar
+              <button type="submit" className="ap-add-btn" disabled={creating}>
+                <UserPlus size={16} /> {creating ? 'Creando...' : 'Agregar'}
               </button>
             </form>
 
