@@ -55,6 +55,28 @@ const DEFAULT_TEACHER_ROLES: Record<string, string> = {
   [ADMIN_EMAIL]: 'admin',
 };
 
+// ─── BYPASS TEMPORAL DE LOGIN (SOLO DESARROLLO LOCAL) ───────────────────────
+// Doble seguro para que jamás llegue a producción:
+//   1. import.meta.env.DEV es true solo con `npm run dev`; en `npm run build`
+//      Vite lo reemplaza por false y el bloque se elimina del bundle.
+//   2. Además exige VITE_AUTH_BYPASS=true, definido en .env.local (ignorado
+//      por git). Sin esa variable el login normal sigue vigente.
+// Para volver al login real: borra la variable de .env.local y reinicia `npm run dev`.
+const DEV_BYPASS_AUTH =
+  import.meta.env.DEV && import.meta.env.VITE_AUTH_BYPASS === 'true';
+
+// Sesión ficticia: imita la forma de una sesión de Supabase lo justo para que
+// la app arranque. No es un JWT válido, así que las tablas con RLS activo
+// seguirán devolviendo vacío; la app cae a sus valores por defecto.
+const DEV_SESSION = {
+  user: {
+    id: 'dev-bypass-user',
+    email: ADMIN_EMAIL,
+    user_metadata: { role: 'admin' },
+  },
+  access_token: 'dev-bypass-no-es-un-token-real',
+};
+
 // ─── TIPOS ───────────────────────────────────────────────────────────────────
 type Course = '1 Medio A' | '1 Medio B' | '1 Medio C' | '1 Medio D' |
   '2 Medio A' | '2 Medio B' | '2 Medio C' | '2 Medio D' | 'Resumen';
@@ -64,8 +86,8 @@ const courses2M: Course[] = ['2 Medio A', '2 Medio B', '2 Medio C', '2 Medio D']
 
 export default function App() {
   // ─── ESTADOS DE AUTENTICACIÓN ───────────────────────────────────────────
-  const [session, setSession] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [session, setSession] = useState<any>(DEV_BYPASS_AUTH ? DEV_SESSION : null);
+  const [authLoading, setAuthLoading] = useState(!DEV_BYPASS_AUTH);
   const [currentUserRole, setCurrentUserRole] = useState<string>('reader');
   const [teacherRoles, setTeacherRoles] = useState<Record<string, string>>(DEFAULT_TEACHER_ROLES);
   const [menuPermissions, setMenuPermissions] = useState<Record<string, string[]>>(DEFAULT_MENU_PERMISSIONS);
@@ -110,6 +132,18 @@ export default function App() {
   // ─── EFECTO: VERIFICAR SESIÓN SUPABASE AL INICIO ───────────────────────
   useEffect(() => {
     const initAuth = async () => {
+      // Bypass de desarrollo: entra directo como admin, sin tocar Supabase Auth.
+      if (DEV_BYPASS_AUTH) {
+        console.warn(
+          '%c[ZenitApp] BYPASS DE LOGIN ACTIVO — solo desarrollo local. ' +
+          'Quita VITE_AUTH_BYPASS de .env.local para restaurar el login.',
+          'background:#f59e0b;color:#0c0822;font-weight:bold;padding:2px 6px;border-radius:4px'
+        );
+        await loadRolesAndPermissions(ADMIN_EMAIL);
+        setAuthLoading(false);
+        return;
+      }
+
       // Obtener sesión actual
       const { data: { session: existingSession } } = await supabase.auth.getSession();
       if (existingSession) {
@@ -191,7 +225,7 @@ export default function App() {
     if (!session) return;
 
     const rolesChannel = supabase
-      .channel('roles_perms_changes')
+      .channel(`roles_perms_changes_${Math.random().toString(36).substring(7)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync' }, async (payload: any) => {
         if (!payload.new) return;
         const { key, data } = payload.new;
@@ -301,7 +335,7 @@ export default function App() {
     }
 
     const channel = supabase
-      .channel('app_sync_changes')
+      .channel(`app_sync_changes_${Math.random().toString(36).substring(7)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync' }, (payload: any) => {
         if (!payload.new) return;
         const { key, data } = payload.new;
@@ -695,7 +729,7 @@ export default function App() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: '#0a0518',
+        background: '#0f172a',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -717,7 +751,7 @@ export default function App() {
               width: '84px', 
               height: '84px', 
               borderRadius: '20px', 
-              boxShadow: '0 12px 36px rgba(124, 58, 237, 0.25)',
+              boxShadow: '0 12px 36px rgba(20, 184, 166, 0.25)',
               border: '2px solid rgba(255, 255, 255, 0.08)'
             }} 
             onError={(e) => {
@@ -728,7 +762,7 @@ export default function App() {
         <style>{`
           @keyframes pulse {
             0%, 100% { transform: scale(0.96); opacity: 0.85; filter: brightness(0.95); }
-            50% { transform: scale(1.04); opacity: 1; filter: brightness(1.15) drop-shadow(0 0 24px rgba(124, 58, 237, 0.35)); }
+            50% { transform: scale(1.04); opacity: 1; filter: brightness(1.15) drop-shadow(0 0 24px rgba(20, 184, 166, 0.35)); }
           }
         `}</style>
       </div>
@@ -751,7 +785,7 @@ export default function App() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: '#0a0518',
+        background: '#0f172a',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -773,7 +807,7 @@ export default function App() {
               width: '84px', 
               height: '84px', 
               borderRadius: '20px', 
-              boxShadow: '0 12px 36px rgba(124, 58, 237, 0.25)',
+              boxShadow: '0 12px 36px rgba(20, 184, 166, 0.25)',
               border: '2px solid rgba(255, 255, 255, 0.08)'
             }} 
             onError={(e) => {
@@ -784,7 +818,7 @@ export default function App() {
         <style>{`
           @keyframes pulse {
             0%, 100% { transform: scale(0.96); opacity: 0.85; filter: brightness(0.95); }
-            50% { transform: scale(1.04); opacity: 1; filter: brightness(1.15) drop-shadow(0 0 24px rgba(124, 58, 237, 0.35)); }
+            50% { transform: scale(1.04); opacity: 1; filter: brightness(1.15) drop-shadow(0 0 24px rgba(20, 184, 166, 0.35)); }
           }
         `}</style>
       </div>
