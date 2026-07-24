@@ -54,7 +54,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           min-height: 100vh;
         }
         .dv-welcome-banner {
-          background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+          background: linear-gradient(135deg, #0f172a 0%, #312e81 100%);
           border-radius: 24px;
           padding: 40px;
           color: white;
@@ -228,12 +228,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
         /* Solid Modern Card Colors */
-        .dv-course-card.a { background: #6366f1; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
+        .dv-course-card.a { background: #0284c7; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4); }
         .dv-course-card.b { background: #0ea5e9; box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4); }
         .dv-course-card.c { background: #facc15; box-shadow: 0 10px 25px -5px rgba(250, 204, 21, 0.4); }
         .dv-course-card.d { background: #ec4899; box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.4); }
         
-        .dv-course-card.a:hover { box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.6); }
+        .dv-course-card.a:hover { box-shadow: 0 20px 40px -10px rgba(2, 132, 199, 0.6); }
         .dv-course-card.b:hover { box-shadow: 0 20px 40px -10px rgba(14, 165, 233, 0.6); }
         .dv-course-card.c:hover { box-shadow: 0 20px 40px -10px rgba(250, 204, 21, 0.6); }
         .dv-course-card.d:hover { box-shadow: 0 20px 40px -10px rgba(236, 72, 153, 0.6); }
@@ -250,7 +250,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="dv-summary-row">
         <div className="dv-stat-card">
           <div className="dv-stat-icon" style={{ background: '#e0e7ff' }}>
-            <Users size={24} color="#6366f1" />
+            <Users size={24} color="#0284c7" />
           </div>
           <div>
             <span className="dv-stat-value">{allCourses.length}</span>

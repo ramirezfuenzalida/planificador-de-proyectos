@@ -135,7 +135,7 @@ export default function AdminPanelView({
           background: #f8fafc;
           min-height: 100vh;
           font-family: 'Inter', sans-serif;
-          color: #1e1b4b;
+          color: #0f172a;
           width: 100%;
           box-sizing: border-box;
           display: flex;
@@ -153,7 +153,7 @@ export default function AdminPanelView({
         }
 
         .ap-header {
-          background: linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%);
+          background: linear-gradient(135deg, #0f766e 0%, #0f172a 100%);
           border-radius: 24px;
           padding: 32px;
           color: white;
@@ -212,7 +212,7 @@ export default function AdminPanelView({
 
         .ap-back-btn:hover {
           background: white;
-          color: #4c1d95;
+          color: #0f766e;
           transform: translateY(-2px);
           box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
@@ -331,12 +331,12 @@ export default function AdminPanelView({
           background: rgba(255, 255, 255, 0.85);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(124, 58, 237, 0.12);
+          border: 1px solid rgba(20, 184, 166, 0.12);
           border-radius: 24px;
           padding: 32px 28px;
           box-shadow: 
-            0 20px 40px -15px rgba(124, 58, 237, 0.08), 
-            0 0 0 1px rgba(124, 58, 237, 0.02);
+            0 20px 40px -15px rgba(20, 184, 166, 0.08), 
+            0 0 0 1px rgba(20, 184, 166, 0.02);
           margin-bottom: 0;
           transition: all 0.3s ease;
           box-sizing: border-box;
@@ -346,7 +346,7 @@ export default function AdminPanelView({
         .ap-card h2 {
           font-size: 1.3rem;
           font-weight: 850;
-          color: #4c1d95;
+          color: #0f766e;
           margin: 0 0 8px 0;
           display: flex;
           align-items: center;
@@ -356,7 +356,7 @@ export default function AdminPanelView({
 
         .ap-card-desc {
           font-size: 0.88rem;
-          color: #5b21b6;
+          color: #0f766e;
           opacity: 0.75;
           font-weight: 500;
           margin: 0 0 24px 0;
@@ -396,7 +396,7 @@ export default function AdminPanelView({
         .ap-input-group label {
           font-size: 0.72rem;
           font-weight: 850;
-          color: #7c3aed;
+          color: #14b8a6;
           text-transform: uppercase;
           letter-spacing: 0.06em;
         }
@@ -406,20 +406,20 @@ export default function AdminPanelView({
           box-sizing: border-box;
           padding: 12px 16px;
           border-radius: 12px;
-          border: 2px solid rgba(124, 58, 237, 0.15);
+          border: 2px solid rgba(20, 184, 166, 0.15);
           background: #ffffff;
           font-size: 0.9rem;
           font-weight: 600;
-          color: #1e1b4b;
+          color: #0f172a;
           outline: none;
           transition: all 0.25s ease;
-          box-shadow: 0 2px 4px rgba(124, 58, 237, 0.02);
+          box-shadow: 0 2px 4px rgba(20, 184, 166, 0.02);
         }
 
         .ap-input:focus, .ap-select:focus {
-          border-color: #7c3aed;
+          border-color: #14b8a6;
           background: #ffffff;
-          box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+          box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15);
         }
 
         .ap-input::placeholder {
@@ -428,11 +428,11 @@ export default function AdminPanelView({
 
         .ap-select option {
           background: #ffffff;
-          color: #1e1b4b;
+          color: #0f172a;
         }
 
         .ap-add-btn {
-          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+          background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
           color: white;
           border: none;
           padding: 12px 24px;
@@ -446,13 +446,13 @@ export default function AdminPanelView({
           gap: 8px;
           height: 48px;
           box-sizing: border-box;
-          box-shadow: 0 6px 15px rgba(124, 58, 237, 0.25);
+          box-shadow: 0 6px 15px rgba(20, 184, 166, 0.25);
           transition: all 0.25s ease;
         }
 
         .ap-add-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(124, 58, 237, 0.35);
+          box-shadow: 0 8px 20px rgba(20, 184, 166, 0.35);
         }
 
         .ap-add-btn:active {
@@ -461,10 +461,10 @@ export default function AdminPanelView({
 
         .ap-table-wrapper {
           overflow-x: auto;
-          border: 1px solid rgba(124, 58, 237, 0.12);
+          border: 1px solid rgba(20, 184, 166, 0.12);
           border-radius: 16px;
           background: #ffffff;
-          box-shadow: inset 0 1px 3px rgba(124, 58, 237, 0.02);
+          box-shadow: inset 0 1px 3px rgba(20, 184, 166, 0.02);
           width: 100%;
         }
 
@@ -476,11 +476,11 @@ export default function AdminPanelView({
         }
 
         .ap-table th {
-          background: rgba(124, 58, 237, 0.04);
+          background: rgba(20, 184, 166, 0.04);
           padding: 16px 20px;
           font-weight: 800;
-          color: #5b21b6;
-          border-bottom: 1px solid rgba(124, 58, 237, 0.12);
+          color: #0f766e;
+          border-bottom: 1px solid rgba(20, 184, 166, 0.12);
           text-transform: uppercase;
           font-size: 0.72rem;
           letter-spacing: 0.06em;
@@ -488,18 +488,18 @@ export default function AdminPanelView({
 
         .ap-table td {
           padding: 16px 20px;
-          border-bottom: 1px solid rgba(124, 58, 237, 0.06);
+          border-bottom: 1px solid rgba(20, 184, 166, 0.06);
           vertical-align: middle;
-          color: #1e1b4b;
+          color: #0f172a;
         }
 
         .ap-tr:hover {
-          background: rgba(124, 58, 237, 0.02);
+          background: rgba(20, 184, 166, 0.02);
         }
 
         .ap-teacher-email {
           font-weight: 700;
-          color: #1e1b4b;
+          color: #0f172a;
           font-size: 0.9rem;
           word-break: break-all;
         }
@@ -507,19 +507,19 @@ export default function AdminPanelView({
         .ap-table-select {
           padding: 6px 12px;
           border-radius: 8px;
-          border: 1px solid rgba(124, 58, 237, 0.2);
+          border: 1px solid rgba(20, 184, 166, 0.2);
           background: #ffffff;
           font-size: 0.82rem;
           font-weight: 700;
-          color: #4c1d95;
+          color: #0f766e;
           outline: none;
           cursor: pointer;
           transition: all 0.2s ease;
         }
 
         .ap-table-select:focus {
-          border-color: #7c3aed;
-          box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+          border-color: #14b8a6;
+          box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
         }
 
         .ap-trash-btn {
@@ -541,13 +541,13 @@ export default function AdminPanelView({
         }
 
         .ap-matrix-wrapper {
-          border: 1px solid rgba(124, 58, 237, 0.12);
+          border: 1px solid rgba(20, 184, 166, 0.12);
           border-radius: 16px;
           overflow-x: auto;
           background: #ffffff;
           width: 100%;
           -webkit-overflow-scrolling: touch;
-          box-shadow: inset 0 1px 3px rgba(124, 58, 237, 0.02);
+          box-shadow: inset 0 1px 3px rgba(20, 184, 166, 0.02);
         }
 
         /* MATRIX STYLE */
@@ -555,25 +555,25 @@ export default function AdminPanelView({
           display: grid;
           grid-template-columns: 1fr 110px 110px;
           padding: 16px 20px;
-          border-bottom: 1px solid rgba(124, 58, 237, 0.06);
+          border-bottom: 1px solid rgba(20, 184, 166, 0.06);
           align-items: center;
           font-size: 0.92rem;
-          color: #1e1b4b;
+          color: #0f172a;
           transition: background 0.2s ease;
         }
 
         .ap-matrix-row:hover {
-          background: rgba(124, 58, 237, 0.02);
+          background: rgba(20, 184, 166, 0.02);
         }
 
         .ap-matrix-row.head {
-          background: rgba(124, 58, 237, 0.04);
+          background: rgba(20, 184, 166, 0.04);
           font-weight: 850;
-          color: #5b21b6;
+          color: #0f766e;
           text-transform: uppercase;
           font-size: 0.72rem;
           letter-spacing: 0.06em;
-          border-bottom: 2px solid rgba(124, 58, 237, 0.12);
+          border-bottom: 2px solid rgba(20, 184, 166, 0.12);
           border-radius: 14px 14px 0 0;
         }
 
@@ -585,13 +585,13 @@ export default function AdminPanelView({
 
         .ap-matrix-label {
           font-weight: 700;
-          color: #1e1b4b;
+          color: #0f172a;
           font-size: 0.92rem;
         }
 
         .ap-check-icon-btn {
-          background: rgba(124, 58, 237, 0.04);
-          border: 2px solid rgba(124, 58, 237, 0.2);
+          background: rgba(20, 184, 166, 0.04);
+          border: 2px solid rgba(20, 184, 166, 0.2);
           cursor: pointer;
           color: transparent;
           padding: 0;
@@ -607,9 +607,9 @@ export default function AdminPanelView({
 
         .ap-check-icon-btn:hover {
           transform: scale(1.1);
-          border-color: #7c3aed;
-          background: rgba(124, 58, 237, 0.08);
-          box-shadow: 0 0 12px rgba(124, 58, 237, 0.2);
+          border-color: #14b8a6;
+          background: rgba(20, 184, 166, 0.08);
+          box-shadow: 0 0 12px rgba(20, 184, 166, 0.2);
         }
 
         .ap-check-icon-btn.checked-lector {
@@ -625,15 +625,15 @@ export default function AdminPanelView({
         }
 
         .ap-check-icon-btn.checked-editor {
-          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-          border-color: #7c3aed;
+          background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
+          border-color: #14b8a6;
           color: #ffffff;
-          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+          box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
         }
 
         .ap-check-icon-btn.checked-editor:hover {
           transform: scale(1.1);
-          box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+          box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4);
         }
 
         .ap-check-icon-btn svg {
@@ -650,9 +650,9 @@ export default function AdminPanelView({
 
         /* BANNER */
         .ap-info-banner {
-          background: rgba(124, 58, 237, 0.04);
-          border: 1px solid rgba(124, 58, 237, 0.12);
-          color: #5b21b6;
+          background: rgba(20, 184, 166, 0.04);
+          border: 1px solid rgba(20, 184, 166, 0.12);
+          color: #0f766e;
           padding: 16px;
           border-radius: 16px;
           display: flex;
@@ -664,12 +664,12 @@ export default function AdminPanelView({
         }
 
         .ap-info-banner strong {
-          color: #4c1d95;
+          color: #0f766e;
           font-weight: 750;
         }
 
         .ap-info-banner svg {
-          color: #7c3aed;
+          color: #14b8a6;
           flex-shrink: 0;
           margin-top: 2px;
         }
@@ -679,7 +679,7 @@ export default function AdminPanelView({
           position: fixed;
           bottom: 24px;
           right: 24px;
-          background: #1e1b4b;
+          background: #0f172a;
           color: white;
           padding: 14px 24px;
           border-radius: 14px;
@@ -709,7 +709,7 @@ export default function AdminPanelView({
         <div className="ap-grid">
           {/* LEFT COLUMN: GESTIÓN DE DOCENTES */}
           <div className="ap-card">
-            <h2><Users size={20} color="#7c3aed" /> Control de Acceso de Docentes</h2>
+            <h2><Users size={20} color="#14b8a6" /> Control de Acceso de Docentes</h2>
             <p className="ap-card-desc">Registra los correos autorizados y asígnales rol de Administrador, Editor o Lector.</p>
 
             <form className="ap-form-inline" onSubmit={handleAddTeacher}>
@@ -788,7 +788,7 @@ export default function AdminPanelView({
 
           {/* RIGHT COLUMN: GESTIÓN DINÁMICA DE LA SIDEBAR */}
           <div className="ap-card">
-            <h2><ShieldAlert size={20} color="#7c3aed" /> Permisos Dinámicos de la Sidebar</h2>
+            <h2><ShieldAlert size={20} color="#14b8a6" /> Permisos Dinámicos de la Sidebar</h2>
             <p className="ap-card-desc">Controla exactamente qué secciones tiene permitido ver y usar cada rol. Los cambios se propagan en tiempo real.</p>
 
             <div className="ap-matrix-wrapper">
@@ -853,7 +853,7 @@ export default function AdminPanelView({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
           >
-            <Activity size={16} className="icon-violet" style={{ color: '#7c3aed' }} />
+            <Activity size={16} className="icon-teal" style={{ color: '#14b8a6' }} />
             {toastMessage}
           </motion.div>
         )}

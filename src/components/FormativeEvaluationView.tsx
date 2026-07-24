@@ -319,7 +319,7 @@ export default function FormativeEvaluationView({
       <div className="formative-header-glass">
         <div className="fh-top">
           <div className="fh-title-box">
-            <h1><Award size={32} color="#8B5CF6" /> Evaluación Formativa</h1>
+            <h1><Award size={32} color="#0d9488" /> Evaluación Formativa</h1>
             <p>Consolidación de logros (L / PL / NL) y asignación de calificaciones.</p>
           </div>
           <div className="fh-controls" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -385,14 +385,14 @@ export default function FormativeEvaluationView({
                   width: '100%',
                   padding: '0.6rem 1rem 0.6rem 2.5rem',
                   borderRadius: '12px',
-                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  border: '1px solid rgba(13, 148, 136, 0.2)',
                   background: 'rgba(255, 255, 255, 0.6)',
                   fontSize: '0.9rem',
                   outline: 'none',
                   color: '#1f2937'
                 }}
               />
-              <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#8B5CF6' }} />
+              <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#0d9488' }} />
             </div>
           </div>
 
@@ -418,11 +418,11 @@ export default function FormativeEvaluationView({
           backdropFilter: 'blur(10px)',
           borderRadius: '16px',
           padding: '1.25rem',
-          border: '1px solid rgba(139, 92, 246, 0.1)',
+          border: '1px solid rgba(13, 148, 136, 0.1)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
         }}>
           <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem', fontWeight: 700, color: '#4b5563', marginBottom: '1rem' }}>
-            <TrendingUp size={16} className="icon-purple" /> Distribución de Desempeño Acumulado
+            <TrendingUp size={16} className="icon-teal" /> Distribución de Desempeño Acumulado
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div>
@@ -463,7 +463,7 @@ export default function FormativeEvaluationView({
           backdropFilter: 'blur(10px)',
           borderRadius: '16px',
           padding: '1.25rem',
-          border: '1px solid rgba(139, 92, 246, 0.1)',
+          border: '1px solid rgba(13, 148, 136, 0.1)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
         }}>
           <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem', fontWeight: 700, color: '#4b5563', marginBottom: '0.75rem' }}>
@@ -474,18 +474,18 @@ export default function FormativeEvaluationView({
           </p>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ background: 'rgba(139,92,246,0.08)' }}>
-                <th style={{ textAlign: 'left', padding: '4px 8px', color: '#6d28d9', fontWeight: 700 }}>Sigla</th>
-                <th style={{ textAlign: 'left', padding: '4px 8px', color: '#6d28d9', fontWeight: 700 }}>Indicador</th>
-                <th style={{ textAlign: 'center', padding: '4px 8px', color: '#6d28d9', fontWeight: 700 }}>%</th>
-                <th style={{ textAlign: 'center', padding: '4px 8px', color: '#6d28d9', fontWeight: 700 }}>Nota</th>
+              <tr style={{ background: 'rgba(13, 148, 136,0.08)' }}>
+                <th style={{ textAlign: 'left', padding: '4px 8px', color: '#0f766e', fontWeight: 700 }}>Sigla</th>
+                <th style={{ textAlign: 'left', padding: '4px 8px', color: '#0f766e', fontWeight: 700 }}>Indicador</th>
+                <th style={{ textAlign: 'center', padding: '4px 8px', color: '#0f766e', fontWeight: 700 }}>%</th>
+                <th style={{ textAlign: 'center', padding: '4px 8px', color: '#0f766e', fontWeight: 700 }}>Nota</th>
               </tr>
             </thead>
             <tbody>
               {[
                 { sigla: 'D',  label: 'Desarrollado',       pct: '86%–100%', nota: 7, color: '#10B981' },
                 { sigla: 'ED', label: 'En Desarrollo',      pct: '73%–85%',  nota: 6, color: '#3B82F6' },
-                { sigla: 'DI', label: 'Desarrollo Inicial', pct: '67%–72%',  nota: 5, color: '#8B5CF6' },
+                { sigla: 'DI', label: 'Desarrollo Inicial', pct: '67%–72%',  nota: 5, color: '#0d9488' },
                 { sigla: 'ND', label: 'No Desarrollado',    pct: '50%–66%',  nota: 4, color: '#F59E0B' },
                 { sigla: '—',  label: '',                   pct: '26%–49%',  nota: 3, color: '#EF4444' },
                 { sigla: '—',  label: '',                   pct: '1%–25%',   nota: 2, color: '#DC2626' },
@@ -511,10 +511,10 @@ export default function FormativeEvaluationView({
               padding: '3rem',
               background: 'rgba(255, 255, 255, 0.6)',
               borderRadius: '16px',
-              border: '1px dashed rgba(139, 92, 246, 0.2)',
+              border: '1px dashed rgba(13, 148, 136, 0.2)',
               color: '#6b7280'
             }}>
-              <HelpCircle size={40} style={{ margin: '0 auto 10px', color: '#8B5CF6', opacity: 0.7 }} />
+              <HelpCircle size={40} style={{ margin: '0 auto 10px', color: '#0d9488', opacity: 0.7 }} />
               <h3>No se encontraron estudiantes</h3>
               <p>Prueba buscando con otro término de filtrado.</p>
             </div>
@@ -533,7 +533,7 @@ export default function FormativeEvaluationView({
                     backdropFilter: 'blur(12px)',
                     borderRadius: '16px',
                     padding: '1.25rem',
-                    border: '1px solid rgba(139, 92, 246, 0.1)',
+                    border: '1px solid rgba(13, 148, 136, 0.1)',
                     boxShadow: '0 4px 15px rgba(0,0,0,0.015)',
                     display: 'flex',
                     flexWrap: 'wrap',
@@ -552,7 +552,7 @@ export default function FormativeEvaluationView({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#4f46e5'
+                      color: '#0369a1'
                     }}>
                       <User size={20} />
                     </div>
@@ -578,9 +578,9 @@ export default function FormativeEvaluationView({
                           onClick={() => setSelectedStudent(student)}
                           style={{
                             marginLeft: '8px',
-                            background: 'rgba(139, 92, 246, 0.08)',
-                            color: '#8b5cf6',
-                            border: '1px solid rgba(139, 92, 246, 0.2)',
+                            background: 'rgba(13, 148, 136, 0.08)',
+                            color: '#0d9488',
+                            border: '1px solid rgba(13, 148, 136, 0.2)',
                             borderRadius: '8px',
                             padding: '3px 8px',
                             fontSize: '0.72rem',
@@ -592,10 +592,10 @@ export default function FormativeEvaluationView({
                             transition: 'all 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(139, 92, 246, 0.16)';
+                            e.currentTarget.style.background = 'rgba(13, 148, 136, 0.16)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(139, 92, 246, 0.08)';
+                            e.currentTarget.style.background = 'rgba(13, 148, 136, 0.08)';
                           }}
                         >
                           <Info size={11} />
@@ -647,13 +647,13 @@ export default function FormativeEvaluationView({
                     gap: '12px',
                     padding: '8px 12px',
                     borderRadius: '12px',
-                    background: 'rgba(139, 92, 246, 0.05)',
-                    border: '1px solid rgba(139, 92, 246, 0.1)',
+                    background: 'rgba(13, 148, 136, 0.05)',
+                    border: '1px solid rgba(13, 148, 136, 0.1)',
                     minWidth: '150px'
                   }}>
                     <div>
-                      <span style={{ fontSize: '0.7rem', display: 'block', color: '#6d28d9', fontWeight: 700 }}>Nota Propuesta</span>
-                      <strong style={{ fontSize: '1.25rem', color: '#8B5CF6', fontWeight: 800 }}>{student.proposed || '-'}</strong>
+                      <span style={{ fontSize: '0.7rem', display: 'block', color: '#0f766e', fontWeight: 700 }}>Nota Propuesta</span>
+                      <strong style={{ fontSize: '1.25rem', color: '#0d9488', fontWeight: 800 }}>{student.proposed || '-'}</strong>
                     </div>
                     {hasHistory && student.proposed && student.grade !== formatGrade(student.proposed) && (
                       <button
@@ -664,14 +664,14 @@ export default function FormativeEvaluationView({
                           borderRadius: '8px',
                           fontSize: '0.7rem',
                           fontWeight: 700,
-                          backgroundColor: '#8B5CF6',
+                          backgroundColor: '#0d9488',
                           color: 'white',
                           border: 'none',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '3px',
-                          boxShadow: '0 2px 6px rgba(139, 92, 246, 0.2)'
+                          boxShadow: '0 2px 6px rgba(13, 148, 136, 0.2)'
                         }}
                         title="Aplicar nota propuesta"
                       >
@@ -736,7 +736,7 @@ export default function FormativeEvaluationView({
                             flex: 1,
                             padding: '0.5rem 0.75rem',
                             fontSize: '0.85rem',
-                            border: '1px solid #8B5CF6',
+                            border: '1px solid #0d9488',
                             borderRadius: '8px',
                             outline: 'none'
                           }}
@@ -745,7 +745,7 @@ export default function FormativeEvaluationView({
                           type="button"
                           className="save-revision-btn-premium"
                           onClick={() => saveComment(student.groupId, student.studentId)}
-                          style={{ padding: '0.5rem 1rem', height: 'auto', minHeight: 'auto', borderRadius: '8px', background: '#8B5CF6', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}
+                          style={{ padding: '0.5rem 1rem', height: 'auto', minHeight: 'auto', borderRadius: '8px', background: '#0d9488', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}
                         >
                           Guardar
                         </button>
@@ -770,7 +770,7 @@ export default function FormativeEvaluationView({
                             alignItems: 'center',
                             gap: '4px',
                             fontSize: '0.75rem',
-                            color: '#8B5CF6',
+                            color: '#0d9488',
                             background: 'none',
                             border: 'none',
                             cursor: 'pointer',

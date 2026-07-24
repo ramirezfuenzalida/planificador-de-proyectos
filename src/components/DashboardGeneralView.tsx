@@ -295,12 +295,12 @@ export default function DashboardGeneralView({
         }
 
         .dg-header {
-          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          background: linear-gradient(135deg, #0369a1 0%, #14b8a6 100%);
           border-radius: 20px;
           padding: 30px;
           color: white;
           margin-bottom: 24px;
-          box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
+          box-shadow: 0 10px 25px -5px rgba(3, 105, 161, 0.3);
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -427,8 +427,8 @@ export default function DashboardGeneralView({
         }
 
         .dg-select:focus {
-          border-color: #8b5cf6;
-          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+          border-color: #0d9488;
+          box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
           background: white;
         }
 
@@ -675,14 +675,14 @@ export default function DashboardGeneralView({
           width: 80px;
           height: 80px;
           border-radius: 50%;
-          border: 4px solid #8b5cf6;
+          border: 4px solid #0d9488;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 2rem;
           font-weight: 900;
-          color: #8b5cf6;
-          box-shadow: 0 4px 15px rgba(139, 92, 246, 0.15);
+          color: #0d9488;
+          box-shadow: 0 4px 15px rgba(13, 148, 136, 0.15);
           margin: 0 auto;
         }
 
@@ -691,9 +691,9 @@ export default function DashboardGeneralView({
         }
         .dg-btn-action:hover {
           background: #e2e8f0 !important;
-          color: #4f46e5 !important;
+          color: #0369a1 !important;
           transform: translateY(-1px);
-          box-shadow: 0 4px 10px rgba(79, 70, 229, 0.15);
+          box-shadow: 0 4px 10px rgba(3, 105, 161, 0.15);
         }
 
         .dg-table {
@@ -880,7 +880,7 @@ export default function DashboardGeneralView({
 
               {/* Comentarios del docente */}
               {selectedStudentData.comment && (
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '14px', borderLeft: '4px solid #8b5cf6' }}>
+                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '14px', borderLeft: '4px solid #0d9488' }}>
                   <h4 style={{ margin: '0 0 6px 0', fontSize: '0.85rem', fontWeight: 800, color: '#334155' }}>Observación del Docente</h4>
                   <p style={{ margin: 0, fontSize: '0.82rem', color: '#475569', fontStyle: 'italic' }}>"{selectedStudentData.comment}"</p>
                 </div>
@@ -890,11 +890,11 @@ export default function DashboardGeneralView({
             {/* Ficha Calificación y Rendimiento */}
             <div className="dg-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '20px' }}>
               <div className="dg-card-header">
-                <div className="dg-card-title"><Award size={18} className="icon-violet" /> Rendimiento & Nota</div>
+                <div className="dg-card-title"><Award size={18} className="icon-teal" /> Rendimiento & Nota</div>
               </div>
 
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <div className="dg-grade-circle" style={{ borderColor: selectedStudentData.grade ? '#10B981' : '#8B5CF6', color: selectedStudentData.grade ? '#10B981' : '#8B5CF6' }}>
+                <div className="dg-grade-circle" style={{ borderColor: selectedStudentData.grade ? '#10B981' : '#0d9488', color: selectedStudentData.grade ? '#10B981' : '#0d9488' }}>
                   {selectedStudentData.grade ? selectedStudentData.grade.toFixed(1) : '-.-'}
                 </div>
                 <div style={{ marginTop: '12px', fontSize: '0.82rem', color: '#64748b', fontWeight: 700 }}>
@@ -905,7 +905,7 @@ export default function DashboardGeneralView({
               <div style={{ background: '#f8fafc', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
                   <span style={{ color: '#64748b' }}>Nota Propuesta sugerida:</span>
-                  <strong style={{ color: '#4f46e5' }}>{selectedStudentData.proposed ? `${selectedStudentData.proposed.toFixed(1)}` : '—'}</strong>
+                  <strong style={{ color: '#0369a1' }}>{selectedStudentData.proposed ? `${selectedStudentData.proposed.toFixed(1)}` : '—'}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
                   <span style={{ color: '#64748b' }}>Clases Logradas (L):</span>
@@ -952,7 +952,7 @@ export default function DashboardGeneralView({
                     width: '100%',
                     padding: '10px 14px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+                    background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
                     border: 'none',
                     color: 'white',
                     fontWeight: 700,
@@ -962,7 +962,7 @@ export default function DashboardGeneralView({
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 12px rgba(139, 92, 246, 0.15)',
+                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.15)',
                     transition: 'all 0.2s ease'
                   }}
                   className="dg-btn-action"
@@ -1007,7 +1007,7 @@ export default function DashboardGeneralView({
             {/* Tarjetas de Métricas Rápidas */}
             <div className="dg-metrics-row">
               <div className="dg-metric-card">
-                <div className="dg-metric-icon" style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+                <div className="dg-metric-icon" style={{ background: 'rgba(3, 105, 161, 0.1)', color: '#0369a1' }}>
                   <Users size={26} />
                 </div>
                 <div>
@@ -1027,7 +1027,7 @@ export default function DashboardGeneralView({
               </div>
 
               <div className="dg-metric-card">
-                <div className="dg-metric-icon" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+                <div className="dg-metric-icon" style={{ background: 'rgba(13, 148, 136, 0.1)', color: '#0d9488' }}>
                   <BookOpen size={26} />
                 </div>
                 <div>
@@ -1258,7 +1258,7 @@ export default function DashboardGeneralView({
                               </span>
                             </div>
                           </td>
-                          <td style={{ textAlign: 'center', fontWeight: 750, color: '#4f46e5' }}>
+                          <td style={{ textAlign: 'center', fontWeight: 750, color: '#0369a1' }}>
                             {student.proposed ? student.proposed.toFixed(1) : '—'}
                           </td>
                           <td style={{ textAlign: 'center', fontWeight: 750, color: student.grade ? (student.grade >= 4.0 ? '#10b981' : '#ef4444') : '#94a3b8' }}>

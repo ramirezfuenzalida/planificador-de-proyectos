@@ -288,7 +288,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
       <div className="formative-header-glass">
         <div className="fh-top">
           <div className="fh-title-box">
-            <h1><Telescope size={32} color="#8B5CF6" /> Seguimiento Formativo</h1>
+            <h1><Telescope size={32} color="#0d9488" /> Seguimiento Formativo</h1>
             <p>Gestión de hitos y evaluación continua.</p>
           </div>
           <div className="fh-controls" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -302,14 +302,14 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                 alignItems: 'center', 
                 gap: '8px',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+                background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
                 color: 'white',
                 border: 'none',
                 fontWeight: 600,
                 fontSize: '0.9rem',
                 cursor: 'pointer',
                 opacity: isSyncing ? 0.7 : 1,
-                boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+                boxShadow: '0 4px 15px rgba(13, 148, 136, 0.3)'
               }}
               onClick={handleSyncSheets}
               disabled={isSyncing}
@@ -384,7 +384,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
                 </div>
                 <div className="ccb-main">
                   <div className="ccb-section">
-                    <Target size={16} className="icon-purple" />
+                    <Target size={16} className="icon-teal" />
                     <div className="ccb-text">
                       <strong>Objetivo de la Sesión</strong>
                       <p>{currentClassData.objetivo}</p>
@@ -601,7 +601,7 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
               borderRadius: '24px',
               padding: '60px 40px',
               textAlign: 'center',
-              border: '1px dashed rgba(139, 92, 246, 0.25)',
+              border: '1px dashed rgba(13, 148, 136, 0.25)',
               boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
               marginTop: '1.5rem',
               display: 'flex',
@@ -616,11 +616,11 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
               width: '80px',
               height: '80px',
               borderRadius: '50%',
-              background: 'rgba(139, 92, 246, 0.08)',
+              background: 'rgba(13, 148, 136, 0.08)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#8b5cf6',
+              color: '#0d9488',
               marginBottom: '8px'
             }}>
               <BookOpen size={40} />

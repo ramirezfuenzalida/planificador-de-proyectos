@@ -94,7 +94,7 @@ const ClassModal: React.FC<ClassModalProps> = ({
                 {/* Gestión de Estado */}
                 <div className="premium-card-section">
                   <h4 className="section-header-modern">
-                    <Sparkles size={18} color="#8B5CF6" />
+                    <Sparkles size={18} color="#0d9488" />
                     Gestión de Estado
                   </h4>
                   <div className="registration-controls-v2">
@@ -132,7 +132,7 @@ const ClassModal: React.FC<ClassModalProps> = ({
 
                 {/* Ejecución */}
                 <div className="premium-card-section">
-                  <h4 className="section-header-modern"><Users size={18} color="#8B5CF6" /> Ejecución y Responsables</h4>
+                  <h4 className="section-header-modern"><Users size={18} color="#0d9488" /> Ejecución y Responsables</h4>
                   <div className="execution-row-pro">
                     <div className="execution-box">
                       <span className="execution-label">Docente en Aula:</span>
@@ -162,7 +162,7 @@ const ClassModal: React.FC<ClassModalProps> = ({
                 {/* Materiales */}
                 {(selectedClass.canvaLink || selectedClass.pptLink || selectedClass.sitesLink) && (
                   <div className="premium-card-section">
-                    <h4 className="section-header-modern"><LayoutGrid size={18} color="#8B5CF6" /> Materiales Pedagógicos</h4>
+                    <h4 className="section-header-modern"><LayoutGrid size={18} color="#0d9488" /> Materiales Pedagógicos</h4>
                     <div className="materials-grid-pro">
                       {selectedClass.canvaLink && (
                         <a href={ensureHttps(selectedClass.canvaLink)} target="_blank" rel="noopener noreferrer" className="material-btn-pro canva-style">
@@ -186,29 +186,29 @@ const ClassModal: React.FC<ClassModalProps> = ({
                 {/* Contenido Pedagógico */}
                 <div className="content-stack-pro">
                   <div className="content-card-premium">
-                    <div className="content-card-header"><Target size={20} color="#8B5CF6" /><span>Objetivo de Aprendizaje</span></div>
+                    <div className="content-card-header"><Target size={20} color="#0d9488" /><span>Objetivo de Aprendizaje</span></div>
                     <div className="content-card-body">{selectedClass.objetivo || 'Sin objetivo definido'}</div>
                   </div>
 
                   <div className="content-card-premium">
-                    <div className="content-card-header"><BookOpen size={20} color="#8B5CF6" /><span>Contenido Curricular</span></div>
+                    <div className="content-card-header"><BookOpen size={20} color="#0d9488" /><span>Contenido Curricular</span></div>
                     <div className="content-card-body">{selectedClass.contenido || 'Sin contenido definido'}</div>
                   </div>
 
                   <div className="content-card-premium">
-                    <div className="content-card-header"><ClipboardList size={20} color="#8B5CF6" /><span>Actividad Programada</span></div>
+                    <div className="content-card-header"><ClipboardList size={20} color="#0d9488" /><span>Actividad Programada</span></div>
                     <div className="content-card-body">{selectedClass.actividad || 'Sin actividad definida'}</div>
                   </div>
 
                   <div className="content-card-premium">
-                    <div className="content-card-header"><Palette size={20} color="#8B5CF6" /><span>Diseño y Materiales</span></div>
+                    <div className="content-card-header"><Palette size={20} color="#0d9488" /><span>Diseño y Materiales</span></div>
                     <div className="content-card-body">{selectedClass.diseno || 'Sin especificaciones'}</div>
                   </div>
                 </div>
 
                 {/* Observaciones */}
                 <div className="premium-card-section">
-                  <h4 className="section-header-modern"><MessageSquare size={18} color="#8B5CF6" /> Observaciones de la Sesión</h4>
+                  <h4 className="section-header-modern"><MessageSquare size={18} color="#0d9488" /> Observaciones de la Sesión</h4>
                   <textarea
                     className="modern-textarea"
                     placeholder="Escribe notas relevantes sobre el desarrollo de la clase..."

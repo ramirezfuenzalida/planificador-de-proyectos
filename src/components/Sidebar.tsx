@@ -113,8 +113,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const getRoleLabel = () => {
     if (currentUserRole === 'admin') return { label: 'Administrador', color: '#fbbf24', bg: 'rgba(234, 179, 8, 0.12)', icon: '🛡️' };
-    if (currentUserRole === 'editor') return { label: 'Editor', color: '#a78bfa', bg: 'rgba(139, 92, 246, 0.12)', icon: '🔄' };
-    return { label: 'Lector', color: '#818cf8', bg: 'rgba(99, 102, 241, 0.1)', icon: '📖' };
+    if (currentUserRole === 'editor') return { label: 'Editor', color: '#22d3ee', bg: 'rgba(13, 148, 136, 0.12)', icon: '🔄' };
+    return { label: 'Lector', color: '#38bdf8', bg: 'rgba(2, 132, 199, 0.1)', icon: '📖' };
   };
 
   const getStrengthInfo = () => {
@@ -156,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'courses', label: 'Cursos', icon: <LayoutGrid size={17} />, onClick: handleBackToCourses, colorClass: 'icon-sky' },
     { id: 'analytics', label: 'Analítica Avanzada', icon: <TrendingUp size={17} />, onClick: () => { setView('analytics'); setIsMobileSidebarOpen(false); }, colorClass: 'icon-blue' },
     { id: 'reports', label: 'Reportes', icon: <ClipboardCheck size={17} />, onClick: () => { setView('reports'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-emerald' },
-    { id: 'formative-tracking', label: 'Seguimiento Formativo', icon: <Sparkles size={17} />, onClick: () => { setView('formative-tracking'); setIsMobileSidebarOpen(false); }, colorClass: 'icon-violet' },
+    { id: 'formative-tracking', label: 'Seguimiento Formativo', icon: <Sparkles size={17} />, onClick: () => { setView('formative-tracking'); setIsMobileSidebarOpen(false); }, colorClass: 'icon-teal' },
     { id: 'tracking-history', label: 'Historial', icon: <History size={17} />, onClick: () => { setView('tracking-history'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-amber' },
     { id: 'smart-calendar', label: 'Calendario Inteligente', icon: <Calendar size={17} />, onClick: () => { setView('smart-calendar'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-blue' },
   ];
@@ -164,7 +164,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navItems = allNavItems.filter(item => hasPermission(item.id));
 
   const allEvalItems = [
-    { id: 'formative-evaluation', label: 'Evaluación Formativa', icon: <Award size={17} />, onClick: () => { setView('formative-evaluation'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-violet' },
+    { id: 'formative-evaluation', label: 'Evaluación Formativa', icon: <Award size={17} />, onClick: () => { setView('formative-evaluation'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-teal' },
     { id: 'dashboard-general', label: 'Dashboard', icon: <LayoutGrid size={17} />, onClick: () => { setView('dashboard-general'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-sky' },
     { id: 'student-risk-radar', label: 'Radar de Alerta', icon: <Shield size={17} />, onClick: () => { setView('student-risk-radar'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-amber' },
   ];
@@ -632,26 +632,26 @@ const Sidebar: React.FC<SidebarProps> = ({
                   width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   gap: '8px', padding: '0.65rem 1rem',
                   background: isLoadingData
-                    ? 'rgba(139, 92, 246, 0.08)'
-                    : 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%)',
-                  border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '12px',
-                  color: '#a78bfa', fontSize: '0.78rem', fontWeight: 600,
+                    ? 'rgba(13, 148, 136, 0.08)'
+                    : 'linear-gradient(135deg, rgba(13, 148, 136, 0.12) 0%, rgba(2, 132, 199, 0.12) 100%)',
+                  border: '1px solid rgba(13, 148, 136, 0.25)', borderRadius: '12px',
+                  color: '#22d3ee', fontSize: '0.78rem', fontWeight: 600,
                   cursor: isLoadingData ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: '0 4px 12px rgba(139, 92, 246, 0.05)'
+                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.05)'
                 }}
                 className="sb2-refresh-btn"
                 onMouseEnter={(e) => {
                   if (!isLoadingData) {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%)';
-                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(13, 148, 136, 0.2) 0%, rgba(2, 132, 199, 0.2) 100%)';
+                    e.currentTarget.style.borderColor = 'rgba(13, 148, 136, 0.4)';
                     e.currentTarget.style.transform = 'translateY(-1px)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isLoadingData) {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%)';
-                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.25)';
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(13, 148, 136, 0.12) 0%, rgba(2, 132, 199, 0.12) 100%)';
+                    e.currentTarget.style.borderColor = 'rgba(13, 148, 136, 0.25)';
                     e.currentTarget.style.transform = 'translateY(0)';
                   }
                 }}
@@ -681,7 +681,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               {/* Avatar */}
               <div style={{
                 width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
-                background: `linear-gradient(135deg, ${roleInfo.bg} 0%, rgba(139, 92, 246, 0.15) 100%)`,
+                background: `linear-gradient(135deg, ${roleInfo.bg} 0%, rgba(13, 148, 136, 0.15) 100%)`,
                 border: `1.5px solid ${roleInfo.color}30`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '0.9rem',

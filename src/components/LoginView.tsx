@@ -82,25 +82,25 @@ export default function LoginView({ onLoginSuccess, authorizedEmails }: LoginVie
           margin: 20px;
           border-radius: 28px;
           padding: 60px 54px 52px;
-          /* Gloss base with rich purple tones */
+          /* Gloss base with rich teal/cyan tones */
           background:
             linear-gradient(
               135deg,
               rgba(255, 255, 255, 0.12) 0%,
-              rgba(168, 85, 247, 0.08) 30%,
-              rgba(88, 28, 135, 0.15) 60%,
+              rgba(13, 148, 136, 0.08) 30%,
+              rgba(15, 118, 110, 0.15) 60%,
               rgba(12, 6, 26, 0.85) 100%
             );
           backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
           -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
-          border: 1px solid rgba(168, 85, 247, 0.2);
-          border-top: 1px solid rgba(216, 180, 254, 0.35);
-          border-left: 1px solid rgba(168, 85, 247, 0.22);
+          border: 1px solid rgba(13, 148, 136, 0.2);
+          border-top: 1px solid rgba(165, 243, 252, 0.35);
+          border-left: 1px solid rgba(13, 148, 136, 0.22);
           box-shadow:
             0 48px 96px rgba(0,0,0,0.75),
             0 0 0 1px rgba(255,255,255,0.04) inset,
             inset 0 1px 0 rgba(255,255,255,0.18),
-            0 0 80px rgba(168, 85, 247, 0.22);
+            0 0 80px rgba(13, 148, 136, 0.22);
           overflow: hidden;
         }
 
@@ -113,19 +113,19 @@ export default function LoginView({ onLoginSuccess, authorizedEmails }: LoginVie
           background: linear-gradient(
             180deg,
             rgba(255,255,255,0.08) 0%,
-            rgba(168, 85, 247, 0.03) 60%,
+            rgba(13, 148, 136, 0.03) 60%,
             transparent 100%
           );
           border-radius: 26px 26px 0 0;
           pointer-events: none;
         }
 
-        /* Purple shimmer line top */
+        /* Shimmer line top */
         .lv-card::after {
           content: '';
           position: absolute;
           top: 0; left: 15%; right: 15%; height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.8), transparent);
+          background: linear-gradient(90deg, transparent, rgba(13, 148, 136, 0.8), transparent);
         }
 
         /* ── APP ICON ── */

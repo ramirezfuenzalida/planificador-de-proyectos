@@ -56,7 +56,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
     >
       <div className="reports-header-glass">
         <div className="reports-header-title-box">
-          <h1><BarChart2 size={32} color="#8B5CF6" /> Rendimiento General</h1>
+          <h1><BarChart2 size={32} color="#0d9488" /> Rendimiento General</h1>
           <p className="reports-subtitle">Datos procesados en tiempo real basados en los registros de avance curricular.</p>
         </div>
         <button className="export-pdf-btn" onClick={() => window.print()}
@@ -93,7 +93,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <div className="stat-title">No Realizadas</div>
           <div className="stat-value">{globales.noRealizadas}</div>
         </div>
-        <div className="stat-card-premium stat-purple" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', color: 'white' }}>
+        <div className="stat-card-premium stat-teal" style={{ background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)', color: 'white' }}>
           <div className="stat-icon-wrapper" style={{ background: 'rgba(255,255,255,0.2)' }}><TrendingUp size={28} /></div>
           <div className="stat-title" style={{ opacity: 0.9 }}>% Avance Curricular</div>
           <div className="stat-value" style={{ fontSize: '2.5rem' }}>{avanceGlobal}%</div>

@@ -137,12 +137,12 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
               width: '48px',
               height: '48px',
               borderRadius: '16px',
-              background: 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)',
+              background: 'linear-gradient(135deg, #0d9488 0%, #0284c7 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.25)'
+              boxShadow: '0 4px 15px rgba(13, 148, 136, 0.25)'
             }}>
               <User size={24} />
             </div>
@@ -151,7 +151,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                 {student.name}
               </h2>
               <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', fontWeight: 600, color: '#64748b' }}>
-                Curso: <span style={{ color: '#8B5CF6' }}>{selectedCourse}</span> • Rol: <span style={{ color: '#6366F1' }}>{student.role}</span> • Grupo: <span style={{ color: '#10B981' }}>Equipo N° {student.groupId}</span>
+                Curso: <span style={{ color: '#0d9488' }}>{selectedCourse}</span> • Rol: <span style={{ color: '#0284c7' }}>{student.role}</span> • Grupo: <span style={{ color: '#10B981' }}>Equipo N° {student.groupId}</span>
               </p>
             </div>
           </div>
@@ -223,7 +223,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
             {/* ── CARD SECCIÓN 2: GRÁFICO LINEAL DE PROGRESO ── */}
             <div className="premium-card-section">
               <h4 className="section-header-modern" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.92rem', fontWeight: 800, color: '#4b5563', marginBottom: '1rem' }}>
-                <TrendingUp size={18} color="#8B5CF6" />
+                <TrendingUp size={18} color="#0d9488" />
                 Gráfico Lineal de Evolución Temporal (Eje de Hitos)
               </h4>
               
@@ -253,14 +253,14 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     <defs>
                       {/* Degradado para la línea */}
                       <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#8B5CF6" />
+                        <stop offset="0%" stopColor="#0d9488" />
                         <stop offset="50%" stopColor="#3B82F6" />
                         <stop offset="100%" stopColor="#10B981" />
                       </linearGradient>
                       
                       {/* Sombra de brillo en la línea */}
                       <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                        <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#8B5CF6" floodOpacity="0.15" />
+                        <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#0d9488" floodOpacity="0.15" />
                       </filter>
                     </defs>
 
@@ -309,7 +309,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
             {/* ── CARD SECCIÓN 3: MURO CRONOLÓGICO DE OBSERVACIONES DOCENTES ── */}
             <div className="premium-card-section">
               <h4 className="section-header-modern" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.92rem', fontWeight: 800, color: '#4b5563', marginBottom: '1.25rem' }}>
-                <BookOpen size={18} color="#8B5CF6" />
+                <BookOpen size={18} color="#0d9488" />
                 Muro Cronológico de Observaciones Docentes
               </h4>
 
@@ -323,15 +323,15 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
               }}>
                 {/* 1. Comentario Actitudinal / Retroalimentación Global del Alumno */}
                 <div style={{
-                  background: 'linear-gradient(135deg, rgba(139,92,246,0.06) 0%, rgba(99,102,241,0.06) 100%)',
-                  border: '1px solid rgba(139,92,246,0.18)',
+                  background: 'linear-gradient(135deg, rgba(13, 148, 136,0.06) 0%, rgba(2, 132, 199,0.06) 100%)',
+                  border: '1px solid rgba(13, 148, 136,0.18)',
                   borderRadius: '16px',
                   padding: '1rem 1.25rem',
                   position: 'relative'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                    <Sparkles size={14} color="#8B5CF6" />
-                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 800, color: '#8B5CF6' }}>
+                    <Sparkles size={14} color="#0d9488" />
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 800, color: '#0d9488' }}>
                       RETROALIMENTACIÓN GLOBAL DE APRENDIZAJE
                     </span>
                   </div>
@@ -359,7 +359,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                       <div key={h.classId} className={`observation-card-premium ${statusColor}-accent`}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6d28d9', background: 'rgba(139,92,246,0.08)', padding: '2px 8px', borderRadius: '6px' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f766e', background: 'rgba(13, 148, 136,0.08)', padding: '2px 8px', borderRadius: '6px' }}>
                               Clase N° {h.classId}
                             </span>
                             <span className={`badge-status-pill ${statusColor}`}>

@@ -473,7 +473,7 @@ export default function StudentRiskRadarView({
         .srr-metric-icon.red { background: #fee2e2; color: #ef4444; }
         .srr-metric-icon.yellow { background: #fef3c7; color: #f59e0b; }
         .srr-metric-icon.blue { background: #e0f2fe; color: #0284c7; }
-        .srr-metric-icon.purple { background: #f3e8ff; color: #7c3aed; }
+        .srr-metric-icon.purple { background: #f3e8ff; color: #14b8a6; }
 
         .srr-metric-value {
           font-size: 1.6rem;
@@ -535,9 +535,9 @@ export default function StudentRiskRadarView({
         }
 
         .srr-select:focus, .srr-input:focus {
-          border-color: #4f46e5;
+          border-color: #0369a1;
           background: white;
-          box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+          box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.12);
         }
 
         /* MAIN RADAR TABLE */
@@ -694,7 +694,7 @@ export default function StudentRiskRadarView({
         }
 
         .srr-action-btn-p3 {
-          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+          background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
           color: white;
           border: none;
           padding: 8px 14px;
@@ -706,12 +706,12 @@ export default function StudentRiskRadarView({
           align-items: center;
           gap: 6px;
           transition: all 0.2s;
-          box-shadow: 0 4px 10px rgba(124, 58, 237, 0.15);
+          box-shadow: 0 4px 10px rgba(20, 184, 166, 0.15);
         }
 
         .srr-action-btn-p3:hover {
           transform: translateY(-1px);
-          box-shadow: 0 6px 14px rgba(124, 58, 237, 0.25);
+          box-shadow: 0 6px 14px rgba(20, 184, 166, 0.25);
         }
 
         /* INTERVENTION MODAL */
@@ -1162,7 +1162,7 @@ export default function StudentRiskRadarView({
                       </div>
                     </td>
                     <td>
-                      <strong style={{ fontSize: '0.9rem', color: '#4f46e5' }}>
+                      <strong style={{ fontSize: '0.9rem', color: '#0369a1' }}>
                         {s.proposed ? s.proposed.toFixed(1) : '—'}
                       </strong>
                     </td>
@@ -1273,7 +1273,7 @@ export default function StudentRiskRadarView({
                 {/* Interventions Log List */}
                 <div className="srr-actions-log">
                   <div className="srr-log-header">
-                    <Bookmark size={16} color="#7c3aed" /> Planes de Acción y Acuerdos Activos
+                    <Bookmark size={16} color="#14b8a6" /> Planes de Acción y Acuerdos Activos
                   </div>
                   
                   {selectedStudent.interventions && selectedStudent.interventions.length > 0 ? (
@@ -1282,7 +1282,7 @@ export default function StudentRiskRadarView({
                         <div key={action.id} className={`srr-log-item ${action.completed ? 'completed' : ''}`}>
                           <div className="srr-log-content">
                             <div className="srr-log-title">
-                              <span style={{ color: '#7c3aed', fontWeight: 800 }}>{action.type}</span>
+                              <span style={{ color: '#14b8a6', fontWeight: 800 }}>{action.type}</span>
                               <span className="date">Registrado el: {action.date}</span>
                             </div>
                             <p className="srr-log-desc">{action.description}</p>
@@ -1373,7 +1373,7 @@ export default function StudentRiskRadarView({
         {toastMessage && (
           <div className="srr-toast-absolute">
             <div style={{ background: '#0f172a', color: 'white', padding: '12px 24px', borderRadius: '12px', fontSize: '0.82rem', fontWeight: 700, boxShadow: '0 10px 25px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={16} className="icon-violet" />
+              <Sparkles size={16} className="icon-teal" />
               {toastMessage}
             </div>
           </div>

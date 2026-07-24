@@ -23,11 +23,11 @@ export const exportStudentPDF = (
     format: 'a4'
   });
 
-  const primaryColor: [number, number, number] = [109, 40, 217]; // Violeta #6d28d9
+  const primaryColor: [number, number, number] = [15, 118, 110]; // Teal #0f766e
 
   // 1. ENCABEZADO INSTITUCIONAL
-  doc.setFillColor(109, 40, 217);
-  doc.rect(0, 0, 210, 8, 'F'); // Franja superior violeta
+  doc.setFillColor(15, 118, 110);
+  doc.rect(0, 0, 210, 8, 'F'); // Franja superior teal
 
   // Membrete
   doc.setFont('Helvetica', 'bold');

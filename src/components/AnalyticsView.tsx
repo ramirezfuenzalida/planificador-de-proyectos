@@ -149,7 +149,7 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         className="chart-card"
       >
         <div className="chart-title">
-          <BarChart2 size={20} color="#8B5CF6" />
+          <BarChart2 size={20} color="#0d9488" />
           Panorama de Realización
         </div>
 
@@ -424,7 +424,7 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
               <div className="reports-details-card" style={{ marginTop: '2rem' }}>
                 <div className="section-title-premium">
-                  <MessageSquare size={22} color="#8B5CF6" />
+                  <MessageSquare size={22} color="#0d9488" />
                   <h3>Bitácora de Observaciones Pedagógicas</h3>
                 </div>
                 <div className="observations-log-grid">

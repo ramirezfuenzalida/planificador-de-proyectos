@@ -395,12 +395,12 @@ export default function SmartCalendarView({
 
         .sc-toggle-btn.active {
           background: white;
-          color: #4f46e5;
+          color: #0369a1;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .sc-action-btn-primary {
-          background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+          background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
           color: white;
           border: none;
           padding: 10px 18px;
@@ -411,13 +411,13 @@ export default function SmartCalendarView({
           display: flex;
           align-items: center;
           gap: 8px;
-          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+          box-shadow: 0 4px 12px rgba(3, 105, 161, 0.2);
           transition: all 0.2s;
         }
 
         .sc-action-btn-primary:hover {
           transform: translateY(-1px);
-          box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3);
+          box-shadow: 0 6px 18px rgba(3, 105, 161, 0.3);
         }
 
         /* NAVIGATION CALENDAR */
@@ -574,15 +574,15 @@ export default function SmartCalendarView({
         }
 
         .sc-day-cell.is-today {
-          background: rgba(79, 70, 229, 0.06);
+          background: rgba(3, 105, 161, 0.06);
         }
         .sc-day-cell.is-today .sc-day-number {
-          color: #4f46e5;
+          color: #0369a1;
         }
 
         .sc-day-cell.is-selected {
-          background: #4f46e5 !important;
-          box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
+          background: #0369a1 !important;
+          box-shadow: 0 8px 20px rgba(3, 105, 161, 0.35);
         }
         .sc-day-cell.is-selected .sc-day-number {
           color: white !important;
@@ -762,9 +762,9 @@ export default function SmartCalendarView({
         }
 
         .sc-meta-tag.course-badge {
-          background: rgba(79, 70, 229, 0.08);
-          color: #4f46e5;
-          border: 1px solid rgba(79, 70, 229, 0.12);
+          background: rgba(3, 105, 161, 0.08);
+          color: #0369a1;
+          border: 1px solid rgba(3, 105, 161, 0.12);
         }
 
         .sc-meta-tag.level-badge {
@@ -876,8 +876,8 @@ export default function SmartCalendarView({
         }
 
         .sc-input:focus, .sc-textarea:focus, .sc-select:focus {
-          border-color: #4f46e5;
-          box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+          border-color: #0369a1;
+          box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.15);
           background: white;
         }
 
@@ -1051,7 +1051,7 @@ export default function SmartCalendarView({
       <div className="sc-header-card">
         <div className="sc-header-top">
           <div className="sc-header-title">
-            <h1><CalendarIcon size={28} color="#4f46e5" /> Calendario Inteligente</h1>
+            <h1><CalendarIcon size={28} color="#0369a1" /> Calendario Inteligente</h1>
             <p>Agenda, filtra y vincula actividades al plan curricular 2026</p>
           </div>
 
@@ -1192,7 +1192,7 @@ export default function SmartCalendarView({
           <h3>
             Agenda del {selectedDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', weekday: 'long' })}
           </h3>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4f46e5', background: 'rgba(79, 70, 229, 0.08)', padding: '4px 10px', borderRadius: '100px' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', background: 'rgba(3, 105, 161, 0.08)', padding: '4px 10px', borderRadius: '100px' }}>
             {selectedDayEvents.length} Evento{selectedDayEvents.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -1489,7 +1489,7 @@ export default function SmartCalendarView({
                       backgroundColor: selectedEvent.category === 'muestra' ? categoryMeta.muestra.color :
                         selectedEvent.linkedCourse?.startsWith('1') ? levelMeta['1M'].color :
                         selectedEvent.linkedCourse?.startsWith('2') ? levelMeta['2M'].color :
-                        categoryMeta[selectedEvent.category as keyof typeof categoryMeta]?.color || '#4f46e5' 
+                        categoryMeta[selectedEvent.category as keyof typeof categoryMeta]?.color || '#0369a1' 
                     }}
                   >
                     {selectedEvent.category === 'muestra' ? <Award size={22} /> :
