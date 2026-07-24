@@ -57,7 +57,11 @@ Build → Authentication → "Comenzar" → pestaña "Sign-in method" → habili
 
 - [ ] **Paso 3: Habilitar Firestore**
 
-Build → Firestore Database → "Crear base de datos" → modo **producción** → ubicación `southamerica-east1` (la más cercana a Chile).
+Build → Firestore Database → "Crear base de datos" → modo **producción** → ubicación
+`southamerica-west1` (Santiago). Si no está disponible, `southamerica-east1` (São Paulo).
+
+El modo producción deja la base cerrada; las reglas se suben en la Tarea 5. No usar modo
+de prueba: deja la base abierta a cualquiera durante 30 días.
 
 - [ ] **Paso 4: Registrar la app web y copiar la configuración**
 
