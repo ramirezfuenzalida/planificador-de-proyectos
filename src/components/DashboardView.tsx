@@ -39,7 +39,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   handleCourseSelect,
   activeProject,
 }) => {
-  const projectTitle = activeProject?.name?.trim() || activeProject?.type || 'sistema de seguimiento';
+  const pmName = activeProject?.pm?.name?.trim() || '';
+  const smName = activeProject?.sm?.name?.trim() || '';
+  // Título grande: si ambos niveles comparten nombre, se muestra ese; si difieren,
+  // se muestra el tipo (cada nivel lleva su propio título en su tarjeta).
+  const projectTitle =
+    (pmName && smName && pmName === smName) ? pmName
+    : (pmName || smName || activeProject?.type || 'sistema de seguimiento');
   const projectType = activeProject?.type || 'ZenitApp';
   const [open, setOpen] = useState<{ '1M': boolean; '2M': boolean }>({ '1M': false, '2M': false });
   const toggle = (g: '1M' | '2M') => setOpen((o) => ({ ...o, [g]: !o[g] }));
@@ -59,14 +65,16 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   const groups = [
     {
       id: '1M' as const,
-      title: 'Primeros Medios',
+      title: pmName || 'Primeros Medios',
+      label: 'Primeros Medios',
       courses: courses1M,
       levelData: globalData.pm,
       icon: <GraduationCap size={26} />,
     },
     {
       id: '2M' as const,
-      title: 'Segundos Medios',
+      title: smName || 'Segundos Medios',
+      label: 'Segundos Medios',
       courses: courses2M,
       levelData: globalData.sm,
       icon: <Layers size={26} />,
@@ -339,6 +347,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                 >
                   <div className="dv-gicon">{g.icon}</div>
                   <div className="dv-ginfo">
+                    {g.title !== g.label && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(165,243,252,0.6)', marginBottom: 2 }}>{g.label}</div>
+                    )}
                     <div className="dv-gname">{g.title}</div>
                     <div className="dv-gmeta"><b>{real}</b> / {total} Clases Realizadas</div>
                     <div className="dv-gbar"><div className="dv-gbar-fill" style={{ width: `${pct}%` }} /></div>

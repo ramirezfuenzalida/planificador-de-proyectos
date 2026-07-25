@@ -36,12 +36,6 @@ export default function AdminPanelView({
   onBackToDashboard
 }: AdminPanelViewProps) {
   // ── Gestión de proyectos ──
-  const updateProject = (id: string, patch: Partial<Project>) => {
-    setProjectsConfig(cfg => ({
-      ...cfg,
-      projects: cfg.projects.map(p => p.id === id ? { ...p, ...patch } : p),
-    }));
-  };
   const updateLevel = (id: string, nivel: 'pm' | 'sm', patch: Partial<ProjectLevelSource>) => {
     setProjectsConfig(cfg => ({
       ...cfg,
@@ -813,6 +807,11 @@ export default function AdminPanelView({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                     <strong style={{ fontSize: '0.8rem', color: '#64748b' }}>{label}</strong>
                     <input
+                      className="ap-input" placeholder={`Título de ${label} (ej. Humberstone VIVE)`}
+                      value={src.name}
+                      onChange={e => updateLevel(p.id, nivel, { name: e.target.value })}
+                    />
+                    <input
                       className="ap-input" placeholder="Pega el link del Google Sheets…"
                       defaultValue={src.sheetId}
                       onChange={e => updateLevel(p.id, nivel, { sheetId: extractSheetId(e.target.value) })}
@@ -842,14 +841,12 @@ export default function AdminPanelView({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                       <span style={{
-                        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase',
-                        color: '#0d9488', background: 'rgba(13,148,136,0.1)', padding: '3px 10px', borderRadius: 100,
+                        fontSize: '0.85rem', fontWeight: 800, letterSpacing: '0.03em', textTransform: 'uppercase',
+                        color: '#0d9488', background: 'rgba(13,148,136,0.1)', padding: '5px 14px', borderRadius: 100,
                       }}>{p.type}</span>
-                      <input
-                        className="ap-input" style={{ minWidth: 180 }} placeholder="Nombre propio (ej. Humberstone VIVE)"
-                        value={p.name}
-                        onChange={e => updateProject(p.id, { name: e.target.value })}
-                      />
+                      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                        {[p.pm.name, p.sm.name].filter(Boolean).join(' · ') || 'Sin título aún'}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                       <button
