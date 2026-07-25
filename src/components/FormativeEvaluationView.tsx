@@ -691,10 +691,14 @@ export default function FormativeEvaluationView({
                           style={{ padding: '0.4rem 1.5rem 0.4rem 0.75rem', fontSize: '0.85rem', fontWeight: 700, width: '100%' }}
                         >
                           <option value="">Pendiente</option>
-                          {Array.from({ length: 61 }).map((_, idx) => {
-                            const val = (7.0 - idx * 0.1).toFixed(1);
-                            return <option key={val} value={val}>{val}</option>;
-                          })}
+                          {['7.0', '6.0', '5.0', '4.0', '3.0', '2.0'].map((val) => (
+                            <option key={val} value={val}>{val}</option>
+                          ))}
+                          {/* Si la nota (p. ej. la propuesta) no es una de las cerradas,
+                              se mantiene visible para no perderla al abrir el selector. */}
+                          {student.grade && !['7.0', '6.0', '5.0', '4.0', '3.0', '2.0'].includes(student.grade) && (
+                            <option value={student.grade}>{student.grade} (propuesta)</option>
+                          )}
                         </select>
                       </div>
                       {student.grade && (
