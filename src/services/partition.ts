@@ -26,7 +26,6 @@ export const PARTITIONED_KEYS = [
 export const SINGLE_DOC_KEYS = [
   'teacherRoles',
   'menuPermissions',
-  'studentGroups',
   'projectsConfig',
 ] as const;
 

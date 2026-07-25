@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, GraduationCap, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Project } from '../types';
 
 interface DashboardViewProps {
   courses1M: string[];
@@ -9,6 +10,7 @@ interface DashboardViewProps {
   globalData: { pm: any[]; sm: any[] };
   getCourseTag: (courseName: string | null) => string;
   handleCourseSelect: (course: string) => void;
+  activeProject?: Project;
 }
 
 // Cuenta clases realizadas (verde) de un curso contra su planificación.
@@ -35,7 +37,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   globalData,
   getCourseTag,
   handleCourseSelect,
+  activeProject,
 }) => {
+  const projectTitle = activeProject?.name?.trim() || activeProject?.type || 'sistema de seguimiento';
+  const projectType = activeProject?.type || 'ZenitApp';
   const [open, setOpen] = useState<{ '1M': boolean; '2M': boolean }>({ '1M': false, '2M': false });
   const toggle = (g: '1M' | '2M') => setOpen((o) => ({ ...o, [g]: !o[g] }));
 
@@ -302,8 +307,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="dv-shell">
         {/* Encabezado */}
         <div className="dv-head">
-          <div className="dv-eyebrow">ZenitApp · Seguimiento 2026</div>
-          <h1 className="dv-title">Bienvenido al <span>sistema de seguimiento</span></h1>
+          <div className="dv-eyebrow">{projectType} · Seguimiento 2026</div>
+          <h1 className="dv-title"><span>{projectTitle}</span></h1>
           <p className="dv-sub">Liceo Bicentenario William Taylor de Alto Hospicio</p>
           <div className="dv-chips">
             <div className="dv-chip"><b>{allCourses.length}</b><span>Cursos activos</span></div>

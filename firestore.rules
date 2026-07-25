@@ -24,6 +24,12 @@ service cloud.firestore {
       allow write: if esAdmin();
     }
 
+    // Configuración de proyectos: solo el administrador la edita.
+    match /app_sync/projectsConfig {
+      allow read: if autenticado();
+      allow write: if esAdmin();
+    }
+
     match /app_sync/{documento} {
       allow read, write: if autenticado();
     }

@@ -9,15 +9,20 @@ import {
   Sparkles, 
   Activity, 
   UserPlus,
-  ArrowLeft
+  ArrowLeft,
+  FolderOpen
 } from 'lucide-react';
 import { crearCuentaDocente, traducirError } from '../services/authService';
+import { extractSheetId } from '../utils/sheets';
+import type { ProjectsConfig, Project, ProjectLevelSource } from '../types';
 
 interface AdminPanelViewProps {
   teacherRoles: Record<string, string>;
   setTeacherRoles: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   menuPermissions: Record<string, string[]>;
   setMenuPermissions: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
+  projectsConfig: ProjectsConfig;
+  setProjectsConfig: React.Dispatch<React.SetStateAction<ProjectsConfig>>;
   onBackToDashboard: () => void;
 }
 
@@ -26,8 +31,25 @@ export default function AdminPanelView({
   setTeacherRoles,
   menuPermissions,
   setMenuPermissions,
+  projectsConfig,
+  setProjectsConfig,
   onBackToDashboard
 }: AdminPanelViewProps) {
+  // ── Gestión de proyectos ──
+  const updateProject = (id: string, patch: Partial<Project>) => {
+    setProjectsConfig(cfg => ({
+      ...cfg,
+      projects: cfg.projects.map(p => p.id === id ? { ...p, ...patch } : p),
+    }));
+  };
+  const updateLevel = (id: string, nivel: 'pm' | 'sm', patch: Partial<ProjectLevelSource>) => {
+    setProjectsConfig(cfg => ({
+      ...cfg,
+      projects: cfg.projects.map(p => p.id === id ? { ...p, [nivel]: { ...p[nivel], ...patch } } : p),
+    }));
+  };
+  const setActiveProjectId = (id: string) =>
+    setProjectsConfig(cfg => ({ ...cfg, activeProjectId: id }));
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState('editor');
   const [newPassword, setNewPassword] = useState('');
@@ -725,6 +747,83 @@ export default function AdminPanelView({
           <button className="ap-back-btn" onClick={onBackToDashboard}>
             <ArrowLeft size={16} /> Volver al Dashboard
           </button>
+        </div>
+
+        {/* GESTIÓN DE PROYECTOS */}
+        <div className="ap-card" style={{ marginBottom: '1.5rem' }}>
+          <h2><FolderOpen size={20} color="#14b8a6" /> Gestión de Proyectos</h2>
+          <p className="ap-card-desc">
+            Configura los proyectos del año (STEAM, SAE, Transversal). Por cada uno: ponle un
+            nombre, pega el link de su planilla de Primeros y Segundos, e indica el nombre de la
+            pestaña de planificación y la de equipos. Marca cuál está activo: toda la app se
+            transforma a ese proyecto.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1rem' }}>
+            {projectsConfig.projects.map(p => {
+              const isActive = projectsConfig.activeProjectId === p.id;
+              const levelBlock = (nivel: 'pm' | 'sm', label: string) => {
+                const src = p[nivel];
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <strong style={{ fontSize: '0.8rem', color: '#64748b' }}>{label}</strong>
+                    <input
+                      className="ap-input" placeholder="Pega el link del Google Sheets…"
+                      defaultValue={src.sheetId}
+                      onChange={e => updateLevel(p.id, nivel, { sheetId: extractSheetId(e.target.value) })}
+                    />
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <input
+                        className="ap-input" style={{ flex: 1, minWidth: 120 }} placeholder="Pestaña planificación"
+                        value={src.planningTab}
+                        onChange={e => updateLevel(p.id, nivel, { planningTab: e.target.value })}
+                      />
+                      <input
+                        className="ap-input" style={{ flex: 1, minWidth: 120 }} placeholder="Pestaña equipos"
+                        value={src.teamsTab}
+                        onChange={e => updateLevel(p.id, nivel, { teamsTab: e.target.value })}
+                      />
+                    </div>
+                    {src.sheetId && <span style={{ fontSize: '0.72rem', color: '#059669' }}>✓ ID: {src.sheetId.slice(0, 12)}…</span>}
+                  </div>
+                );
+              };
+              return (
+                <div key={p.id} style={{
+                  border: `1px solid ${isActive ? '#14b8a6' : '#e2e8f0'}`,
+                  borderRadius: 14, padding: '1rem',
+                  background: isActive ? 'rgba(20,184,166,0.06)' : '#fff',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <span style={{
+                        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase',
+                        color: '#0d9488', background: 'rgba(13,148,136,0.1)', padding: '3px 10px', borderRadius: 100,
+                      }}>{p.type}</span>
+                      <input
+                        className="ap-input" style={{ minWidth: 180 }} placeholder="Nombre propio (ej. Humberstone VIVE)"
+                        value={p.name}
+                        onChange={e => updateProject(p.id, { name: e.target.value })}
+                      />
+                    </div>
+                    <button
+                      onClick={() => setActiveProjectId(p.id)}
+                      disabled={isActive}
+                      style={{
+                        padding: '0.5rem 1rem', borderRadius: 10, border: 'none', cursor: isActive ? 'default' : 'pointer',
+                        fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap',
+                        background: isActive ? '#14b8a6' : '#f1f5f9', color: isActive ? '#fff' : '#475569',
+                      }}
+                    >{isActive ? '✓ Activo' : 'Marcar activo'}</button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                    {levelBlock('pm', 'Primeros Medios')}
+                    {levelBlock('sm', 'Segundos Medios')}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="ap-grid">

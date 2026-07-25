@@ -6,7 +6,10 @@ import {
 } from 'lucide-react';
 import { useRef } from 'react';
 import { alCambiarSesion, cerrarSesion } from './services/authService';
-import { loadAll, save, subscribe } from './services/dataService';
+import { loadAll, save, subscribe, setActiveProject } from './services/dataService';
+import { parseTeamsGrid } from './utils/sheets';
+import { DEFAULT_PROJECTS_CONFIG } from './types';
+import type { ProjectsConfig, Project } from './types';
 import './App.css';
 
 // Components
@@ -70,6 +73,10 @@ export default function App() {
   const [currentUserRole, setCurrentUserRole] = useState<string>('reader');
   const [teacherRoles, setTeacherRoles] = useState<Record<string, string>>(DEFAULT_TEACHER_ROLES);
   const [menuPermissions, setMenuPermissions] = useState<Record<string, string[]>>(DEFAULT_MENU_PERMISSIONS);
+  const [projectsConfig, setProjectsConfig] = useState<ProjectsConfig>(DEFAULT_PROJECTS_CONFIG);
+  const activeProject: Project =
+    projectsConfig.projects.find(p => p.id === projectsConfig.activeProjectId)
+    || projectsConfig.projects[0];
 
   // ─── ESTADOS GENERALES ──────────────────────────────────────────────────
   const [view, setView] = useState('courses');
@@ -129,16 +136,17 @@ export default function App() {
     initAuth();
   }, []);
 
-  // ─── CARGA DE DATOS PRINCIPAL (solo cuando hay sesión) ─────────────────
+  // ─── CARGA DE DATOS PRINCIPAL (sesión y proyecto activo) ──────────────
   useEffect(() => {
     if (!session) return;
 
+    setActiveProject(projectsConfig.activeProjectId);
     fetchData();
     const cleanup = loadAndSubscribe();
     return () => {
       cleanup.then(fn => fn && fn());
     };
-  }, [session]);
+  }, [session, projectsConfig.activeProjectId]);
 
   // ─── FUNCIÓN: CARGAR ROLES Y PERMISOS DESDE SUPABASE ──────────────────
   const loadRolesAndPermissions = async (userEmail: string) => {
@@ -147,6 +155,16 @@ export default function App() {
 
       const rolesData = data.teacherRoles as Record<string, string> | undefined;
       const permsData = data.menuPermissions as Record<string, string[]> | undefined;
+      const cfgData = data.projectsConfig as ProjectsConfig | undefined;
+
+      // Configuración de proyectos
+      if (cfgData && cfgData.projects?.length) {
+        setProjectsConfig(cfgData);
+        setActiveProject(cfgData.activeProjectId);
+      } else {
+        await save('projectsConfig', DEFAULT_PROJECTS_CONFIG as any);
+        setActiveProject(DEFAULT_PROJECTS_CONFIG.activeProjectId);
+      }
 
       let roles = DEFAULT_TEACHER_ROLES;
       let perms = DEFAULT_MENU_PERMISSIONS;
@@ -178,6 +196,17 @@ export default function App() {
       setCurrentUserRole(role);
     }
   };
+
+  // ─── PERSISTIR CONFIG DE PROYECTOS (solo admin) ───────────────────────
+  useEffect(() => {
+    if (!session || currentUserRole !== 'admin') return;
+    const dataStr = JSON.stringify(projectsConfig);
+    if (dataStr !== lastRemoteData.current['projectsConfig']) {
+      lastRemoteData.current['projectsConfig'] = dataStr;
+      const timer = setTimeout(() => { save('projectsConfig', projectsConfig as any); }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [projectsConfig, session, currentUserRole]);
 
   // ─── PERSISTIR ROLES CUANDO CAMBIAN (solo admin) ──────────────────────
   useEffect(() => {
@@ -231,7 +260,8 @@ export default function App() {
       else if (key === 'observations') setObservations(data);
       else if (key === 'formativeEvaluations') setFormativeEvaluations(data);
       else if (key === 'calendarEvents') setCustomEvents(data);
-      else if (key === 'studentGroups') setStudentGroups(data);
+      else if (key === 'projectsConfig') setProjectsConfig(data);
+      // studentGroups ya no viene de Firebase: los equipos son fuente de verdad del Sheets.
       else if (key === 'teacherRoles') {
         setTeacherRoles(data);
         const userEmail = session?.email?.toLowerCase() || '';
@@ -339,17 +369,11 @@ export default function App() {
     }
   }, [customEvents]);
 
+  // Los equipos (studentGroups) son fuente de verdad del Sheets (pestaña de
+  // equipos del proyecto activo); no se guardan en Firebase. Solo caché local.
   useEffect(() => {
-    const dataStr = JSON.stringify(studentGroups);
-    if (Object.keys(studentGroups).length > 0 && dataStr !== lastRemoteData.current['studentGroups']) {
-      lastRemoteData.current['studentGroups'] = dataStr;
-      localStorage.setItem('zenit_student_groups', dataStr);
-      const timer = setTimeout(() => {
-        save('studentGroups', studentGroups).then(() => {
-          setLastSyncTime(new Date());
-        });
-      }, 1000);
-      return () => clearTimeout(timer);
+    if (Object.keys(studentGroups).length > 0) {
+      localStorage.setItem('zenit_student_groups', JSON.stringify(studentGroups));
     }
   }, [studentGroups]);
 
@@ -422,12 +446,17 @@ export default function App() {
     setLoading(true);
     if (isManual) setIsSyncing(true);
     try {
-      const PM_SHEET_ID = '1i3s_Qwcw0tJv9hxfIrWsrPMhztB5lv88NcAa0aOQwcc';
-      const SM_SHEET_ID = '1kagImj0aUR4iaGFwUSUji0RhtOzKcr2JlEMWKHAX7Fo';
+      const PM_SHEET_ID = activeProject.pm.sheetId;
+      const SM_SHEET_ID = activeProject.sm.sheetId;
 
-      const fetchSheet = async (id: string, name: string) => {
+      const gvizUrl = (id: string, tab: string) =>
+        `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json` +
+        (tab ? `&sheet=${encodeURIComponent(tab)}` : '');
+
+      const fetchSheet = async (id: string, tab: string, name: string) => {
+        if (!id) return [];
         try {
-          const response = await fetch(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json`);
+          const response = await fetch(gvizUrl(id, tab));
           if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
           const text = await response.text();
           const json = JSON.parse(text.substring(47).slice(0, -2));
@@ -457,10 +486,33 @@ export default function App() {
         }
       };
 
-      const [pmData, smData] = await Promise.all([
-        fetchSheet(PM_SHEET_ID, 'Primeros Medios'),
-        fetchSheet(SM_SHEET_ID, 'Segundos Medios')
+      // Lee una pestaña de equipos como matriz cruda y la parsea a grupos.
+      const fetchTeams = async (id: string, tab: string, nivel: '1' | '2') => {
+        if (!id || !tab) return {};
+        try {
+          const response = await fetch(gvizUrl(id, tab));
+          if (!response.ok) return {};
+          const text = await response.text();
+          const json = JSON.parse(text.substring(47).slice(0, -2));
+          const grid: string[][] = (json.table.rows || []).map((r: any) =>
+            (r.c || []).map((cell: any) => (cell && cell.v != null ? String(cell.v).trim() : '')),
+          );
+          return parseTeamsGrid(grid, nivel);
+        } catch (e) {
+          console.error(`Error leyendo equipos (${tab}):`, e);
+          return {};
+        }
+      };
+
+      const [pmData, smData, pmTeams, smTeams] = await Promise.all([
+        fetchSheet(PM_SHEET_ID, activeProject.pm.planningTab, 'Primeros Medios'),
+        fetchSheet(SM_SHEET_ID, activeProject.sm.planningTab, 'Segundos Medios'),
+        fetchTeams(PM_SHEET_ID, activeProject.pm.teamsTab, '1'),
+        fetchTeams(SM_SHEET_ID, activeProject.sm.teamsTab, '2'),
       ]);
+
+      const equipos = { ...pmTeams, ...smTeams };
+      if (Object.keys(equipos).length > 0) setStudentGroups(equipos);
 
       const normalize = (data: any[], type: 'pm' | 'sm') => data.map(item => {
         const rawLink = type === 'pm' ? (item.link_clase || item.col_12 || '') : (item.link_clase || item.col_11 || '');
@@ -765,6 +817,8 @@ export default function App() {
             setTeacherRoles={setTeacherRoles}
             menuPermissions={menuPermissions}
             setMenuPermissions={setMenuPermissions}
+            projectsConfig={projectsConfig}
+            setProjectsConfig={setProjectsConfig}
             onBackToDashboard={() => setView('courses')}
           />
         </main>
@@ -828,6 +882,7 @@ export default function App() {
             globalData={globalData}
             getCourseTag={getCourseTag}
             handleCourseSelect={handleCourseSelect}
+            activeProject={activeProject}
           />
         ) : view === 'tracking-history' ? (
           <TrackingHistoryView
