@@ -55,6 +55,7 @@ const ClassListView: React.FC<ClassListViewProps> = ({
 
         .cl-root {
           position: relative; min-height: 100vh; font-family: 'Manrope', sans-serif; color: #fff;
+          background: #05030f; /* base oscura: nunca queda blanca en la transición */
           padding:
             max(24px, calc(env(safe-area-inset-top,0px) + 12px))
             calc(20px + env(safe-area-inset-right,0px))

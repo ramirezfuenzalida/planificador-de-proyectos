@@ -134,7 +134,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             160px
             calc(20px + env(safe-area-inset-left, 0px));
           font-family: 'Manrope', sans-serif;
-          background: transparent;
+          /* Fondo cósmico propio: el área de contenido nunca queda blanca en las
+             transiciones, sin depender del timing de la clase del shell. */
+          background:
+            radial-gradient(1200px 600px at 15% -10%, rgba(13,148,136,0.20), transparent 60%),
+            radial-gradient(1000px 700px at 100% 0%, rgba(79,70,229,0.22), transparent 55%),
+            radial-gradient(900px 900px at 50% 120%, rgba(6,182,212,0.12), transparent 60%),
+            linear-gradient(180deg, #0a0716 0%, #0c0822 45%, #070311 100%);
           overflow-x: hidden;
         }
         /* Grano/estrellas sutiles */
