@@ -6611,26 +6611,38 @@ to {
   .main-board table::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.5); border-radius: 100px; }
 }
 
-/* ── RESPONSIVIDAD: contenido que se salía y se recortaba en celular ───────
-   El contenido de las vistas (grillas de tarjetas, encabezados) estaba
-   dimensionado para escritorio y en pantallas angostas excedía el ancho,
-   quedando recortado por overflow-x:hidden de .main-board. Aquí, en celular:
-   1) los elementos flex/grid pueden encoger (min-width:0), y
-   2) las grillas de varias columnas colapsan a una sola.
-   Se excluye la portada nueva (clases dv-*) para conservar su 2×2. */
+/* ── RESPONSIVIDAD CONTINUA: que el contenido quepa a CUALQUIER ancho ───────
+   El contenido de las vistas estaba dimensionado para escritorio y al angostar
+   la ventana excedía el ancho, quedando recortado por overflow-x:hidden de
+   .main-board. Estas reglas aplican en TODO momento (no solo en celular) para
+   que el ajuste sea continuo mientras se achica la ventana:
+   - min-width:0 deja que los elementos flex/grid encojan en vez de desbordar,
+   - overflow-wrap parte palabras/números largos,
+   - las imágenes nunca exceden su contenedor. */
+.main-board { min-width: 0; }
+.main-board :where(div, section, header, main, article, aside, ul, ol, li, p, span, h1, h2, h3, table) {
+  min-width: 0;
+}
+.main-board :where(h1, h2, h3, p, span, td, th) {
+  overflow-wrap: anywhere;
+}
+.main-board :where(img, canvas, video, svg) { max-width: 100%; height: auto; }
+
+/* Colapso de columnas por tamaño (excluye la portada nueva dv-* para su 2×2).
+   Tablet: las grillas de 3+ columnas bajan a 2; celular: todo a 1 columna. */
+@media (max-width: 1024px) {
+  .main-board [style*="grid-template-columns: repeat(3"]:not([class*="dv-"]),
+  .main-board [style*="grid-template-columns: repeat(4"]:not([class*="dv-"]),
+  .main-board [style*="grid-template-columns:repeat(3"]:not([class*="dv-"]),
+  .main-board [style*="grid-template-columns:repeat(4"]:not([class*="dv-"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
 @media (max-width: 768px) {
   .main-board { overflow-x: hidden !important; }
-  .main-board :where(div, section, header, main, article, ul, ol, p, span) {
-    min-width: 0;
-  }
   .main-board [class*="grid"]:not([class*="dv-"]),
   .main-board [style*="grid-template-columns"]:not([class*="dv-"]) {
-    grid-template-columns: 1fr !important;
-  }
-  /* Encabezados grandes que no deben desbordar */
-  .main-board h1, .main-board h2 {
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
