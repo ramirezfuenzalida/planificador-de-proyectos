@@ -3581,10 +3581,18 @@ to {
   box-shadow:0 4px 12px rgba(16, 185, 129, 0.5);
   color:#fff!important}
 .fh-filters-grid {
-  grid-template-columns:1.5fr 1.5fr 1fr;
+  grid-template-columns:1fr 1fr;
   align-items:flex-end;
   gap:1.5rem;
   display:grid}
+/* El scorecards ocupa su propia fila a ancho completo (antes caía en una
+   columna angosta de 1fr y la fracción "07/40" se desbordaba en escritorio). */
+.fh-filters-grid > .class-stats-mini-card {
+  grid-column: 1 / -1;
+  max-width: 640px;
+  margin-inline: auto;
+  width: 100%;
+}
 .custom-select-wrapper {
   background:#fff;
   border:1px solid #e2e8f0;
@@ -3640,7 +3648,7 @@ to {
 /* El valor es texto grande de color (sin caja rellena), para que la fracción
    "07 / 40" nunca quede apretada ni cortada por un borde, y siempre quepa. */
 .stat-pill span {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
