@@ -148,6 +148,16 @@ export default function App() {
     };
   }, [session, projectsConfig.activeProjectId]);
 
+  // Recarga automática cuando cambian las planillas/pestañas/títulos del proyecto
+  // activo (ej. al configurarlo en el Panel de Admin), sin actualizar a mano.
+  const activeSourcesSig = JSON.stringify([activeProject?.id, activeProject?.pm, activeProject?.sm]);
+  useEffect(() => {
+    if (!session) return;
+    const t = setTimeout(() => { fetchData(); }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSourcesSig, session]);
+
   // ─── FUNCIÓN: CARGAR ROLES Y PERMISOS DESDE SUPABASE ──────────────────
   const loadRolesAndPermissions = async (userEmail: string) => {
     try {
