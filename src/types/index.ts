@@ -70,3 +70,42 @@ export type LevelProjects = Record<string, { // t1, t2, t3
 
 export type ProjectsConfigData = Record<string, LevelProjects>; // '1M', '2M'
 
+
+// ─── GESTIÓN DE PROYECTOS (STEAM / SAE / Transversal) ───────────────────────
+export type ProjectType = 'STEAM' | 'SAE' | 'Transversal';
+
+/** Configuración de un nivel (Primeros o Segundos) dentro de un proyecto. */
+export interface ProjectLevelSource {
+  sheetId: string;      // ID de la planilla (extraído del URL)
+  planningTab: string;  // nombre de la pestaña de planificación (ej. 'SAE PROYECTO 2')
+  teamsTab: string;     // nombre de la pestaña de equipos (ej. '1°TEAM BUILDING')
+}
+
+export interface Project {
+  id: string;         // 'steam' | 'sae' | 'transversal'
+  type: ProjectType;  // categoría fija (define ícono/color)
+  name: string;       // nombre propio, ej. 'Humberstone VIVE' (si vacío, se usa el tipo)
+  pm: ProjectLevelSource; // Primeros Medios
+  sm: ProjectLevelSource; // Segundos Medios
+}
+
+export interface ProjectsConfig {
+  projects: Project[];
+  activeProjectId: string;
+}
+
+const emptySource = (): ProjectLevelSource => ({ sheetId: '', planningTab: '', teamsTab: '' });
+
+export const DEFAULT_PROJECTS_CONFIG: ProjectsConfig = {
+  projects: [
+    // STEAM arranca con las planillas hardcodeadas históricas (Primeros/Segundos).
+    {
+      id: 'steam', type: 'STEAM', name: '',
+      pm: { sheetId: '1i3s_Qwcw0tJv9hxfIrWsrPMhztB5lv88NcAa0aOQwcc', planningTab: '', teamsTab: '' },
+      sm: { sheetId: '1kagImj0aUR4iaGFwUSUji0RhtOzKcr2JlEMWKHAX7Fo', planningTab: '', teamsTab: '' },
+    },
+    { id: 'sae', type: 'SAE', name: '', pm: emptySource(), sm: emptySource() },
+    { id: 'transversal', type: 'Transversal', name: '', pm: emptySource(), sm: emptySource() },
+  ],
+  activeProjectId: 'steam',
+};
