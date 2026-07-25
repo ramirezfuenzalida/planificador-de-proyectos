@@ -3637,57 +3637,44 @@ to {
 }
 /* El valor es una etiqueta que se auto-ajusta a su contenido (fracciones incluidas),
    en una sola línea, para que "07 / 40" no se parta ni se superponga. */
+/* El valor es texto grande de color (sin caja rellena), para que la fracción
+   "07 / 40" nunca quede apretada ni cortada por un borde, y siempre quepa. */
 .stat-pill span {
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   min-width: 0;
   max-width: 100%;
-  height: auto;
-  padding: 6px 10px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  padding: 0;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .stat-pill.green {
   background: #f0fdf4;
   border-color: #dcfce7;
   color: #15803d;
 }
-.stat-pill.green span {
-  background: #10b981;
-  color: #ffffff !important;
-}
+.stat-pill.green span { color: #059669 !important; }
 .stat-pill.yellow {
   background: #fffbeb;
   border-color: #fef3c7;
   color: #b45309;
 }
-.stat-pill.yellow span {
-  background: #f59e0b;
-  color: #ffffff !important;
-}
+.stat-pill.yellow span { color: #d97706 !important; }
 .stat-pill.red {
   background: #fdf2f2;
   border-color: #fee2e2;
   color: #b91c1c;
 }
-.stat-pill.red span {
-  background: #ef4444;
-  color: #ffffff !important;
-}
+.stat-pill.red span { color: #dc2626 !important; }
 .stat-pill.violet {
   background: #f5f3ff;
   border-color: #ede9fe;
   color: #6d28d9;
 }
-.stat-pill.violet span {
-  background: #8b5cf6;
-  color: #ffffff !important;
-}
+.stat-pill.violet span { color: #7c3aed !important; }
 .stat-pill:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
@@ -3697,11 +3684,6 @@ to {
     padding: 12px 6px;
     font-size: 0.72rem;
     gap: 6px;
-  }
-  .stat-pill span {
-    font-size: 1.2rem;
-    padding: 6px 10px;
-    min-width: 38px;
   }
 }
 .class-context-banner-premium {
