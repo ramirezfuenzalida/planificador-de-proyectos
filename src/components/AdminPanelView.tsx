@@ -13,7 +13,7 @@ import {
   FolderOpen
 } from 'lucide-react';
 import { crearCuentaDocente, traducirError } from '../services/authService';
-import { extractSheetId } from '../utils/sheets';
+import { extractSheetId, parseTeamsGrid } from '../utils/sheets';
 import type { ProjectsConfig, Project, ProjectLevelSource } from '../types';
 
 interface AdminPanelViewProps {
@@ -50,6 +50,51 @@ export default function AdminPanelView({
   };
   const setActiveProjectId = (id: string) =>
     setProjectsConfig(cfg => ({ ...cfg, activeProjectId: id }));
+
+  // Prueba de carga: lee las planillas configuradas y reporta qué encontró.
+  const [testResults, setTestResults] = useState<Record<string, string>>({});
+  const [testing, setTesting] = useState<string | null>(null);
+
+  const leerGviz = async (sheetId: string, tab: string) => {
+    if (!sheetId) return null;
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json` +
+      (tab ? `&sheet=${encodeURIComponent(tab)}` : '');
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const text = await res.text();
+    try { return JSON.parse(text.substring(47).slice(0, -2)); } catch { return null; }
+  };
+
+  const contarClases = (json: any) =>
+    (json?.table?.rows || []).filter((r: any) => r.c && r.c[1] && r.c[1].v != null && String(r.c[1].v).trim() !== '' && String(r.c[1].v) !== 'Clase').length;
+
+  const contarEquipos = (json: any, nivel: '1' | '2') => {
+    const grid: string[][] = (json?.table?.rows || []).map((r: any) =>
+      (r.c || []).map((c: any) => (c && c.v != null ? String(c.v).trim() : '')));
+    return Object.keys(parseTeamsGrid(grid, nivel)).length;
+  };
+
+  const probarNivel = async (src: ProjectLevelSource, nivel: '1' | '2', label: string) => {
+    if (!src.sheetId) return `${label}: sin planilla`;
+    try {
+      const plan = await leerGviz(src.sheetId, src.planningTab);
+      const teams = src.teamsTab ? await leerGviz(src.sheetId, src.teamsTab) : null;
+      if (!plan) return `${label}: ✗ no pude leer (¿pública? ¿pestaña correcta?)`;
+      const c = contarClases(plan);
+      const e = teams ? contarEquipos(teams, nivel) : 0;
+      return `${label}: ✓ ${c} clases${src.teamsTab ? `, ${e} equipos` : ''}`;
+    } catch {
+      return `${label}: ✗ error de red`;
+    }
+  };
+
+  const probarProyecto = async (p: Project) => {
+    setTesting(p.id);
+    const pm = await probarNivel(p.pm, '1', 'Primeros');
+    const sm = await probarNivel(p.sm, '2', 'Segundos');
+    setTestResults(prev => ({ ...prev, [p.id]: `${pm} · ${sm}` }));
+    setTesting(null);
+  };
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState('editor');
   const [newPassword, setNewPassword] = useState('');
@@ -806,16 +851,34 @@ export default function AdminPanelView({
                         onChange={e => updateProject(p.id, { name: e.target.value })}
                       />
                     </div>
-                    <button
-                      onClick={() => setActiveProjectId(p.id)}
-                      disabled={isActive}
-                      style={{
-                        padding: '0.5rem 1rem', borderRadius: 10, border: 'none', cursor: isActive ? 'default' : 'pointer',
-                        fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap',
-                        background: isActive ? '#14b8a6' : '#f1f5f9', color: isActive ? '#fff' : '#475569',
-                      }}
-                    >{isActive ? '✓ Activo' : 'Marcar activo'}</button>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                      <button
+                        onClick={() => probarProyecto(p)}
+                        disabled={testing === p.id}
+                        style={{
+                          padding: '0.5rem 1rem', borderRadius: 10, border: '1px solid #cbd5e1', cursor: 'pointer',
+                          fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap', background: '#fff', color: '#0d9488',
+                        }}
+                      >{testing === p.id ? 'Probando…' : '🔍 Probar'}</button>
+                      <button
+                        onClick={() => setActiveProjectId(p.id)}
+                        disabled={isActive}
+                        style={{
+                          padding: '0.5rem 1rem', borderRadius: 10, border: 'none', cursor: isActive ? 'default' : 'pointer',
+                          fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap',
+                          background: isActive ? '#14b8a6' : '#f1f5f9', color: isActive ? '#fff' : '#475569',
+                        }}
+                      >{isActive ? '✓ Activo' : 'Marcar activo'}</button>
+                    </div>
                   </div>
+                  {testResults[p.id] && (
+                    <div style={{
+                      fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.75rem',
+                      padding: '0.5rem 0.75rem', borderRadius: 8,
+                      background: testResults[p.id].includes('✗') ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)',
+                      color: testResults[p.id].includes('✗') ? '#dc2626' : '#059669',
+                    }}>{testResults[p.id]}</div>
+                  )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
                     {levelBlock('pm', 'Primeros Medios')}
                     {levelBlock('sm', 'Segundos Medios')}
