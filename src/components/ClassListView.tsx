@@ -134,21 +134,32 @@ const ClassListView: React.FC<ClassListViewProps> = ({
           border: 1px solid rgba(255,255,255,0.14) !important;
           border-top: 1px solid rgba(255,255,255,0.30) !important;
         }
+        /* Pintado suave: base oscura del MISMO color (para que el rojo sea rojo y
+           no rosado sobre el fondo púrpura), con el color visible pero atenuado. */
         .cl-card.status-green {
-          --accent: #6ee7b7; --glow: rgba(16,185,129,0.32);
-          background: linear-gradient(150deg, rgba(16,185,129,0.20) 0%, rgba(16,185,129,0.09) 42%, rgba(8,5,20,0.80) 100%) !important;
-          box-shadow: 0 22px 48px rgba(0,0,0,0.55), 0 0 36px rgba(16,185,129,0.30), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.42) !important;
+          --accent: #ffffff; --glow: rgba(16,185,129,0.45);
+          background: linear-gradient(155deg, rgba(16,185,129,0.62) 0%, rgba(6,78,59,0.93) 58%, rgba(4,52,39,0.96) 100%) !important;
+          box-shadow: 0 22px 48px rgba(0,0,0,0.5), 0 0 40px rgba(16,185,129,0.42), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.4) !important;
         }
         .cl-card.status-yellow {
-          --accent: #fcd34d; --glow: rgba(245,158,11,0.32);
-          background: linear-gradient(150deg, rgba(245,158,11,0.20) 0%, rgba(245,158,11,0.09) 42%, rgba(8,5,20,0.80) 100%) !important;
-          box-shadow: 0 22px 48px rgba(0,0,0,0.55), 0 0 36px rgba(245,158,11,0.30), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.42) !important;
+          --accent: #ffffff; --glow: rgba(217,119,6,0.45);
+          background: linear-gradient(155deg, rgba(217,119,6,0.66) 0%, rgba(120,66,8,0.93) 58%, rgba(74,42,6,0.96) 100%) !important;
+          box-shadow: 0 22px 48px rgba(0,0,0,0.5), 0 0 40px rgba(217,119,6,0.42), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.4) !important;
         }
         .cl-card.status-red {
-          --accent: #fca5a5; --glow: rgba(239,68,68,0.32);
-          background: linear-gradient(150deg, rgba(239,68,68,0.20) 0%, rgba(239,68,68,0.09) 42%, rgba(8,5,20,0.80) 100%) !important;
-          box-shadow: 0 22px 48px rgba(0,0,0,0.55), 0 0 36px rgba(239,68,68,0.30), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.42) !important;
+          --accent: #ffffff; --glow: rgba(220,38,38,0.45);
+          background: linear-gradient(155deg, rgba(220,38,38,0.64) 0%, rgba(120,20,20,0.94) 55%, rgba(74,12,12,0.97) 100%) !important;
+          box-shadow: 0 22px 48px rgba(0,0,0,0.5), 0 0 40px rgba(220,38,38,0.42), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.4) !important;
         }
+        /* Texto legible sobre el pintado */
+        .cl-card.status-green .cl-num, .cl-card.status-yellow .cl-num, .cl-card.status-red .cl-num { color: #fff; }
+        .cl-card.status-green .cl-fitem, .cl-card.status-yellow .cl-fitem, .cl-card.status-red .cl-fitem,
+        .cl-card.status-green .cl-fitem.doc, .cl-card.status-yellow .cl-fitem.doc, .cl-card.status-red .cl-fitem.doc { color: rgba(255,255,255,0.92); }
+        .cl-card.status-green .cl-foot, .cl-card.status-yellow .cl-foot, .cl-card.status-red .cl-foot { border-top-color: rgba(255,255,255,0.18); }
+        .cl-card.status-green .cl-label, .cl-card.status-yellow .cl-label, .cl-card.status-red .cl-label { color: rgba(255,255,255,0.75); }
+        .cl-card.status-green .cl-status-pill { background: #fff; color: #065f46; }
+        .cl-card.status-yellow .cl-status-pill { background: #fff; color: #92400e; }
+        .cl-card.status-red .cl-status-pill { background: #fff; color: #991b1b; }
 
         .cl-top { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; }
         .cl-num { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.6rem; letter-spacing: -0.02em; color: var(--accent); }
