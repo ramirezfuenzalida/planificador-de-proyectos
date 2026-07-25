@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, GraduationCap, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Project } from '../types';
@@ -50,17 +50,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   const [open, setOpen] = useState<{ '1M': boolean; '2M': boolean }>({ '1M': false, '2M': false });
   const toggle = (g: '1M' | '2M') => setOpen((o) => ({ ...o, [g]: !o[g] }));
 
-  // Pinta el shell (html/body/main-board/header) en oscuro cósmico SOLO mientras
-  // esta portada está montada, para que en iPhone no asome blanco en bordes,
-  // overscroll ni zonas seguras. Al salir de la vista se restaura el tema claro.
-  useEffect(() => {
-    document.documentElement.classList.add('dv-cosmic');
-    document.body.classList.add('dv-cosmic');
-    return () => {
-      document.documentElement.classList.remove('dv-cosmic');
-      document.body.classList.remove('dv-cosmic');
-    };
-  }, []);
+  // La clase 'dv-cosmic' del shell la gestiona App según la vista (evita el
+  // flasheo blanco al navegar). Aquí ya no se toca.
 
   const groups = [
     {
