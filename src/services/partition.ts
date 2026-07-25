@@ -21,12 +21,13 @@ export const PARTITIONED_KEYS = [
   'formativeEvaluations',
 ] as const;
 
-/** Colecciones acotadas, que viven en un único documento de `app_sync`. */
+/** Claves globales de documento único en `app_sync` (no dependen del proyecto).
+ *  `calendarEvents` dejó de ser global: ahora es por proyecto (lo maneja dataService). */
 export const SINGLE_DOC_KEYS = [
   'teacherRoles',
   'menuPermissions',
   'studentGroups',
-  'calendarEvents',
+  'projectsConfig',
 ] as const;
 
 /** Destino de las claves que no coinciden con ningún curso conocido. */

@@ -2,17 +2,23 @@ import {
   collection, doc, getDoc, getDocs, setDoc, onSnapshot,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { PARTITIONED_KEYS, SINGLE_DOC_KEYS, partitionByCourse, mergePartitions } from './partition';
 import {
-  PARTITIONED_KEYS, SINGLE_DOC_KEYS, partitionByCourse, mergePartitions,
-} from './partition';
+  PROJECT_SCOPED_SINGLE, scopedPartDocId, cursoFromScopedDocId, scopedSingleDocId,
+} from './projectScope';
 
-const esParticionada = (key: string) =>
-  (PARTITIONED_KEYS as readonly string[]).includes(key);
+let activeProjectId = 'steam';
+/** Define el proyecto cuyos datos de seguimiento se leen/guardan. */
+export function setActiveProject(id: string): void { activeProjectId = id || 'steam'; }
+
+const esParticionada = (key: string) => (PARTITIONED_KEYS as readonly string[]).includes(key);
+const esGlobalSingle = (key: string) => (SINGLE_DOC_KEYS as readonly string[]).includes(key);
+const esScopedSingle = (key: string) => (PROJECT_SCOPED_SINGLE as readonly string[]).includes(key);
 
 /**
- * Carga las 8 claves. Las particionadas se reensamblan en el mismo
- * diccionario plano que la app usa hoy, de modo que el estado de React
- * no cambia respecto de la versión con Supabase.
+ * Carga las claves. Las globales van directo; `calendarEvents` y las
+ * particionadas (registrations, etc.) se leen del namespace del proyecto activo.
+ * El resultado tiene el mismo formato plano que la app ya usa.
  */
 export async function loadAll(): Promise<Record<string, unknown>> {
   const salida: Record<string, unknown> = {};
@@ -22,36 +28,50 @@ export async function loadAll(): Promise<Record<string, unknown>> {
     if (snap.exists()) salida[key] = snap.data().data;
   }
 
+  for (const key of PROJECT_SCOPED_SINGLE) {
+    const snap = await getDoc(doc(db, 'app_sync', scopedSingleDocId(key, activeProjectId)));
+    if (snap.exists()) salida[key] = snap.data().data;
+  }
+
   for (const key of PARTITIONED_KEYS) {
     const snap = await getDocs(collection(db, key));
     const partes: Record<string, Record<string, unknown>> = {};
-    snap.forEach(d => { partes[d.id] = d.data().data ?? {}; });
+    snap.forEach(d => {
+      const curso = cursoFromScopedDocId(activeProjectId, d.id);
+      if (curso) partes[curso] = d.data().data ?? {};
+    });
     salida[key] = mergePartitions(partes);
   }
 
   return salida;
 }
 
-/** Dirige la escritura al documento correcto según la clave. Las claves de
- *  documento único pueden guardar arreglos (p. ej. calendarEvents); las
- *  particionadas son siempre diccionarios con el curso como prefijo. */
+/** Dirige la escritura al documento correcto según la clave y el proyecto activo. */
 export async function save(
   key: string,
   data: Record<string, unknown> | unknown[],
 ): Promise<void> {
-  if (!esParticionada(key)) {
+  if (esGlobalSingle(key)) {
     await setDoc(doc(db, 'app_sync', key), { data });
     return;
   }
-  const partes = partitionByCourse(data as Record<string, unknown>);
-  await Promise.all(
-    Object.entries(partes).map(([curso, datos]) =>
-      setDoc(doc(db, key, curso), { data: datos }),
-    ),
-  );
+  if (esScopedSingle(key)) {
+    await setDoc(doc(db, 'app_sync', scopedSingleDocId(key, activeProjectId)), { data });
+    return;
+  }
+  if (esParticionada(key)) {
+    const partes = partitionByCourse(data as Record<string, unknown>);
+    await Promise.all(
+      Object.entries(partes).map(([curso, datos]) =>
+        setDoc(doc(db, key, scopedPartDocId(activeProjectId, curso)), { data: datos }),
+      ),
+    );
+    return;
+  }
+  await setDoc(doc(db, 'app_sync', key), { data }); // fallback global
 }
 
-/** Registra los onSnapshot y devuelve una función de limpieza. */
+/** Registra los onSnapshot (respetando el proyecto activo) y devuelve limpieza. */
 export function subscribe(
   cb: (key: string, data: Record<string, unknown>) => void,
 ): () => void {
@@ -63,10 +83,19 @@ export function subscribe(
     }));
   }
 
+  for (const key of PROJECT_SCOPED_SINGLE) {
+    bajas.push(onSnapshot(doc(db, 'app_sync', scopedSingleDocId(key, activeProjectId)), snap => {
+      if (snap.exists()) cb(key, snap.data().data);
+    }));
+  }
+
   for (const key of PARTITIONED_KEYS) {
     bajas.push(onSnapshot(collection(db, key), snap => {
       const partes: Record<string, Record<string, unknown>> = {};
-      snap.forEach(d => { partes[d.id] = d.data().data ?? {}; });
+      snap.forEach(d => {
+        const curso = cursoFromScopedDocId(activeProjectId, d.id);
+        if (curso) partes[curso] = d.data().data ?? {};
+      });
       cb(key, mergePartitions(partes));
     }));
   }
