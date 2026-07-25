@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Menu,
@@ -135,26 +135,6 @@ export default function App() {
 
     initAuth();
   }, []);
-
-  // ─── SHELL CÓSMICO SEGÚN LA VISTA (evita el flasheo blanco al navegar) ──
-  // Se gestiona a nivel de App con useLayoutEffect (síncrono, antes de pintar),
-  // en vez de en cada componente al montar/desmontar. Así, al pasar entre
-  // Cursos y la lista de clases (ambas oscuras) nunca hay un frame sin clase.
-  useLayoutEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    html.classList.remove('dv-cosmic', 'cl-cosmic');
-    body.classList.remove('dv-cosmic', 'cl-cosmic');
-    if (view === 'courses') {
-      html.classList.add('dv-cosmic'); body.classList.add('dv-cosmic');
-    } else if (view === 'class-list') {
-      html.classList.add('cl-cosmic'); body.classList.add('cl-cosmic');
-    }
-    return () => {
-      html.classList.remove('dv-cosmic', 'cl-cosmic');
-      body.classList.remove('dv-cosmic', 'cl-cosmic');
-    };
-  }, [view]);
 
   // ─── CARGA DE DATOS PRINCIPAL (sesión y proyecto activo) ──────────────
   useEffect(() => {

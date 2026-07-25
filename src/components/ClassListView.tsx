@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { ChevronLeft, X, MonitorPlay, Users, Calendar, Clock, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -24,8 +24,15 @@ const ClassListView: React.FC<ClassListViewProps> = ({
   const is1M = activeCourse.startsWith('1');
   const levelData = is1M ? globalData.pm : globalData.sm;
 
-  // La clase 'cl-cosmic' del shell la gestiona App según la vista (evita el
-  // flasheo blanco al navegar). Aquí ya no se toca.
+  // Pinta el shell oscuro ANTES de pintar (useLayoutEffect), sin flasheo.
+  useLayoutEffect(() => {
+    document.documentElement.classList.add('cl-cosmic');
+    document.body.classList.add('cl-cosmic');
+    return () => {
+      document.documentElement.classList.remove('cl-cosmic');
+      document.body.classList.remove('cl-cosmic');
+    };
+  }, []);
 
   const spring = { type: 'spring' as const, bounce: 0, duration: 0.45 };
 
