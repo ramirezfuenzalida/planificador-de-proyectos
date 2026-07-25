@@ -37,20 +37,27 @@ El usuario quiere:
 Cada proyecto tiene un **tipo** (una de las 3 categorías fijas) y un **nombre propio**
 que el usuario define cada año (ej. tipo SAE, nombre "Humberstone VIVE").
 
+Cada proyecto tiene, **por nivel** (Primeros/Segundos), su planilla + los nombres de las
+pestañas de planificación y de equipos (porque varían por proyecto).
+
 ```
 projects: [
-  { id: 'steam',       type: 'STEAM',       name: '<nombre propio>', sheetPM: '<idPrimeros>', sheetSM: '<idSegundos>' },
-  { id: 'sae',         type: 'SAE',         name: 'Humberstone VIVE', sheetPM: '',            sheetSM: '' },
-  { id: 'transversal', type: 'Transversal', name: '<nombre propio>', sheetPM: '',             sheetSM: '' },
+  {
+    id: 'sae', type: 'SAE', name: 'Humberstone VIVE',
+    pm: { sheetId: '1aI7...', planningTab: 'SAE PROYECTO 2', teamsTab: '1°TEAM BUILDING' },
+    sm: { sheetId: '',        planningTab: '',               teamsTab: '' },
+  },
+  { id: 'steam', type: 'STEAM', name: '', pm: {...}, sm: {...} },
+  { id: 'transversal', type: 'Transversal', name: '', pm: {...}, sm: {...} },
 ]
 activeProjectId: 'sae'
 ```
 
-- `type`: STEAM / SAE / Transversal (categoría fija, define el ícono/color).
-- `name`: título libre que el usuario escribe (ej. "Humberstone VIVE"). Si se deja vacío,
-  se muestra el tipo como nombre.
-- El usuario pega el **URL completo** de cada Sheets; la app extrae el ID con
-  `\/spreadsheets\/d\/([a-zA-Z0-9-_]+)`.
+- `type`: STEAM / SAE / Transversal (categoría fija, define ícono/color).
+- `name`: título libre (ej. "Humberstone VIVE"). Si vacío, se muestra el tipo.
+- `pm` / `sm`: por nivel, `{ sheetId, planningTab, teamsTab }`.
+- El usuario pega el **URL completo** del Sheets; la app extrae el ID con
+  `\/spreadsheets\/d\/([a-zA-Z0-9-_]+)`. Los nombres de pestaña se escriben tal cual.
 - `projects` y `activeProjectId` se guardan como claves de documento único en Firebase,
   con **escritura solo para admin** (igual que `teacherRoles`).
 
@@ -74,6 +81,44 @@ el id de documento **`${projectId}__${curso}`** dentro de la misma colección. E
 
 El formato **interno** de las claves (`${curso}-${clase}`) no cambia, así que las vistas,
 cálculos de adherencia y PDFs siguen funcionando sin tocarse.
+
+## Planillas con 2 pestañas (nombres configurables por proyecto)
+
+Cada planilla (por proyecto y nivel) tiene **dos pestañas relevantes**:
+1. **Planificación** — clases, objetivos, materiales, etc. (la que la app ya lee).
+2. **Equipos** — la construcción de los equipos de estudiantes y su rol.
+
+**Los nombres de las pestañas NO son genéricos** — varían por proyecto (ej. planificación
+"SAE PROYECTO 2", equipos "1°TEAM BUILDING"). Por eso, en la configuración de cada proyecto
+el admin **indica el nombre de la pestaña de planificación y el de la pestaña de equipos**
+(por nivel). La app apunta a cada una con `&sheet=<Nombre>` en el endpoint `gviz/tq`.
+
+- **Equipos = fuente de verdad el Sheets.** Se leen de la pestaña de equipos y se muestran
+  tal cual; **no se editan en la app** ni se guardan en Firebase. Reemplaza los
+  `studentGroups` hardcodeados. Son **por proyecto** (del Sheets del proyecto activo).
+
+### Formato ÚNICO de la pestaña de equipos (horizontal)
+
+Se estandariza en el formato horizontal (el de "1°TEAM BUILDING"). Todos los proyectos
+deben usar este formato. Layout verificado en la planilla real:
+
+- Los cursos van en **bloques de 4 columnas**: A→cols 0-3, B→4-7, C→8-11, D→12-15.
+- Dentro de cada bloque: **nombre** en la columna de offset 0, **rol** en la de offset 2.
+- Fila 0: encabezado del curso ("PRIMERO MEDIO A", etc.).
+- Luego, por cada equipo: una fila **"EQUIPO N°X"** seguida de 4 filas (nombre + rol:
+  COORDINADOR, INVESTIGADOR, MEDIADOR, SECRETARIO). Filas vacías separan equipos.
+- 10 equipos por curso, 4 estudiantes cada uno.
+
+Parseo → produce el formato que ya usa la app:
+`${courseTag}-G${n}` → `[{ name, role }, ...]` (ej. `1MA-G1`). El nº de equipo `n` se
+incrementa por cada "EQUIPO N°X" dentro del bloque del curso.
+
+### Formato de la pestaña de planificación
+
+Columnas por título (la app ya las mapea): Semana, Clase, Día, Horario, Fecha,
+Etapa de proyecto, Objetivo, Contenido, Actividad, [Aula invertida], Responsable,
+Diseño de Materiales, Solicitudes Informática, Link Clase, Link Google Sites,
+Docente que realiza la clase. No cambia.
 
 ## Flujo de cambio de proyecto
 
