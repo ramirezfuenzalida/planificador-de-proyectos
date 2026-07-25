@@ -999,6 +999,46 @@ export default function StudentRiskRadarView({
             grid-column: span 1;
           }
         }
+
+        /* ── iPhone / iPad: la tabla de estudiantes pasa a TARJETAS apiladas ── */
+        @media (max-width: 1024px) {
+          .srr-table-wrapper { overflow-x: visible !important; }
+          .srr-table, .srr-table tbody { display: block !important; width: 100% !important; }
+          .srr-table thead { display: none !important; }
+          .srr-table tr {
+            display: block !important;
+            background: #fff;
+            border: 1px solid #eef2f7;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+            padding: 10px 14px;
+            margin-bottom: 14px;
+          }
+          .srr-table td {
+            display: flex !important;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 0 !important;
+            border: none !important;
+            border-bottom: 1px solid #f4f6fa !important;
+            white-space: normal !important;
+            text-align: right;
+          }
+          .srr-table td:last-child { border-bottom: none !important; }
+          .srr-table td::before {
+            content: attr(data-label);
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em;
+            text-transform: uppercase; color: #94a3b8;
+            text-align: left; flex-shrink: 0; max-width: 45%;
+          }
+          /* La celda del estudiante va como encabezado de la tarjeta */
+          .srr-table td[data-label="Estudiante"] { border-bottom: 2px solid #f1f5f9 !important; padding-bottom: 12px !important; }
+          .srr-table td[data-label="Estudiante"]::before { display: none; }
+          .srr-table td[data-label="Estudiante"] .srr-student-cell { align-items: flex-start; text-align: left; }
+          .srr-table td[data-label="Estudiante"] { justify-content: flex-start; }
+          .srr-pills-row { flex-wrap: wrap; justify-content: flex-end; }
+        }
       `}</style>
 
       {/* ── HEADER CARD ── */}
@@ -1138,14 +1178,14 @@ export default function StudentRiskRadarView({
               <tbody>
                 {filteredStudents.map((s) => (
                   <tr key={s.key} className="srr-row">
-                    <td>
+                    <td data-label="Estudiante">
                       <div className="srr-student-cell">
                         <span className="srr-student-name">{s.name}</span>
                         <span className="srr-student-role">{s.role}</span>
                       </div>
                     </td>
-                    <td><strong style={{ color: '#0f172a' }}>{s.course}</strong></td>
-                    <td>
+                    <td data-label="Curso"><strong style={{ color: '#0f172a' }}>{s.course}</strong></td>
+                    <td data-label="Historial">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div className="srr-pills-row">
                           {s.history.map((h: any, idx: number) => (
@@ -1161,21 +1201,21 @@ export default function StudentRiskRadarView({
                         </span>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Nota Propuesta">
                       <strong style={{ fontSize: '0.9rem', color: '#0369a1' }}>
                         {s.proposed ? s.proposed.toFixed(1) : '—'}
                       </strong>
                     </td>
-                    <td>
-                      <span style={{ 
-                        fontSize: '0.9rem', 
-                        fontWeight: 800, 
-                        color: s.projectedGrade >= 4.0 ? '#10b981' : '#ef4444' 
+                    <td data-label="Proyección">
+                      <span style={{
+                        fontSize: '0.9rem',
+                        fontWeight: 800,
+                        color: s.projectedGrade >= 4.0 ? '#10b981' : '#ef4444'
                       }}>
                         {s.projectedGrade.toFixed(1)}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Estado">
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span className={`srr-alert-badge ${s.riskLevel}`}>
                           {s.riskLevel === 'critical' ? '🔴 Crítico' : s.riskLevel === 'medium' ? '🟡 Medio' : '🟢 Estable'}
@@ -1185,8 +1225,8 @@ export default function StudentRiskRadarView({
                         </span>
                       </div>
                     </td>
-                    <td>
-                      <button 
+                    <td data-label="Acción">
+                      <button
                         className="srr-action-btn-p3"
                         onClick={() => setSelectedStudent(s)}
                       >
