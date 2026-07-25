@@ -127,10 +127,28 @@ const ClassListView: React.FC<ClassListViewProps> = ({
         .cl-card:hover { transform: translateY(-6px); box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 50px var(--glow), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.42); }
         .cl-card:active { transform: translateY(-2px) scale(0.995); }
 
-        /* Acentos por estado de registro */
-        .cl-card.status-green { --accent: #34d399; --glow: rgba(16,185,129,0.32); }
-        .cl-card.status-yellow { --accent: #fbbf24; --glow: rgba(245,158,11,0.30); }
-        .cl-card.status-red { --accent: #f87171; --glow: rgba(239,68,68,0.30); }
+        /* Estado de registro: vidrio oscuro con TINTE del color (no sólido), para
+           que el texto blanco siga legible. Se sobrescribe la regla global vieja
+           que los pintaba de color saturado. El color se lee en número/glow/píldora. */
+        .cl-card.status-green, .cl-card.status-yellow, .cl-card.status-red {
+          border: 1px solid rgba(255,255,255,0.14) !important;
+          border-top: 1px solid rgba(255,255,255,0.30) !important;
+        }
+        .cl-card.status-green {
+          --accent: #6ee7b7; --glow: rgba(16,185,129,0.32);
+          background: linear-gradient(150deg, rgba(16,185,129,0.20) 0%, rgba(16,185,129,0.09) 42%, rgba(8,5,20,0.80) 100%) !important;
+          box-shadow: 0 22px 48px rgba(0,0,0,0.55), 0 0 36px rgba(16,185,129,0.30), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.42) !important;
+        }
+        .cl-card.status-yellow {
+          --accent: #fcd34d; --glow: rgba(245,158,11,0.32);
+          background: linear-gradient(150deg, rgba(245,158,11,0.20) 0%, rgba(245,158,11,0.09) 42%, rgba(8,5,20,0.80) 100%) !important;
+          box-shadow: 0 22px 48px rgba(0,0,0,0.55), 0 0 36px rgba(245,158,11,0.30), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.42) !important;
+        }
+        .cl-card.status-red {
+          --accent: #fca5a5; --glow: rgba(239,68,68,0.32);
+          background: linear-gradient(150deg, rgba(239,68,68,0.20) 0%, rgba(239,68,68,0.09) 42%, rgba(8,5,20,0.80) 100%) !important;
+          box-shadow: 0 22px 48px rgba(0,0,0,0.55), 0 0 36px rgba(239,68,68,0.30), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.42) !important;
+        }
 
         .cl-top { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; }
         .cl-num { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.6rem; letter-spacing: -0.02em; color: var(--accent); }
