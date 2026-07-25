@@ -3610,7 +3610,7 @@ to {
   border-radius: 20px;
   padding: 1rem 1.25rem;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
   width: 100%;
@@ -3638,17 +3638,18 @@ to {
 /* El valor es una etiqueta que se auto-ajusta a su contenido (fracciones incluidas),
    en una sola línea, para que "07 / 40" no se parta ni se superponga. */
 .stat-pill span {
-  font-size: 1.4rem;
+  font-size: 1.05rem;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
+  min-width: 0;
+  max-width: 100%;
   height: auto;
-  padding: 7px 14px;
-  border-radius: 12px;
+  padding: 6px 10px;
+  border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
 .stat-pill.green {
