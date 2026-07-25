@@ -80,11 +80,20 @@ cálculos de adherencia y PDFs siguen funcionando sin tocarse.
 
 ## Interfaz
 
-- **Selector de proyecto activo:** desplegable en la sidebar, junto a "Seguimiento 2026".
-  Muestra STEAM / SAE / Transversal y marca cuál está activo. Cambiarlo recarga los datos.
-- **Configuración de proyectos:** pantalla basada en el `ProjectConfigManager` existente,
-  accesible solo para admin. Por cada proyecto: nombre + 2 campos para pegar los links de
-  Sheets (Primeros y Segundos). Valida que el URL sea de Google Sheets.
+Todo lo de proyectos vive en el **Panel de Administrador** (`AdminPanelView`), accesible
+solo para admin. Se agrega una sección **"Gestión de Proyectos"** con:
+
+- **Selector de proyecto activo:** STEAM / SAE / Transversal, marca cuál está activo.
+  Cambiarlo recarga los datos y transforma la app para todos los usuarios (es global).
+- **Configuración de cada proyecto:** nombre + 2 campos para pegar los links de Sheets
+  (Primeros y Segundos). Valida que el URL sea de Google Sheets y extrae el ID.
+
+Se reutiliza el `ProjectConfigManager` existente, integrado dentro del Panel de Admin (no
+como pantalla suelta).
+
+- **Indicador (solo lectura) en la sidebar:** junto a "Seguimiento 2026" se muestra el
+  nombre del proyecto activo, para que cualquier docente sepa en qué proyecto está la app.
+  No es un control; cambiarlo es exclusivo del admin desde el Panel.
 
 ## Balance de fin de año
 
