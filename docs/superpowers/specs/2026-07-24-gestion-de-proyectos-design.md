@@ -34,15 +34,21 @@ El usuario quiere:
 
 ### Configuración de proyectos (global, en Firebase)
 
+Cada proyecto tiene un **tipo** (una de las 3 categorías fijas) y un **nombre propio**
+que el usuario define cada año (ej. tipo SAE, nombre "Humberstone VIVE").
+
 ```
 projects: [
-  { id: 'steam',       name: 'STEAM',       sheetPM: '<idPrimeros>', sheetSM: '<idSegundos>' },
-  { id: 'sae',         name: 'SAE',         sheetPM: '',             sheetSM: '' },
-  { id: 'transversal', name: 'Transversal', sheetPM: '',             sheetSM: '' },
+  { id: 'steam',       type: 'STEAM',       name: '<nombre propio>', sheetPM: '<idPrimeros>', sheetSM: '<idSegundos>' },
+  { id: 'sae',         type: 'SAE',         name: 'Humberstone VIVE', sheetPM: '',            sheetSM: '' },
+  { id: 'transversal', type: 'Transversal', name: '<nombre propio>', sheetPM: '',             sheetSM: '' },
 ]
-activeProjectId: 'steam'
+activeProjectId: 'sae'
 ```
 
+- `type`: STEAM / SAE / Transversal (categoría fija, define el ícono/color).
+- `name`: título libre que el usuario escribe (ej. "Humberstone VIVE"). Si se deja vacío,
+  se muestra el tipo como nombre.
 - El usuario pega el **URL completo** de cada Sheets; la app extrae el ID con
   `\/spreadsheets\/d\/([a-zA-Z0-9-_]+)`.
 - `projects` y `activeProjectId` se guardan como claves de documento único en Firebase,
@@ -85,8 +91,17 @@ solo para admin. Se agrega una sección **"Gestión de Proyectos"** con:
 
 - **Selector de proyecto activo:** STEAM / SAE / Transversal, marca cuál está activo.
   Cambiarlo recarga los datos y transforma la app para todos los usuarios (es global).
-- **Configuración de cada proyecto:** nombre + 2 campos para pegar los links de Sheets
-  (Primeros y Segundos). Valida que el URL sea de Google Sheets y extrae el ID.
+- **Configuración de cada proyecto:** tipo (STEAM/SAE/Transversal) + **nombre propio**
+  (ej. "Humberstone VIVE") + 2 campos para pegar los links de Sheets (Primeros y Segundos).
+  Valida que el URL sea de Google Sheets y extrae el ID.
+
+### El nombre del proyecto en la portada
+
+La portada de Cursos (`DashboardView`) muestra el **nombre propio del proyecto activo** de
+forma destacada, con su tipo como subtítulo/etiqueta. Ejemplo: título grande
+**"Humberstone VIVE"** con la etiqueta **SAE**. Si el proyecto no tiene nombre propio, se
+muestra el tipo. Este texto reemplaza/complementa el actual "Bienvenido al sistema de
+seguimiento" para que quede claro en qué proyecto se está trabajando.
 
 Se reutiliza el `ProjectConfigManager` existente, integrado dentro del Panel de Admin (no
 como pantalla suelta).
