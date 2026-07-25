@@ -463,6 +463,10 @@ export default function App() {
           if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
           const text = await response.text();
           const json = JSON.parse(text.substring(47).slice(0, -2));
+          if (!json.table || !json.table.rows) {
+            console.warn(`Planilla "${name}" (pestaña "${tab || 'primera'}"): sin datos legibles.`);
+            return [];
+          }
           const rows = json.table.rows;
           const cols = json.table.cols;
 
@@ -484,8 +488,9 @@ export default function App() {
             String(clase.clase).trim() !== ''
           );
         } catch (error) {
-          console.error(`Error fetching sheet ${name}:`, error);
-          throw error;
+          // No romper toda la carga por una planilla con problema: seguir con las demás.
+          console.warn(`No se pudo leer la planilla "${name}" (pestaña "${tab || 'primera'}"):`, error);
+          return [];
         }
       };
 
@@ -567,13 +572,18 @@ export default function App() {
         sm: sortByDate(normalize(smData, 'sm'))
       });
 
-      if (isManual) {
+      const hayPlanillas = !!(PM_SHEET_ID || SM_SHEET_ID);
+      const sinClases = pmData.length === 0 && smData.length === 0;
+      if (hayPlanillas && sinClases) {
+        setToastMessage('No se cargaron clases. Revisa que la planilla sea pública y que el nombre de la pestaña de planificación sea exacto.');
+        setTimeout(() => setToastMessage(null), 6000);
+      } else if (isManual) {
         setToastMessage("¡Planificación actualizada exitosamente!");
         setTimeout(() => setToastMessage(null), 3000);
       }
     } catch (e) {
       console.error("Fetch failed", e);
-      setToastMessage("Error al sincronizar con Google Sheets");
+      setToastMessage("Error inesperado al leer las planillas. Revisa la configuración del proyecto.");
     } finally {
       setLoading(false);
       setIsSyncing(false);
