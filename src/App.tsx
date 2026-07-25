@@ -260,7 +260,10 @@ export default function App() {
       else if (key === 'observations') setObservations(data);
       else if (key === 'formativeEvaluations') setFormativeEvaluations(data);
       else if (key === 'calendarEvents') setCustomEvents(data);
-      else if (key === 'projectsConfig') setProjectsConfig(data);
+      // projectsConfig NO se aplica desde la suscripción en vivo: se carga una vez
+      // al iniciar (loadRolesAndPermissions) y luego mandan las ediciones locales del
+      // admin. Aplicarlo aquí revertía los cambios recién hechos (la re-suscripción
+      // entrega la versión vieja antes de que el guardado con debounce termine).
       // studentGroups ya no viene de Firebase: los equipos son fuente de verdad del Sheets.
       else if (key === 'teacherRoles') {
         setTeacherRoles(data);
