@@ -157,9 +157,10 @@ const ClassListView: React.FC<ClassListViewProps> = ({
         .cl-card.status-green .cl-fitem.doc, .cl-card.status-yellow .cl-fitem.doc, .cl-card.status-red .cl-fitem.doc { color: rgba(255,255,255,0.92); }
         .cl-card.status-green .cl-foot, .cl-card.status-yellow .cl-foot, .cl-card.status-red .cl-foot { border-top-color: rgba(255,255,255,0.18); }
         .cl-card.status-green .cl-label, .cl-card.status-yellow .cl-label, .cl-card.status-red .cl-label { color: rgba(255,255,255,0.75); }
-        .cl-card.status-green .cl-status-pill { background: #fff; color: #065f46; }
-        .cl-card.status-yellow .cl-status-pill { background: #fff; color: #92400e; }
-        .cl-card.status-red .cl-status-pill { background: #fff; color: #991b1b; }
+        /* Píldora de estado: sólido neón del color, para leerse al instante */
+        .cl-card.status-green .cl-status-pill { background: #10e39a; color: #052b1e; box-shadow: 0 0 16px rgba(16,227,154,0.6); }
+        .cl-card.status-yellow .cl-status-pill { background: #ffc31a; color: #3a2500; box-shadow: 0 0 16px rgba(255,195,26,0.55); }
+        .cl-card.status-red .cl-status-pill { background: #ff4757; color: #fff; box-shadow: 0 0 16px rgba(255,71,87,0.6); }
 
         .cl-top { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; }
         .cl-num { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.6rem; letter-spacing: -0.02em; color: var(--accent); }
