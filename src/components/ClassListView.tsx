@@ -43,6 +43,7 @@ const ClassListView: React.FC<ClassListViewProps> = ({
 
         /* Shell oscuro cósmico mientras se ve la lista de clases */
         html.cl-cosmic, body.cl-cosmic { background: #05030f !important; }
+        body.cl-cosmic .app-window { background: transparent !important; }
         body.cl-cosmic .main-board { background: transparent !important; }
         body.cl-cosmic .main-board:before { display: none !important; }
         body.cl-cosmic .mobile-nav-header {

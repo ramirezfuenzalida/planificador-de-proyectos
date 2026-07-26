@@ -890,10 +890,10 @@ export default function App() {
         <AnimatePresence mode="wait">
           <motion.div
             key={view + (activeCourse ? `-${activeCourse}` : '') + (sharedCourse ? `-${sharedCourse}` : '')}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            initial={false}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 1 }}
+            transition={{ duration: 0 }}
             style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
           >
             {view === 'courses' ? (

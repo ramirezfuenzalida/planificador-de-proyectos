@@ -102,6 +102,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
            continua (tablero + header) para que no haya costura ni franja gris,
            y para que en iPhone no asome blanco en bordes ni zonas seguras. */
         html.dv-cosmic, body.dv-cosmic { background: #070311 !important; }
+        body.dv-cosmic .app-window { background: transparent !important; }
         body.dv-cosmic .main-board {
           background:
             radial-gradient(1200px 600px at 15% -10%, rgba(13,148,136,0.20), transparent 60%),
