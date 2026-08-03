@@ -101,15 +101,17 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         /* Shell oscuro cósmico mientras la portada está activa: UNA sola superficie
            continua (tablero + header) para que no haya costura ni franja gris,
            y para que en iPhone no asome blanco en bordes ni zonas seguras. */
-        html.dv-cosmic, body.dv-cosmic { background: #070311 !important; }
-        body.dv-cosmic .app-window { background: transparent !important; }
-        body.dv-cosmic .main-board {
+        /* UN SOLO gradiente cósmico en el body (no scrollea): encabezado y
+           contenido lo comparten, sin costura ni franja de otro color. */
+        html.dv-cosmic, body.dv-cosmic {
           background:
             radial-gradient(1200px 600px at 15% -10%, rgba(13,148,136,0.20), transparent 60%),
             radial-gradient(1000px 700px at 100% 0%, rgba(79,70,229,0.22), transparent 55%),
             radial-gradient(900px 900px at 50% 120%, rgba(6,182,212,0.12), transparent 60%),
             linear-gradient(180deg, #0a0716 0%, #0c0822 45%, #070311 100%) !important;
         }
+        body.dv-cosmic .app-window { background: transparent !important; }
+        body.dv-cosmic .main-board { background: transparent !important; }
         body.dv-cosmic .main-board:before { display: none !important; }
         /* Header transparente: deja ver el mismo fondo cósmico del tablero */
         body.dv-cosmic .mobile-nav-header {
@@ -117,7 +119,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           border-bottom: none !important;
           -webkit-backdrop-filter: none !important;
           backdrop-filter: none !important;
-          padding-top: env(safe-area-inset-top, 0px);
+          padding: calc(env(safe-area-inset-top, 0px) + 1rem) 1.25rem 1rem 1.25rem !important;
+          gap: 0.9rem !important;
         }
         body.dv-cosmic .mobile-nav-brand { color: #fff !important; }
         body.dv-cosmic .mobile-menu-btn {
@@ -135,13 +138,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             160px
             calc(20px + env(safe-area-inset-left, 0px));
           font-family: 'Manrope', sans-serif;
-          /* Fondo cósmico propio: el área de contenido nunca queda blanca en las
-             transiciones, sin depender del timing de la clase del shell. */
-          background:
-            radial-gradient(1200px 600px at 15% -10%, rgba(13,148,136,0.20), transparent 60%),
-            radial-gradient(1000px 700px at 100% 0%, rgba(79,70,229,0.22), transparent 55%),
-            radial-gradient(900px 900px at 50% 120%, rgba(6,182,212,0.12), transparent 60%),
-            linear-gradient(180deg, #0a0716 0%, #0c0822 45%, #070311 100%);
+          /* Fondo lo pone el body (gradiente único continuo); aquí transparente. */
+          background: transparent;
           overflow-x: hidden;
         }
         /* Grano/estrellas sutiles */

@@ -9,8 +9,10 @@ export const PROJECT_SCOPED_PARTITIONED = [
   'registrations', 'formativeRegistrations', 'observations', 'formativeEvaluations',
 ] as const;
 
-/** Claves de documento único, por proyecto. */
-export const PROJECT_SCOPED_SINGLE = ['calendarEvents'] as const;
+/** Claves de documento único, por proyecto.
+ *  `muestraPublica` va aquí y NO en las particionadas: sus equipos cruzan cursos
+ *  del mismo nivel, así que no tienen un curso único por el cual repartirse. */
+export const PROJECT_SCOPED_SINGLE = ['calendarEvents', 'muestraPublica'] as const;
 
 /** Claves de documento único, globales (no dependen del proyecto). */
 export const GLOBAL_SINGLE = [

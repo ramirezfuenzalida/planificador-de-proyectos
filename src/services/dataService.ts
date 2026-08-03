@@ -1,6 +1,7 @@
 import {
-  collection, doc, getDoc, getDocs, setDoc, onSnapshot,
+  collection, doc, getDoc, getDocs, setDoc, onSnapshot, runTransaction,
 } from 'firebase/firestore';
+import { fusionarMuestra, type MuestraConLapidas } from './muestraSync';
 import { db } from '../lib/firebase';
 import { PARTITIONED_KEYS, SINGLE_DOC_KEYS, partitionByCourse, mergePartitions } from './partition';
 import {
@@ -69,6 +70,30 @@ export async function save(
     return;
   }
   await setDoc(doc(db, 'app_sync', key), { data }); // fallback global
+}
+
+/**
+ * Guarda la Muestra Pública fusionando dentro de una transacción.
+ *
+ * Es distinto de `save`: la muestra es un documento único compartido por todos
+ * los docentes, así que escribirlo entero borraría el trabajo simultáneo de
+ * otro. La transacción lee el documento y fusiona equipo por equipo antes de
+ * escribir; si alguien más escribe en el intervalo, Firestore reintenta.
+ *
+ * Devuelve la versión final ya fusionada, para que la pantalla la adopte.
+ */
+export async function saveMuestraPublica(
+  local: MuestraConLapidas,
+): Promise<MuestraConLapidas> {
+  const ref = doc(db, 'app_sync', scopedSingleDocId('muestraPublica', activeProjectId));
+
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const remoto = snap.exists() ? (snap.data().data as MuestraConLapidas) : null;
+    const fusionada = fusionarMuestra(local, remoto);
+    tx.set(ref, { data: fusionada });
+    return fusionada;
+  });
 }
 
 /** Registra los onSnapshot (respetando el proyecto activo) y devuelve limpieza. */

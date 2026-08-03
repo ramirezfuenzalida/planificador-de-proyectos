@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Activity, 
-  Search, 
-  Bookmark, 
-  Sparkles, 
-  ArrowLeft, 
-  AlertTriangle, 
-  CheckCircle2, 
-  PlusCircle, 
-  Trash2, 
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import {
+  Activity,
+  Search,
+  Bookmark,
+  Sparkles,
+  ArrowLeft,
+  AlertTriangle,
+  CheckCircle2,
+  PlusCircle,
+  Trash2,
   X,
   Smile,
-  ShieldAlert
+  ShieldAlert,
+  FileDown
 } from 'lucide-react';
 export interface Intervention {
   id: string;
@@ -142,7 +145,9 @@ export default function StudentRiskRadarView({
         let name = `Estudiante ${idx + 1}`;
         let role = ['Coordinador', 'Investigador', 'Mediador', 'Secretario'][idx];
 
-        if (groupInfo[idx]) {
+        // Real = tiene nombre del Sheets. Los placeholder no entran en el radar.
+        const isReal = !!(groupInfo[idx] && groupInfo[idx].name && String(groupInfo[idx].name).trim());
+        if (isReal) {
           name = groupInfo[idx].name;
           role = groupInfo[idx].role;
         }
@@ -224,6 +229,7 @@ export default function StudentRiskRadarView({
           level: course.startsWith('1') ? '1M' : '2M',
           name,
           role,
+          isReal,
           history,
           counts,
           proposed,
@@ -246,8 +252,10 @@ export default function StudentRiskRadarView({
     availableCourses.forEach(c => processCourse(c));
   }
 
-  // Filtrado final para la interfaz
+  // Filtrado final para la interfaz. Se excluyen los cupos placeholder
+  // ("Estudiante N" sin nombre del Sheets) para no inflar el radar ni las métricas.
   const filteredStudents = studentsRiskList.filter(s => {
+    if (!s.isReal) return false;
     if (selectedLevel !== 'All' && s.level !== selectedLevel) return false;
     if (selectedCourse !== 'All' && s.course !== selectedCourse) return false;
     if (selectedRiskFilter !== 'All' && s.riskLevel !== selectedRiskFilter) return false;
@@ -265,6 +273,111 @@ export default function StudentRiskRadarView({
   const mediumCount = filteredStudents.filter(s => s.riskLevel === 'medium').length;
   const stableCount = filteredStudents.filter(s => s.riskLevel === 'stable').length;
   const activeInterventionsCount = filteredStudents.filter(s => s.interventions.length > 0).length;
+
+  // ── Exportar PDF del radar (según filtros activos) para enviar a docentes ──
+  const exportarRiesgoPDF = () => {
+    if (filteredStudents.length === 0) {
+      setToastMessage('No hay estudiantes que coincidan con los filtros.');
+      setTimeout(() => setToastMessage(null), 2600);
+      return;
+    }
+
+    const nivelLabel = selectedLevel === 'All' ? 'Ambos niveles' : selectedLevel === '1M' ? '1° Medios' : '2° Medios';
+    const cursoLabel = selectedCourse === 'All' ? 'Todos los cursos' : selectedCourse;
+    const riesgoLabel = selectedRiskFilter === 'All' ? 'Todos los estados'
+      : selectedRiskFilter === 'critical' ? 'Crítico' : selectedRiskFilter === 'medium' ? 'Medio' : 'Estable';
+
+    const doc = new jsPDF({ unit: 'mm', format: 'letter' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 14;
+
+    doc.setFillColor(239, 68, 68);
+    doc.rect(0, 0, pageW, 4, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Radar de Alerta Temprana', margin, 18);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Nivel: ${nivelLabel}  ·  Curso: ${cursoLabel}  ·  Estado: ${riesgoLabel}  ·  ${new Date().toLocaleDateString('es-CL')}`, margin, 24);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text(`Críticos: ${criticalCount}     Medios: ${mediumCount}     Estables: ${stableCount}`, margin, 30);
+
+    const groups: { key: string; label: string; color: [number, number, number] }[] = [
+      { key: 'critical', label: 'RIESGO CRÍTICO', color: [220, 38, 38] },
+      { key: 'medium', label: 'RIESGO MEDIO', color: [217, 119, 6] },
+      { key: 'stable', label: 'DESEMPEÑO ESTABLE', color: [13, 148, 136] },
+    ];
+
+    let y = 37;
+    for (const g of groups) {
+      const rows = filteredStudents
+        .filter(s => s.riskLevel === g.key)
+        .sort((a, b) => a.course.localeCompare(b.course) || a.name.localeCompare(b.name))
+        .map(s => [
+          s.name,
+          s.course,
+          s.role,
+          String(s.activeStreak),
+          s.grade != null ? s.grade.toFixed(1) : (s.proposed != null ? s.proposed.toFixed(1) : '—'),
+          s.projectedGrade != null ? s.projectedGrade.toFixed(1) : '—',
+          s.riskReason || '',
+        ]);
+      if (rows.length === 0) continue;
+
+      if (y > pageH - 30) { doc.addPage(); y = 16; }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(g.color[0], g.color[1], g.color[2]);
+      doc.text(`${g.label} (${rows.length})`, margin, y);
+
+      autoTable(doc, {
+        startY: y + 2,
+        head: [['Estudiante', 'Curso', 'Rol', 'Racha N/L', 'Nota', 'Proy.', 'Motivo']],
+        body: rows,
+        theme: 'striped',
+        headStyles: { fillColor: g.color, textColor: 255, fontStyle: 'bold', fontSize: 8, halign: 'center' },
+        bodyStyles: { fontSize: 8, textColor: [30, 41, 59], valign: 'middle' },
+        columnStyles: {
+          0: { fontStyle: 'bold', cellWidth: 32 },
+          1: { cellWidth: 20, halign: 'center' },
+          2: { cellWidth: 20 },
+          3: { cellWidth: 15, halign: 'center' },
+          4: { cellWidth: 12, halign: 'center' },
+          5: { cellWidth: 12, halign: 'center' },
+          6: { cellWidth: 'auto' },
+        },
+        margin: { left: margin, right: margin },
+      });
+      y = (doc as any).lastAutoTable.finalY + 9;
+    }
+
+    // Pie en todas las páginas
+    const total = doc.getNumberOfPages();
+    for (let i = 1; i <= total; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text('Radar de Alerta · ZenitApp · Seguimiento 2026', margin, pageH - 8);
+      doc.text(`Página ${i} de ${total}`, pageW - margin, pageH - 8, { align: 'right' });
+    }
+
+    const nombre = `Radar_Alerta_${nivelLabel}_${cursoLabel}`.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '') + '.pdf';
+
+    // Enviar: hoja de compartir nativa (iPad/iPhone → WhatsApp/Mail); si no, descarga.
+    const blob = doc.output('blob');
+    const file = new File([blob], nombre, { type: 'application/pdf' });
+    const nav = navigator as any;
+    if (nav.canShare && nav.canShare({ files: [file] })) {
+      nav.share({ files: [file], title: 'Radar de Alerta' }).catch(() => { doc.save(nombre); });
+    } else {
+      doc.save(nombre);
+    }
+  };
 
   // Intervención Pedagógica: Registrar acción en Supabase (Guardar en formativeEvaluations local/remoto)
   const handleAddIntervention = (e: React.FormEvent) => {
@@ -436,6 +549,23 @@ export default function StudentRiskRadarView({
           color: #1e293b;
           border-color: #cbd5e1;
         }
+
+        .srr-export-btn {
+          border: none;
+          background: linear-gradient(135deg, #ef4444, #b91c1c);
+          padding: 10px 18px;
+          border-radius: 12px;
+          font-size: 0.85rem;
+          font-weight: 800;
+          color: #fff;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: transform 0.2s, box-shadow 0.2s;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 6px 18px rgba(239,68,68,0.35);
+        }
+        .srr-export-btn:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 26px rgba(239,68,68,0.45); }
 
         /* METRICS PANELS */
         .srr-metrics-grid {
@@ -1047,9 +1177,14 @@ export default function StudentRiskRadarView({
           <h1><Activity size={28} color="#ef4444" /> ZenitApp Radar de alertas de evaluación.</h1>
           <p>Detección de inasistencias/NL acumulados y bitácora colaborativa de acciones pedagógicas.</p>
         </div>
-        <button className="srr-back-btn" onClick={onBackToDashboard}>
-          <ArrowLeft size={16} /> Volver al Dashboard
-        </button>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button className="srr-export-btn" onClick={exportarRiesgoPDF} title="Exportar/enviar el listado según los filtros activos">
+            <FileDown size={16} /> Exportar PDF ({filteredStudents.length})
+          </button>
+          <button className="srr-back-btn" onClick={onBackToDashboard}>
+            <ArrowLeft size={16} /> Volver al Dashboard
+          </button>
+        </div>
       </div>
 
       {/* ── METRICS GRID ── */}
@@ -1371,6 +1506,9 @@ export default function StudentRiskRadarView({
                         <option value="Citación Apoderado">📞 Citación a Apoderado</option>
                         <option value="Adecuación Curricular">✏️ Adecuación Curricular</option>
                         <option value="Compromiso Alumno">🤝 Compromiso Escrito del Estudiante</option>
+                        <option value="Tutoría Individual">🎓 Tutoría Individual</option>
+                        <option value="Tutoría Grupal">👥 Tutoría Grupal</option>
+                        <option value="Plan Restaurativo">🕊️ Plan Restaurativo</option>
                       </select>
                     </div>
 

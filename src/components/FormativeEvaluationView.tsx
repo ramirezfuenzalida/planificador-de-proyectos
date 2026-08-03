@@ -6,6 +6,7 @@ import {
   User,
   Search,
   Check,
+  CheckCheck,
   Edit3,
   FileSpreadsheet,
   Info,
@@ -15,6 +16,11 @@ import {
 } from 'lucide-react';
 import Toast from './Toast';
 import StudentDetailModal from './StudentDetailModal';
+import {
+  getStudentHistory as consolidarHistorial,
+  calculateProposedGrade,
+  formatGrade,
+} from '../utils/formativeGrades';
 
 interface FormativeEvaluationViewProps {
   courses1M: string[];
@@ -28,13 +34,6 @@ interface FormativeEvaluationViewProps {
   initialCourse?: string;
   dynamicGroups: Record<string, any>;
 }
-
-const formatGrade = (grade: any): string => {
-  if (grade === undefined || grade === null || grade === '') return '';
-  const num = parseFloat(grade);
-  if (isNaN(num)) return '';
-  return num.toFixed(1);
-};
 
 export default function FormativeEvaluationView({
   courses1M,
@@ -74,69 +73,10 @@ export default function FormativeEvaluationView({
 
   const courseTag = getCourseTag(selectedCourse);
 
-  // 1. Obtener historial de evaluaciones para un alumno en particular
-  const getStudentHistory = (groupId: number, studentId: string) => {
-    const history: { classId: string; date: string; status: 'green' | 'yellow' | 'red' | 'none' }[] = [];
-
-    levelClasses.forEach((clase) => {
-      const classId = clase.clase;
-      const trackingKey = `${courseTag}-C${classId}-G${groupId}`;
-      const trackingData = formativeRegistrations[trackingKey];
-
-      if (trackingData) {
-        const studentStatus = trackingData.students?.[studentId] || 'none';
-        const groupStatus = trackingData.group || 'none';
-
-        // Heredar del grupo si es 'none' y el grupo tiene algo
-        let finalStatus: 'green' | 'yellow' | 'red' | 'none' = studentStatus;
-        if (finalStatus === 'none' && groupStatus !== 'none') {
-          finalStatus = groupStatus;
-        }
-
-        if (finalStatus !== 'none') {
-          history.push({
-            classId,
-            date: clase.fecha,
-            status: finalStatus
-          });
-        }
-      }
-    });
-
-    return history;
-  };
-
-  // 2. Calcular la nota propuesta según tabla de indicadores de logro institucional
-  //    D  (Desarrollado)       86%–100% → 7
-  //    ED (En Desarrollo)      73%–85%  → 6
-  //    DI (Desarrollo Inicial) 67%–72%  → 5
-  //    ND (No Desarrollado)    50%–66%  → 4
-  //                            26%–49%  → 3
-  //                             1%–25%  → 2
-  //                                0%   → 1
-  const calculateProposedGrade = (history: any[]) => {
-    const total = history.length;
-    if (total === 0) return null;
-
-    let points = 0;
-    history.forEach((h) => {
-      if (h.status === 'green') points += 1.0;
-      else if (h.status === 'yellow') points += 0.5;
-    });
-
-    const pct = total > 0 ? (points / total) * 100 : 0;
-
-    let grade: number;
-    if (pct >= 86)      grade = 7;
-    else if (pct >= 73) grade = 6;
-    else if (pct >= 67) grade = 5;
-    else if (pct >= 50) grade = 4;
-    else if (pct >= 26) grade = 3;
-    else if (pct >= 1)  grade = 2;
-    else                grade = 1;
-
-    return parseFloat(grade.toFixed(1));
-  };
+  // 1 y 2. El consolidado y la tabla de notas viven en utils/formativeGrades.ts,
+  //        compartidos con la Muestra Pública para que exista una sola fuente.
+  const getStudentHistory = (groupId: number, studentId: string) =>
+    consolidarHistorial(courseTag, groupId, studentId, levelClasses, formativeRegistrations);
 
   // 3. Manejar cambio de nota final
   const handleGradeChange = (groupId: number, studentId: string, grade: string) => {
@@ -179,7 +119,7 @@ export default function FormativeEvaluationView({
     setTimeout(() => setToastMessage(null), 2000);
   };
 
-  // 5. Aplicar la nota propuesta como nota oficial
+  // 5. Aplicar la nota propuesta como nota oficial (uno por uno)
   const acceptProposedGrade = (groupId: number, studentId: string, proposedGrade: number) => {
     handleGradeChange(groupId, studentId, proposedGrade.toString());
   };
@@ -195,7 +135,10 @@ export default function FormativeEvaluationView({
       let name = `Estudiante ${idx + 1}`;
       let role = ['Coordinador', 'Investigador', 'Mediador', 'Secretario'][idx];
 
-      if (groupInfo[idx]) {
+      // Real = tiene nombre traído desde el Sheets. Los placeholder ("Estudiante N")
+      // NO se contabilizan en promedios ni % de rendimiento.
+      const isReal = !!(groupInfo[idx] && groupInfo[idx].name && String(groupInfo[idx].name).trim());
+      if (isReal) {
         name = groupInfo[idx].name;
         role = groupInfo[idx].role;
       }
@@ -218,6 +161,7 @@ export default function FormativeEvaluationView({
         studentId: sid,
         name,
         role,
+        isReal,
         history,
         proposed,
         grade: formatGrade(currentEval.grade),
@@ -235,14 +179,67 @@ export default function FormativeEvaluationView({
     `grupo ${s.groupId}`.includes(searchQuery.toLowerCase())
   );
 
+  // Estudiantes con nota propuesta que aún NO tienen calificación oficial:
+  // son los que el botón "Aceptar calificaciones" completará de una sola vez
+  // (respeta las notas ya puestas a mano).
+  const pendientesPropuesta = filteredStudents.filter((s) => s.isReal && s.proposed && !s.grade);
+
+  // Aceptar TODAS las notas propuestas pendientes de una sola vez.
+  const applyAllProposed = () => {
+    if (pendientesPropuesta.length === 0) {
+      setToastMessage('No hay notas propuestas por aceptar');
+      setTimeout(() => setToastMessage(null), 2200);
+      return;
+    }
+    setFormativeEvaluations((old) => {
+      const next: Record<string, any> = { ...old };
+      for (const s of pendientesPropuesta) {
+        const prev = next[s.evalKey] || { grade: '', comment: '' };
+        next[s.evalKey] = { ...prev, grade: formatGrade(s.proposed) };
+      }
+      return next;
+    });
+    const n = pendientesPropuesta.length;
+    setToastMessage(`${n} ${n === 1 ? 'calificación aceptada' : 'calificaciones aceptadas'}`);
+    setTimeout(() => setToastMessage(null), 2600);
+  };
+
+  // Estudiantes que ya tienen una calificación oficial (para poder borrarlas en masa).
+  const conNota = filteredStudents.filter((s) => s.isReal && s.grade);
+
+  // Borrar TODAS las calificaciones del curso actual de una sola vez (con confirmación).
+  const clearAllGrades = () => {
+    if (conNota.length === 0) return;
+    const ok = window.confirm(
+      `¿Borrar la calificación de ${conNota.length} ${conNota.length === 1 ? 'estudiante' : 'estudiantes'} en ${selectedCourse}?\n\nLa nota propuesta por el sistema se mantiene; solo se limpia la calificación oficial.`
+    );
+    if (!ok) return;
+    setFormativeEvaluations((old) => {
+      const next: Record<string, any> = { ...old };
+      for (const s of conNota) {
+        const prev = next[s.evalKey] || { grade: '', comment: '' };
+        next[s.evalKey] = { ...prev, grade: '' };
+      }
+      return next;
+    });
+    const n = conNota.length;
+    setToastMessage(`${n} ${n === 1 ? 'calificación borrada' : 'calificaciones borradas'}`);
+    setTimeout(() => setToastMessage(null), 2600);
+  };
+
   // 7. Calcular Estadísticas Consolidadas del Curso
+  //    Solo estudiantes REALES (con nombre del Sheets). Los placeholder
+  //    "Estudiante N" no distorsionan promedios ni % de rendimiento.
   const stats = (() => {
     let totalEvaluated = 0;
     let totalWithGrade = 0;
     let gradesSum = 0;
     let distribution = { green: 0, yellow: 0, red: 0 };
+    let totalReales = 0;
 
     studentsList.forEach((s) => {
+      if (!s.isReal) return;
+      totalReales++;
       if (s.history.length > 0) totalEvaluated++;
       if (s.grade && !isNaN(parseFloat(s.grade))) {
         totalWithGrade++;
@@ -264,7 +261,7 @@ export default function FormativeEvaluationView({
     return {
       average,
       totalEvaluated,
-      totalStudents: studentsList.length,
+      totalStudents: totalReales,
       gradedCount: totalWithGrade,
       percentages,
       distribution
@@ -274,7 +271,8 @@ export default function FormativeEvaluationView({
   // 8. Exportación CSV de las calificaciones formativas
   const exportToCSV = () => {
     const headers = ['Curso', 'Grupo', 'Estudiante', 'Rol', 'Evaluaciones Registradas', 'Logrados', 'Por lograr', 'No logrados', 'Nota Propuesta', 'Nota Final (Calificación)', 'Retroalimentación'];
-    const rows = studentsList.map((s) => [
+    // Solo estudiantes reales (con nombre del Sheets); se omiten los "Estudiante N".
+    const rows = studentsList.filter((s) => s.isReal).map((s) => [
       selectedCourse,
       `Grupo ${s.groupId}`,
       s.name,
@@ -323,14 +321,65 @@ export default function FormativeEvaluationView({
             <p>Consolidación de logros (L / PL / NL) y asignación de calificaciones.</p>
           </div>
           <div className="fh-controls" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <button 
+            <button
               className="save-revision-btn-premium"
-              style={{ 
-                padding: '0.5rem 1rem', 
-                height: 'auto', 
+              style={{
+                padding: '0.5rem 1rem',
+                height: 'auto',
                 minHeight: 'auto',
-                display: 'flex', 
-                alignItems: 'center', 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                borderRadius: '12px',
+                background: pendientesPropuesta.length > 0
+                  ? 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)'
+                  : 'rgba(13,148,136,0.12)',
+                color: pendientesPropuesta.length > 0 ? 'white' : '#0f766e',
+                border: pendientesPropuesta.length > 0 ? 'none' : '1px solid rgba(13,148,136,0.25)',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: pendientesPropuesta.length > 0 ? 'pointer' : 'default',
+                boxShadow: pendientesPropuesta.length > 0 ? '0 4px 15px rgba(13, 148, 136, 0.3)' : 'none',
+              }}
+              onClick={applyAllProposed}
+              disabled={pendientesPropuesta.length === 0}
+              title="Aplicar la nota propuesta a todos los estudiantes que aún no tienen calificación"
+            >
+              <CheckCheck size={16} />
+              Aceptar calificaciones{pendientesPropuesta.length > 0 ? ` (${pendientesPropuesta.length})` : ''}
+            </button>
+            <button
+              className="save-revision-btn-premium"
+              style={{
+                padding: '0.5rem 1rem',
+                height: 'auto',
+                minHeight: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                borderRadius: '12px',
+                background: conNota.length > 0 ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.1)',
+                color: conNota.length > 0 ? '#dc2626' : '#94a3b8',
+                border: conNota.length > 0 ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(148,163,184,0.2)',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: conNota.length > 0 ? 'pointer' : 'default',
+              }}
+              onClick={clearAllGrades}
+              disabled={conNota.length === 0}
+              title="Borrar todas las calificaciones oficiales del curso (mantiene la nota propuesta)"
+            >
+              <Trash2 size={16} />
+              Borrar calificaciones{conNota.length > 0 ? ` (${conNota.length})` : ''}
+            </button>
+            <button
+              className="save-revision-btn-premium"
+              style={{
+                padding: '0.5rem 1rem',
+                height: 'auto',
+                minHeight: 'auto',
+                display: 'flex',
+                alignItems: 'center',
                 gap: '8px',
                 borderRadius: '12px',
                 background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
@@ -685,8 +734,8 @@ export default function FormativeEvaluationView({
                     <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4b5563', display: 'block', marginBottom: '4px' }}>Nota Calificación</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div className="custom-select-wrapper" style={{ flex: 1, minWidth: '100px' }}>
-                        <select 
-                          value={student.grade} 
+                        <select
+                          value={student.grade}
                           onChange={(e) => handleGradeChange(student.groupId, student.studentId, e.target.value)}
                           style={{ padding: '0.4rem 1.5rem 0.4rem 0.75rem', fontSize: '0.85rem', fontWeight: 700, width: '100%' }}
                         >
@@ -706,16 +755,9 @@ export default function FormativeEvaluationView({
                           type="button"
                           onClick={() => handleGradeChange(student.groupId, student.studentId, '')}
                           style={{
-                            padding: '7px',
-                            background: '#fee2e2',
-                            border: '1px solid #fca5a5',
-                            borderRadius: '8px',
-                            color: '#ef4444',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s',
+                            padding: '7px', background: '#fee2e2', border: '1px solid #fca5a5',
+                            borderRadius: '8px', color: '#ef4444', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
                           }}
                           onMouseOver={(e) => (e.currentTarget.style.background = '#fecaca')}
                           onMouseOut={(e) => (e.currentTarget.style.background = '#fee2e2')}

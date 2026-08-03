@@ -47,13 +47,49 @@ export const getMaterialLinks = (cells: any[]) => {
 
 export const ensureHttps = (url: any) => {
   if (!url) return "#";
-  const s = String(url).trim();
+  let s = String(url).trim();
   if (!s || s === "null" || s === "") return "#";
+
+  // Si la celda trae texto alrededor del enlace (ej. "1MA: https://... .pptx",
+  // "Presentación: www.…"), extrae SOLO la URL. Sin esto, el <a> quedaba en "#"
+  // y abría la portada en vez del material.
+  const urlMatch = s.match(/https?:\/\/[^\s]+/i) || s.match(/\bwww\.[^\s]+/i);
+  if (urlMatch) s = urlMatch[0];
+  // Limpia puntuación/paréntesis pegados al final.
+  s = s.replace(/[)\]\}>.,;]+$/, "");
+
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
   if (s.startsWith("www.")) return `https://${s}`;
-  if (s.includes("docs.google.com") || s.includes("canva.com") || s.includes("sites.google.com")) {
-    const cleaned = s.replace(/^https?:\/\//, "");
-    return `https://${cleaned}`;
+  // Cualquier cosa que parezca un dominio (contiene un punto y sin espacios) se
+  // abre con https — cubre PowerPoint/OneDrive/SharePoint/Office además de Google.
+  if (/^[^\s]+\.[^\s]+$/.test(s)) {
+    return `https://${s.replace(/^https?:\/\//, "")}`;
   }
   return "#";
+};
+
+/**
+ * URL para ABRIR una presentación. Se abre el enlace TAL CUAL (Drive, OneDrive,
+ * SharePoint, Slides o archivo directo): cada plataforma/dispositivo usa su propio
+ * visor. Antes se envolvía en el visor de Office online, pero ese solo funciona con
+ * archivos públicos de acceso directo y fallaba ("no se pudo abrir el archivo") con
+ * enlaces de Drive/OneDrive o privados.
+ */
+export const pptViewerUrl = (url: any) => {
+  const s = ensureHttps(url);
+  if (s === "#") return s;
+
+  // Google Slides / Presentaciones: usar /preview LIMPIO (sin ?rtpof/&sd/&ouid ni
+  // /edit). Es el modo más compatible para ver en iPhone/iPad, siempre que el
+  // archivo esté compartido. Si es privado, Google igual pedirá permiso/sesión.
+  const slidesId = s.match(/presentation\/d\/([A-Za-z0-9_-]+)/)?.[1];
+  if (slidesId) return `https://docs.google.com/presentation/d/${slidesId}/preview`;
+
+  // Google Drive (archivo): vista previa.
+  if (s.includes("drive.google.com")) {
+    const id = s.match(/\/file\/d\/([A-Za-z0-9_-]+)/)?.[1]
+      || s.match(/[?&]id=([A-Za-z0-9_-]+)/)?.[1];
+    if (id) return `https://drive.google.com/file/d/${id}/preview`;
+  }
+  return s;
 };

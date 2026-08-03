@@ -95,6 +95,122 @@ export interface ProjectsConfig {
   activeProjectId: string;
 }
 
+// ─── ACTA DE GLOBALIZACIÓN (reuniones de equipo docente) ──────────────────
+export interface ActaGlobalizacion {
+  id: string;
+  titulo: string;         // título/motivo de la reunión (opcional)
+  fecha: string;          // yyyy-mm-dd
+  horaInicio: string;     // HH:mm
+  horaFin: string;        // HH:mm
+  lugar: string;          // lugar/modalidad
+  participantes: string[];// nombres seleccionados
+  temas: string;          // Temas de la reunión
+  propuesta: string;      // Propuesta de equipo
+  acuerdos: string;       // Acuerdos tomados
+  createdAt: number;
+  updatedAt: number;
+}
+
+// ─── MUESTRA PÚBLICA (equipos multicurso con nota exportable) ─────────────
+/** Posición del estudiante dentro de su grupo de aula. */
+export type StudentSlot = 's1' | 's2' | 's3' | 's4';
+
+/**
+ * Un integrante de un equipo de muestra. Guardamos su origen de aula
+ * (`courseTag` + `groupId` + `sid`) porque es la única forma de recuperar su
+ * seguimiento formativo: las claves de `formativeRegistrations` son
+ * `${courseTag}-C${clase}-G${groupId}` y dentro viven los slots s1..s4.
+ * `name` se guarda además para detectar si el Sheets reordenó esa posición.
+ */
+export interface MuestraMiembro {
+  curso: string;      // '1 Medio C'
+  courseTag: string;  // '1MC'
+  groupId: number;    // 1..10
+  sid: StudentSlot;
+  name: string;
+  role: string;
+}
+
+/** Una sesión de trabajo del equipo, previa a la muestra. Se crea a mano. */
+export interface SesionMuestra {
+  id: string;
+  fecha: string;          // yyyy-mm-dd
+  tema: string;           // tema u objetivo de la sesión
+  responsable: string;    // docente a cargo de esa sesión
+  acuerdos: string;
+  observaciones: string;
+  realizada: boolean;
+  avance: number;         // 0–100, avance del proyecto del equipo
+}
+
+/** La muestra pública propiamente tal, para este equipo. */
+export interface PresentacionMuestra {
+  fecha: string;          // yyyy-mm-dd
+  hora: string;           // HH:mm
+  lugar: string;          // sala, stand, patio…
+  descripcion: string;    // qué va a presentar el equipo
+  acuerdos: string;       // acuerdos del día de la muestra
+  observaciones: string;  // evaluación del día
+}
+
+export interface MuestraEquipo {
+  id: string;
+  nombre: string;
+  nivel: '1M' | '2M';
+  tematica: string;
+  asignatura: string;
+  docentes: string[];
+  miembros: MuestraMiembro[];
+  /** Bitácora del equipo. Opcionales: los equipos creados antes no las tienen. */
+  sesiones?: SesionMuestra[];
+  presentacion?: PresentacionMuestra;
+  /** Color identificador del equipo (hex). Se asigna al crearlo y se usa en la
+   *  tarjeta y en el PDF; es solo para reconocerlo de un vistazo. Puede faltar
+   *  en equipos creados antes de esta función: hay un color de reserva. */
+  color?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** Paleta de identificación de equipos: tonos distinguibles entre sí. */
+export const COLORES_EQUIPO = [
+  '#ec4899', // rosa
+  '#f59e0b', // ámbar
+  '#10b981', // esmeralda
+  '#3b82f6', // azul
+  '#8b5cf6', // violeta
+  '#ef4444', // rojo
+  '#14b8a6', // turquesa
+  '#f97316', // naranja
+  '#6366f1', // índigo
+  '#84cc16', // lima
+  '#06b6d4', // cian
+  '#d946ef', // fucsia
+] as const;
+
+/** Color de un equipo, con reserva estable para los creados sin color. */
+export function colorDeEquipo(equipo: MuestraEquipo, indice = 0): string {
+  return equipo.color || COLORES_EQUIPO[indice % COLORES_EQUIPO.length];
+}
+
+export interface MuestraPublica {
+  nombre: string;
+  fecha: string;          // yyyy-mm-dd
+  /** Último nivel que se estaba viendo. La muestra contiene equipos de AMBOS
+   *  niveles: el nivel real de cada equipo vive en `MuestraEquipo.nivel`. */
+  nivel: '1M' | '2M';
+  configurada: boolean;   // false → se muestra el botón gigante de arranque
+  equipos: MuestraEquipo[];
+}
+
+export const DEFAULT_MUESTRA_PUBLICA: MuestraPublica = {
+  nombre: '',
+  fecha: '',
+  nivel: '1M',
+  configurada: false,
+  equipos: [],
+};
+
 const emptySource = (): ProjectLevelSource => ({ name: '', sheetId: '', planningTab: '', teamsTab: '' });
 
 export const DEFAULT_PROJECTS_CONFIG: ProjectsConfig = {

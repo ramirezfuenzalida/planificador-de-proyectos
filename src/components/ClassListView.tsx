@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { ChevronLeft, X, MonitorPlay, Users, Calendar, Clock, Sparkles } from 'lucide-react';
+import { ChevronLeft, X, MonitorPlay, Users, Calendar, Clock, Sparkles, Presentation, Globe, Paperclip } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ClassListViewProps {
@@ -41,48 +41,37 @@ const ClassListView: React.FC<ClassListViewProps> = ({
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap');
 
-        /* Shell oscuro cósmico mientras se ve la lista de clases */
-        html.cl-cosmic, body.cl-cosmic { background: #05030f !important; }
+        /* Shell oscuro cósmico: la imagen de universo + velo van en el BODY (detrás
+           de TODO), así encabezado y contenido comparten un fondo continuo sin franja. */
+        html.cl-cosmic, body.cl-cosmic {
+          background:
+            radial-gradient(1000px 700px at 20% -10%, rgba(13,148,136,0.18), transparent 60%),
+            radial-gradient(900px 700px at 100% 0%, rgba(79,70,229,0.22), transparent 55%),
+            linear-gradient(180deg, rgba(5,3,15,0.55) 0%, rgba(5,3,15,0.86) 100%),
+            url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=2400&q=90&auto=format&fit=crop') center / cover no-repeat,
+            #05030f !important;
+        }
         body.cl-cosmic .app-window { background: transparent !important; }
         body.cl-cosmic .main-board { background: transparent !important; }
         body.cl-cosmic .main-board:before { display: none !important; }
         body.cl-cosmic .mobile-nav-header {
-          background: rgba(6,4,18,0.55) !important;
-          -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
-          border-bottom: none !important; padding-top: env(safe-area-inset-top, 0px);
+          background: transparent !important;
+          -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+          border-bottom: none !important;
+          padding: calc(env(safe-area-inset-top, 0px) + 1rem) 1.25rem 1rem 1.25rem !important; gap: 0.9rem !important;
         }
         body.cl-cosmic .mobile-nav-brand { color: #fff !important; }
         body.cl-cosmic .mobile-menu-btn { background: rgba(255,255,255,0.08) !important; color: #5eead4 !important; }
 
         .cl-root {
           position: relative; min-height: 100vh; font-family: 'Manrope', sans-serif; color: #fff;
-          background: #05030f; /* base oscura: nunca queda blanca en la transición */
+          background: transparent; /* el fondo lo pone el body (imagen + velo continuo) */
           padding:
             max(24px, calc(env(safe-area-inset-top,0px) + 12px))
             calc(20px + env(safe-area-inset-right,0px))
             160px
             calc(20px + env(safe-area-inset-left,0px));
           overflow-x: hidden;
-        }
-        /* ── FONDO DE UNIVERSO (imagen premium) ── */
-        .cl-root::before {
-          content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-          background-image: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=2400&q=90&auto=format&fit=crop');
-          background-size: cover; background-position: center;
-          filter: brightness(0.55) saturate(1.25) contrast(1.05);
-          animation: cl-drift 60s ease-in-out infinite alternate;
-        }
-        @keyframes cl-drift {
-          0% { transform: scale(1.06) translate(0,0); }
-          100% { transform: scale(1.12) translate(-1.5%, 1%); }
-        }
-        /* Velo para legibilidad + tinte cósmico */
-        .cl-root::after {
-          content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-          background:
-            radial-gradient(1000px 700px at 20% -10%, rgba(13,148,136,0.18), transparent 60%),
-            radial-gradient(900px 700px at 100% 0%, rgba(79,70,229,0.22), transparent 55%),
-            linear-gradient(180deg, rgba(5,3,15,0.35) 0%, rgba(5,3,15,0.75) 100%);
         }
         .cl-shell { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; }
 
@@ -166,7 +155,13 @@ const ClassListView: React.FC<ClassListViewProps> = ({
 
         .cl-top { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; }
         .cl-num { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.6rem; letter-spacing: -0.02em; color: var(--accent); }
+        .cl-badges { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
         .cl-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.06em; padding: 4px 9px; border-radius: 100px; color: #a5f3fc; background: rgba(6,182,212,0.16); border: 1px solid rgba(165,243,252,0.28); }
+        /* Variantes por tipo de material (color propio para identificarlas de un vistazo) */
+        .cl-badge.canva { color: #a5f3fc; background: rgba(6,182,212,0.16); border-color: rgba(165,243,252,0.28); }
+        .cl-badge.ppt   { color: #fdba74; background: rgba(234,88,12,0.18);  border-color: rgba(253,186,116,0.32); }
+        .cl-badge.sites { color: #93c5fd; background: rgba(37,99,235,0.18);  border-color: rgba(147,197,253,0.32); }
+        .cl-badge.other { color: #d8b4fe; background: rgba(147,51,234,0.18);  border-color: rgba(216,180,254,0.32); }
         .cl-main { position: relative; z-index: 1; }
         .cl-label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
         .cl-obj { display: block; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.02rem; line-height: 1.28; color: #fff; letter-spacing: -0.01em; }
@@ -209,9 +204,20 @@ const ClassListView: React.FC<ClassListViewProps> = ({
               >
                 <div className="cl-top">
                   <span className="cl-num">#{clsId}</span>
-                  {session.canvaLink && (
-                    <span className="cl-badge"><MonitorPlay size={12} /> CANVA</span>
-                  )}
+                  <span className="cl-badges">
+                    {session.canvaLink && (
+                      <span className="cl-badge canva"><MonitorPlay size={12} /> CANVA</span>
+                    )}
+                    {session.pptLink && (
+                      <span className="cl-badge ppt"><Presentation size={12} /> PPT</span>
+                    )}
+                    {session.sitesLink && (
+                      <span className="cl-badge sites"><Globe size={12} /> SITES</span>
+                    )}
+                    {session.otherLink && (
+                      <span className="cl-badge other"><Paperclip size={12} /> MATERIAL</span>
+                    )}
+                  </span>
                 </div>
 
                 <div className="cl-main">

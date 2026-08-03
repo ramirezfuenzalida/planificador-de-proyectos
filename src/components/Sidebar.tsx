@@ -14,6 +14,8 @@ import {
   Wifi,
   Award,
   Calendar,
+  NotebookPen,
+  Users,
   LogOut,
   Settings,
   KeyRound,
@@ -22,7 +24,8 @@ import {
   X,
   AlertCircle,
   CheckCircle2,
-  Shield
+  Shield,
+  Megaphone
 } from 'lucide-react';
 import { cambiarContrasena, traducirError } from '../services/authService';
 
@@ -60,7 +63,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   handleBackToCourses,
   handleCourseSelect,
   isSyncing,
-  lastSyncTime,
   onRefreshData,
   isLoadingData,
   currentUserRole = 'reader',
@@ -73,6 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [isGeneralExpanded, setIsGeneralExpanded] = useState(true);
   const [isNivelesExpanded, setIsNivelesExpanded] = useState(true);
   const [isEvaluacionExpanded, setIsEvaluacionExpanded] = useState(true);
+  const [isMuestraExpanded, setIsMuestraExpanded] = useState(true);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showChangePwModal, setShowChangePwModal] = useState(false);
@@ -84,6 +87,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [now, setNow] = useState(new Date());
+
+  // Reloj en vivo (hora real del dispositivo), se actualiza cada 20s.
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 20000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -102,7 +112,10 @@ const Sidebar: React.FC<SidebarProps> = ({
     setPasswordStrength(score);
   }, [newPassword]);
 
-  const isMobile = windowWidth < 768;
+  // La barra lateral es overlay (deslizable con hamburguesa) hasta 1024px —
+  // iPad incluido — para no duplicar el encabezado ni comprimir el contenido.
+  // Debe coincidir con el breakpoint del CSS (@media width<=1024px).
+  const isMobile = windowWidth <= 1024;
   const isAdmin = currentUserRole === 'admin';
 
   const hasPermission = (viewId: string): boolean => {
@@ -158,6 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'formative-tracking', label: 'Seguimiento Formativo', icon: <Sparkles size={17} />, onClick: () => { setView('formative-tracking'); setIsMobileSidebarOpen(false); }, colorClass: 'icon-teal' },
     { id: 'tracking-history', label: 'Historial', icon: <History size={17} />, onClick: () => { setView('tracking-history'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-amber' },
     { id: 'smart-calendar', label: 'Calendario Inteligente', icon: <Calendar size={17} />, onClick: () => { setView('smart-calendar'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-blue' },
+    { id: 'acta-globalizacion', label: 'Acta de Globalización', icon: <NotebookPen size={17} />, onClick: () => { setView('acta-globalizacion'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-violet' },
   ];
 
   const navItems = allNavItems.filter(item => hasPermission(item.id));
@@ -166,6 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'formative-evaluation', label: 'Evaluación Formativa', icon: <Award size={17} />, onClick: () => { setView('formative-evaluation'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-teal' },
     { id: 'dashboard-general', label: 'Dashboard', icon: <LayoutGrid size={17} />, onClick: () => { setView('dashboard-general'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-sky' },
     { id: 'student-risk-radar', label: 'Radar de Alerta', icon: <Shield size={17} />, onClick: () => { setView('student-risk-radar'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-amber' },
+    { id: 'student-profile', label: 'Estudiantes', icon: <Users size={17} />, onClick: () => { setView('student-profile'); setActiveCourse(null); setIsMobileSidebarOpen(false); }, colorClass: 'icon-sky' },
   ];
 
   const evalItems = allEvalItems.filter(item => hasPermission(item.id));
@@ -384,6 +399,9 @@ const Sidebar: React.FC<SidebarProps> = ({
         initial={false}
         animate={{ x: isMobile ? (isMobileSidebarOpen ? 0 : '-100%') : 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        // En modo overlay (≤1024, iPad/móvil) fijamos la posición por JS para que la
+        // barra NO reserve espacio aunque el Safari no soporte la media query de rango.
+        style={isMobile ? { position: 'fixed', top: 0, left: 0, bottom: 0, height: '100dvh', zIndex: 1000 } : undefined}
       >
         {/* ── HEADER ── */}
         <div className="sb2-header">
@@ -604,6 +622,50 @@ const Sidebar: React.FC<SidebarProps> = ({
             </>
           )}
 
+          {/* MUESTRA PÚBLICA — sección propia, entre Evaluación y Administración */}
+          {hasPermission('muestra-publica') && (
+            <>
+              <button
+                className="sb2-section-header"
+                onClick={() => setIsMuestraExpanded(!isMuestraExpanded)}
+                style={{ marginTop: '1.75rem' }}
+                type="button"
+              >
+                <span>MUESTRA PÚBLICA</span>
+                <motion.span
+                  animate={{ rotate: isMuestraExpanded ? 0 : -90 }}
+                  transition={{ duration: 0.15 }}
+                  className="sb2-section-chevron"
+                >
+                  <ChevronDown size={11} />
+                </motion.span>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {isMuestraExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <nav className="sb2-nav">
+                      <button
+                        className={`sb2-nav-item ${view === 'muestra-publica' ? 'active' : ''}`}
+                        onClick={() => { setView('muestra-publica'); setActiveCourse(null); setIsMobileSidebarOpen(false); }}
+                      >
+                        <span className="sb2-nav-icon icon-amber"><Megaphone size={17} /></span>
+                        <span className="sb2-nav-label">Muestra Pública</span>
+                        {view === 'muestra-publica' && <span className="sb2-nav-dot" />}
+                      </button>
+                    </nav>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          )}
+
           {/* ADMINISTRACIÓN — solo admin */}
           {isAdmin && (
             <>
@@ -780,7 +842,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* ── INSTITUTION CARD ── */}
           <div className="sb2-institution-card">
             <div className="sb2-inst-logo">
-              <img src="/logo-liceo.png" alt="Liceo William Taylor" />
+              <img src="/logo-proyecto.png" alt="Proyecto · Liceo Bicentenario William Taylor" />
             </div>
             <div className="sb2-inst-info">
               <span className="sb2-inst-name">Liceo William Taylor</span>
@@ -795,12 +857,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               <span>{isSyncing ? 'Sincronizando…' : 'Online'}</span>
             </div>
             <div className="sb2-meta-right">
-              {lastSyncTime && !isSyncing && (
-                <span className="sb2-meta-time">
-                  {lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              )}
-              <span className="sb2-version">1.02.07</span>
+              <span className="sb2-meta-time">
+                {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className="sb2-version">1.02.14</span>
             </div>
           </div>
 

@@ -6,10 +6,11 @@ import {
 } from 'lucide-react';
 import { useRef } from 'react';
 import { alCambiarSesion, cerrarSesion } from './services/authService';
-import { loadAll, save, subscribe, setActiveProject } from './services/dataService';
+import { loadAll, save, subscribe, setActiveProject, saveMuestraPublica } from './services/dataService';
+import { fusionarMuestra } from './services/muestraSync';
 import { parseTeamsGrid } from './utils/sheets';
-import { DEFAULT_PROJECTS_CONFIG } from './types';
-import type { ProjectsConfig, Project } from './types';
+import { DEFAULT_PROJECTS_CONFIG, DEFAULT_MUESTRA_PUBLICA } from './types';
+import type { ProjectsConfig, Project, ActaGlobalizacion, MuestraPublica } from './types';
 import './App.css';
 
 // Components
@@ -29,6 +30,9 @@ import SmartCalendarView from './components/SmartCalendarView';
 import StudentRiskRadarView from './components/StudentRiskRadarView';
 import LoginView from './components/LoginView';
 import AdminPanelView from './components/AdminPanelView';
+import ActaGlobalizacionView from './components/ActaGlobalizacionView';
+import StudentProfileView from './components/StudentProfileView';
+import MuestraPublicaView from './components/MuestraPublicaView';
 import type { CalendarEvent } from './components/SmartCalendarView';
 import { studentGroups2M } from './utils/studentGroups';
 
@@ -40,12 +44,14 @@ const DEFAULT_MENU_PERMISSIONS: Record<string, string[]> = {
   admin: [
     'courses', 'analytics', 'reports', 'formative-tracking',
     'tracking-history', 'smart-calendar', 'formative-evaluation',
-    'dashboard-general', 'student-risk-radar', 'admin-panel'
+    'dashboard-general', 'student-risk-radar', 'student-profile', 'acta-globalizacion',
+    'muestra-publica', 'admin-panel'
   ],
   editor: [
     'courses', 'analytics', 'reports', 'formative-tracking',
     'tracking-history', 'smart-calendar', 'formative-evaluation',
-    'dashboard-general', 'student-risk-radar'
+    'dashboard-general', 'student-risk-radar', 'student-profile', 'acta-globalizacion',
+    'muestra-publica'
   ],
   reader: [
     'courses', 'analytics', 'dashboard-general'
@@ -97,6 +103,7 @@ export default function App() {
   const [successInfo, setSuccessInfo] = useState({ title: '', sub: '' });
   const [lastRegisteredColor, setLastRegisteredColor] = useState<string | null>(null);
   const [customEvents, setCustomEvents] = useState<CalendarEvent[]>([]);
+  const [actas, setActas] = useState<ActaGlobalizacion[]>([]);
   const [studentGroups, setStudentGroups] = useState<Record<string, any>>(() => {
     const saved = localStorage.getItem('zenit_student_groups');
     if (saved) {
@@ -110,10 +117,21 @@ export default function App() {
   const [analyticsPeriod, setAnalyticsPeriod] = useState('Anual');
   const [analyticsSubPeriod, setAnalyticsSubPeriod] = useState('Todos');
   const [observations, setObservations] = useState<Record<string, string>>({});
+  const [muestraPublica, setMuestraPublica] = useState<MuestraPublica>(() => {
+    const saved = localStorage.getItem('zenit_muestra_publica');
+    if (saved) {
+      try { return { ...DEFAULT_MUESTRA_PUBLICA, ...JSON.parse(saved) }; } catch (e) { /* corrupto: se usa el default */ }
+    }
+    return DEFAULT_MUESTRA_PUBLICA;
+  });
   const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<Date | null>(null);
 
   const lastRemoteData = useRef<Record<string, string>>({});
+  // Token de la última carga de planillas: solo la más reciente aplica su
+  // resultado. Evita que una carga vieja (config por defecto o red lenta) termine
+  // después y sobrescriba los datos buenos (bug: Segundos Medios desaparecía).
+  const fetchTokenRef = useRef(0);
 
   // ─── EFECTO: ESCUCHAR LA SESIÓN DE FIREBASE ───────────────────────────
   useEffect(() => {
@@ -161,37 +179,35 @@ export default function App() {
   // ─── FUNCIÓN: CARGAR ROLES Y PERMISOS DESDE SUPABASE ──────────────────
   const loadRolesAndPermissions = async (userEmail: string) => {
     try {
-      const data = await loadAll();
+      // Reintenta la carga inicial (config/roles): en móvil una lectura puede
+      // fallar por red intermitente. Si NO se logra, no tocamos nada (para no
+      // dejar el dispositivo en el proyecto por defecto ni sobrescribir Firebase).
+      let data: Record<string, unknown> | null = null;
+      for (let i = 0; i < 3; i++) {
+        try { data = await loadAll(); break; }
+        catch (e) {
+          if (i === 2) throw e;
+          await new Promise(res => setTimeout(res, 900 * (i + 1)));
+        }
+      }
+      if (!data) throw new Error('Sin datos de configuración');
 
       const rolesData = data.teacherRoles as Record<string, string> | undefined;
       const permsData = data.menuPermissions as Record<string, string[]> | undefined;
       const cfgData = data.projectsConfig as ProjectsConfig | undefined;
 
-      // Configuración de proyectos
+      // Configuración de proyectos. Si viene, se aplica. Si NO viene, se usa el
+      // default LOCAL pero NO se escribe en Firebase (una lectura fallida podría
+      // borrar una config real —ej. SAE— y dejar al equipo en STEAM).
       if (cfgData && cfgData.projects?.length) {
         setProjectsConfig(cfgData);
         setActiveProject(cfgData.activeProjectId);
       } else {
-        await save('projectsConfig', DEFAULT_PROJECTS_CONFIG as any);
         setActiveProject(DEFAULT_PROJECTS_CONFIG.activeProjectId);
       }
 
-      let roles = DEFAULT_TEACHER_ROLES;
-      let perms = DEFAULT_MENU_PERMISSIONS;
-
-      if (rolesData && Object.keys(rolesData).length > 0) {
-        roles = rolesData;
-      } else {
-        // Inicializar en Firebase si no existen
-        await save('teacherRoles', DEFAULT_TEACHER_ROLES);
-      }
-
-      if (permsData && Object.keys(permsData).length > 0) {
-        perms = permsData;
-      } else {
-        // Inicializar permisos por defecto
-        await save('menuPermissions', DEFAULT_MENU_PERMISSIONS);
-      }
+      const roles = (rolesData && Object.keys(rolesData).length > 0) ? rolesData : DEFAULT_TEACHER_ROLES;
+      const perms = (permsData && Object.keys(permsData).length > 0) ? permsData : DEFAULT_MENU_PERMISSIONS;
 
       setTeacherRoles(roles);
       setMenuPermissions(perms);
@@ -257,6 +273,7 @@ export default function App() {
       calendarEvents: 'zenit_calendar_events',
       studentGroups: 'zenit_student_groups',
       observations: 'zenit_observations',
+      muestraPublica: 'zenit_muestra_publica',
     };
 
     // Aplica cada clave al estado y refresca el espejo en localStorage.
@@ -281,6 +298,16 @@ export default function App() {
         if (userEmail !== ADMIN_EMAIL) setCurrentUserRole(data[userEmail] || 'reader');
       }
       else if (key === 'menuPermissions') setMenuPermissions(data);
+      else if (key === 'actasGlobalizacion') setActas(Array.isArray(data) ? data : []);
+      // La muestra es un documento compartido: al llegar cambios de otro docente
+      // se fusionan con lo que este tiene en pantalla, en vez de reemplazarlo.
+      // Si no, a quien está escribiendo se le borraría el texto a medio tipear.
+      else if (key === 'muestraPublica') {
+        setMuestraPublica((prev) => fusionarMuestra(
+          prev.configurada ? prev : null,
+          { ...DEFAULT_MUESTRA_PUBLICA, ...data },
+        ) as MuestraPublica);
+      }
     };
 
     try {
@@ -339,6 +366,28 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [formativeRegistrations]);
+
+  // La muestra se guarda solo una vez configurada: así el objeto por defecto no
+  // pisa en Firestore una muestra ya creada mientras llega la carga inicial.
+  // El guardado va por saveMuestraPublica (transacción con fusión) para que dos
+  // docentes editando equipos distintos no se borren el trabajo.
+  useEffect(() => {
+    const dataStr = JSON.stringify(muestraPublica);
+    if (muestraPublica.configurada && dataStr !== lastRemoteData.current['muestraPublica']) {
+      lastRemoteData.current['muestraPublica'] = dataStr;
+      localStorage.setItem('zenit_muestra_publica', dataStr);
+      const timer = setTimeout(() => {
+        saveMuestraPublica(muestraPublica).then((fusionada) => {
+          // Adoptamos el resultado de la fusión: puede traer equipos de otro
+          // docente que no estaban en esta pantalla.
+          lastRemoteData.current['muestraPublica'] = JSON.stringify(fusionada);
+          setMuestraPublica(fusionada as MuestraPublica);
+          setLastSyncTime(new Date());
+        }).catch((err) => console.error('Error guardando la muestra:', err));
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [muestraPublica]);
 
   useEffect(() => {
     const dataStr = JSON.stringify(observations);
@@ -455,7 +504,14 @@ export default function App() {
     });
   };
 
-  const fetchData = async (isManual = false) => {
+  // `que` define qué pestañas refrescar:
+  //   'all'       → planificación (pestaña 1) + equipos (pestaña 2)  [carga inicial]
+  //   'planning'  → solo planificación/clases (pestaña 1)            [botón "Actualizar Planilla"]
+  //   'teams'     → solo grupos/estudiantes (pestaña 2)              [botón "Actualizar Grupos"]
+  const fetchData = async (isManual = false, que: 'all' | 'planning' | 'teams' = 'all') => {
+    const token = ++fetchTokenRef.current; // esta es la carga vigente
+    const wantPlanning = que !== 'teams';
+    const wantTeams = que !== 'planning';
     setLoading(true);
     if (isManual) setIsSyncing(true);
     try {
@@ -466,80 +522,120 @@ export default function App() {
         `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json` +
         (tab ? `&sheet=${encodeURIComponent(tab)}` : '');
 
+      const parseSheet = (text: string) => {
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+        if (!json.table || !json.table.rows) return [];
+        const rows = json.table.rows;
+        const cols = json.table.cols;
+        return rows.map((r: any) => {
+          const obj: any = {};
+          r.c.forEach((cell: any, i: number) => {
+            const val = cell ? (cell.f || cell.v || '') : '';
+            // Siempre guarda por índice como respaldo.
+            obj[`col_${i}`] = val;
+            if (cols[i] && cols[i].label) {
+              // Clave robusta: sin espacios extra (trim), sin tildes (normalize)
+              // y espacios→'_'. Antes "Link Clase " daba "link_clase_" y
+              // "Solicitudes Informática" daba "solicitudes_informática" (con tilde).
+              const key = cols[i].label
+                .trim()
+                .toLowerCase()
+                .normalize('NFD').replace(/[̀-ͯ]/g, '')
+                .replace(/\s+/g, '_');
+              if (key) obj[key] = val;
+            }
+          });
+          return obj;
+        }).filter((clase: any) =>
+          clase.clase &&
+          clase.clase !== 'Clase' &&
+          String(clase.clase).trim() !== ''
+        );
+      };
+
+      // Lee una pestaña con REINTENTOS: en móvil una descarga puede fallar o
+      // volver vacía por red intermitente; reintentamos hasta 3 veces con backoff
+      // y forzamos descarga fresca (cache: 'no-store') para no leer una copia vieja.
       const fetchSheet = async (id: string, tab: string, name: string) => {
         if (!id) return [];
-        try {
-          const response = await fetch(gvizUrl(id, tab));
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          const text = await response.text();
-          const json = JSON.parse(text.substring(47).slice(0, -2));
-          if (!json.table || !json.table.rows) {
-            console.warn(`Planilla "${name}" (pestaña "${tab || 'primera'}"): sin datos legibles.`);
-            return [];
+        let ultimo: any[] = [];
+        for (let intento = 0; intento < 3; intento++) {
+          try {
+            const response = await fetch(gvizUrl(id, tab), { cache: 'no-store' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const text = await response.text();
+            ultimo = parseSheet(text);
+            if (ultimo.length > 0) return ultimo; // éxito con clases
+          } catch (error) {
+            console.warn(`Intento ${intento + 1} falló al leer "${name}" (pestaña "${tab || 'primera'}"):`, error);
           }
-          const rows = json.table.rows;
-          const cols = json.table.cols;
-
-          return rows.map((r: any) => {
-            const obj: any = {};
-            r.c.forEach((cell: any, i: number) => {
-              const val = cell ? (cell.f || cell.v || '') : '';
-              if (cols[i] && cols[i].label) {
-                const key = cols[i].label.toLowerCase().replace(/ /g, '_');
-                obj[key] = val;
-              } else {
-                obj[`col_${i}`] = val;
-              }
-            });
-            return obj;
-          }).filter((clase: any) =>
-            clase.clase &&
-            clase.clase !== 'Clase' &&
-            String(clase.clase).trim() !== ''
-          );
-        } catch (error) {
-          // No romper toda la carga por una planilla con problema: seguir con las demás.
-          console.warn(`No se pudo leer la planilla "${name}" (pestaña "${tab || 'primera'}"):`, error);
-          return [];
+          if (intento < 2) await new Promise(res => setTimeout(res, 800 * (intento + 1)));
         }
+        return ultimo; // tras 3 intentos, devuelve lo que haya (posible [])
       };
 
       // Lee una pestaña de equipos como matriz cruda y la parsea a grupos.
+      // Con reintentos + descarga fresca (móvil): si falla o vuelve vacío, reintenta.
       const fetchTeams = async (id: string, tab: string, nivel: '1' | '2') => {
         if (!id || !tab) return {};
-        try {
-          const response = await fetch(gvizUrl(id, tab));
-          if (!response.ok) return {};
-          const text = await response.text();
-          const json = JSON.parse(text.substring(47).slice(0, -2));
-          const grid: string[][] = (json.table.rows || []).map((r: any) =>
-            (r.c || []).map((cell: any) => (cell && cell.v != null ? String(cell.v).trim() : '')),
-          );
-          return parseTeamsGrid(grid, nivel);
-        } catch (e) {
-          console.error(`Error leyendo equipos (${tab}):`, e);
-          return {};
+        for (let intento = 0; intento < 3; intento++) {
+          try {
+            const response = await fetch(gvizUrl(id, tab), { cache: 'no-store' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const text = await response.text();
+            const json = JSON.parse(text.substring(47).slice(0, -2));
+            const grid: string[][] = (json.table.rows || []).map((r: any) =>
+              (r.c || []).map((cell: any) => (cell && cell.v != null ? String(cell.v).trim() : '')),
+            );
+            const parsed = parseTeamsGrid(grid, nivel);
+            if (Object.keys(parsed).length > 0) return parsed;
+          } catch (e) {
+            console.warn(`Intento ${intento + 1} equipos (${tab}) falló:`, e);
+          }
+          if (intento < 2) await new Promise(res => setTimeout(res, 800 * (intento + 1)));
         }
+        return {};
       };
 
       const [pmData, smData, pmTeams, smTeams] = await Promise.all([
-        fetchSheet(PM_SHEET_ID, activeProject.pm.planningTab, 'Primeros Medios'),
-        fetchSheet(SM_SHEET_ID, activeProject.sm.planningTab, 'Segundos Medios'),
-        fetchTeams(PM_SHEET_ID, activeProject.pm.teamsTab, '1'),
-        fetchTeams(SM_SHEET_ID, activeProject.sm.teamsTab, '2'),
+        wantPlanning ? fetchSheet(PM_SHEET_ID, activeProject.pm.planningTab, 'Primeros Medios') : Promise.resolve([] as any[]),
+        wantPlanning ? fetchSheet(SM_SHEET_ID, activeProject.sm.planningTab, 'Segundos Medios') : Promise.resolve([] as any[]),
+        wantTeams ? fetchTeams(PM_SHEET_ID, activeProject.pm.teamsTab, '1') : Promise.resolve({} as Record<string, any>),
+        wantTeams ? fetchTeams(SM_SHEET_ID, activeProject.sm.teamsTab, '2') : Promise.resolve({} as Record<string, any>),
       ]);
 
-      const equipos = { ...pmTeams, ...smTeams };
-      if (Object.keys(equipos).length > 0) setStudentGroups(equipos);
+      // Equipos (nombres de estudiantes): se FUSIONAN con lo ya cargado, nivel por
+      // nivel. Antes se reemplazaba todo el objeto: si Segundos fallaba pero Primeros
+      // llegaba, quedaban solo los de Primeros y se BORRABAN los de Segundos.
+      // Ahora, si un nivel no trae datos, se conserva el que ya estaba.
+      if (Object.keys(pmTeams).length > 0 || Object.keys(smTeams).length > 0) {
+        setStudentGroups(prev => ({ ...prev, ...pmTeams, ...smTeams }));
+      }
+
+      // Las CLASES (globalData) sí requieren el token: setGlobalData siempre pisa,
+      // así que una carga vieja no debe aplicar y dejar Segundos vacío.
+      if (token !== fetchTokenRef.current) return;
 
       const normalize = (data: any[], type: 'pm' | 'sm') => data.map(item => {
         const rawLink = type === 'pm' ? (item.link_clase || item.col_12 || '') : (item.link_clase || item.col_11 || '');
         const rawDocente = type === 'pm' ? (item.docente_que_realiza_la_clase || item.col_14 || '') : (item.docente_que_realiza_la_clase || item.col_12 || '');
 
+        const low = String(rawLink).toLowerCase();
+        const isCanva = low.includes('canva.com') || low.includes('canva.link');
+        const isSites = low.includes('sites.google.com');
+        // PPT: Google Slides Y TAMBIÉN PowerPoint (.pptx/.ppt, OneDrive, SharePoint, Office).
+        const isPpt = low.includes('docs.google.com/presentation')
+          || low.includes('.pptx') || low.includes('.ppt')
+          || low.includes('powerpoint') || low.includes('officeapps.live')
+          || low.includes('office.com') || low.includes('sharepoint')
+          || low.includes('onedrive') || low.includes('1drv.ms');
+        const isUrl = /https?:\/\/|www\./i.test(low);
         const links = {
-          canva: rawLink.includes('canva.com') || rawLink.includes('canva.link') ? rawLink : null,
-          sites: rawLink.includes('sites.google.com') ? rawLink : null,
-          ppt: rawLink.includes('docs.google.com/presentation') ? rawLink : null
+          canva: isCanva ? rawLink : null,
+          sites: isSites ? rawLink : null,
+          ppt: isPpt ? rawLink : null,
+          // Cualquier otro enlace válido: no se pierde, se ofrece "Abrir material".
+          other: (isUrl && !isCanva && !isSites && !isPpt) ? rawLink : null,
         };
 
         return {
@@ -554,10 +650,13 @@ export default function App() {
           canvaLink: links.canva,
           sitesLink: links.sites,
           pptLink: links.ppt,
+          otherLink: links.other,
           responsable: item.responsable || item.col_9 || '',
           horario: item.horario || item.horario_ || item.col_3 || '',
           dia: item.dia || item.dia_ || item.col_2 || '',
-          hardware: item.solicitudes_informatica || item.col_11 || '',
+          hardware: item.solicitudes_informatica || '',
+          diseno: item.diseno_de_materiales || item.diseno_de_material || '',
+          aulaInvertida: item.aula_invertida || '',
           notes: type === 'pm' ? (item.col_15 || '') : (item.col_13 || '')
         };
       });
@@ -577,26 +676,39 @@ export default function App() {
         return parse(a.fecha) - parse(b.fecha);
       });
 
-      setGlobalData({
-        pm: sortByDate(normalize(pmData, 'pm')),
-        sm: sortByDate(normalize(smData, 'sm'))
-      });
+      // Solo tocar la PLANIFICACIÓN (globalData) si se pidió. En modo 'teams' NO
+      // se pisa globalData (si no, un refresco de grupos borraría las clases).
+      if (wantPlanning) {
+        setGlobalData({
+          pm: sortByDate(normalize(pmData, 'pm')),
+          sm: sortByDate(normalize(smData, 'sm'))
+        });
 
-      const hayPlanillas = !!(PM_SHEET_ID || SM_SHEET_ID);
-      const sinClases = pmData.length === 0 && smData.length === 0;
-      if (hayPlanillas && sinClases) {
-        setToastMessage('No se cargaron clases. Revisa que la planilla sea pública y que el nombre de la pestaña de planificación sea exacto.');
-        setTimeout(() => setToastMessage(null), 6000);
+        const hayPlanillas = !!(PM_SHEET_ID || SM_SHEET_ID);
+        const sinClases = pmData.length === 0 && smData.length === 0;
+        if (hayPlanillas && sinClases) {
+          setToastMessage('No se cargaron clases. Revisa que la planilla sea pública y que el nombre de la pestaña de planificación sea exacto.');
+          setTimeout(() => setToastMessage(null), 6000);
+        } else if (isManual) {
+          setToastMessage(que === 'planning' ? '¡Planificación actualizada exitosamente!' : '¡Planilla actualizada!');
+          setTimeout(() => setToastMessage(null), 3000);
+        }
       } else if (isManual) {
-        setToastMessage("¡Planificación actualizada exitosamente!");
+        // Refresco solo de grupos (pestaña 2).
+        setToastMessage('¡Grupos de estudiantes actualizados!');
         setTimeout(() => setToastMessage(null), 3000);
       }
     } catch (e) {
       console.error("Fetch failed", e);
-      setToastMessage("Error inesperado al leer las planillas. Revisa la configuración del proyecto.");
+      if (token === fetchTokenRef.current) {
+        setToastMessage("Error inesperado al leer las planillas. Revisa la configuración del proyecto.");
+      }
     } finally {
-      setLoading(false);
-      setIsSyncing(false);
+      // Solo la carga vigente controla los indicadores de estado.
+      if (token === fetchTokenRef.current) {
+        setLoading(false);
+        setIsSyncing(false);
+      }
     }
   };
 
@@ -686,6 +798,15 @@ export default function App() {
     setCustomEvents(prev => [...prev, event]);
     setToastMessage("Evento agendado correctamente");
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  // ─── ACTAS DE GLOBALIZACIÓN (reuniones de equipo) ─────────────────────
+  const persistActas = (next: ActaGlobalizacion[]) => {
+    setActas(next);
+    lastRemoteData.current['actasGlobalizacion'] = JSON.stringify(next);
+    save('actasGlobalizacion', next as any)
+      .then(() => setLastSyncTime(new Date()))
+      .catch((e) => console.error('No se pudo guardar el acta:', e));
   };
 
   const handleDeleteCalendarEvent = (id: string) => {
@@ -821,7 +942,7 @@ export default function App() {
           handleCourseSelect={handleCourseSelect}
           isSyncing={isSyncing}
           lastSyncTime={lastSyncTime}
-          onRefreshData={() => fetchData(true)}
+          onRefreshData={() => fetchData(true, 'planning')}
           isLoadingData={loading}
           currentUserRole={currentUserRole}
           userEmail={session?.email || ''}
@@ -871,7 +992,7 @@ export default function App() {
         handleCourseSelect={handleCourseSelect}
         isSyncing={isSyncing}
         lastSyncTime={lastSyncTime}
-        onRefreshData={() => fetchData(true)}
+        onRefreshData={() => fetchData(true, 'planning')}
         isLoadingData={loading}
         currentUserRole={currentUserRole}
         userEmail={session?.email || ''}
@@ -991,7 +1112,8 @@ export default function App() {
             initialCourse={sharedCourse}
             initialLevel={sharedLevel}
             dynamicGroups={studentGroups}
-            onSyncGroups={setStudentGroups}
+            onRefresh={() => fetchData(true, 'teams')}
+            isRefreshing={loading}
           />
         ) : view === 'formative-evaluation' ? (
           <FormativeEvaluationView
@@ -1006,6 +1128,21 @@ export default function App() {
             initialCourse={sharedCourse}
             initialLevel={sharedLevel}
             dynamicGroups={studentGroups}
+          />
+        ) : view === 'muestra-publica' ? (
+          <MuestraPublicaView
+            key="muestra-publica"
+            muestra={muestraPublica}
+            setMuestra={setMuestraPublica}
+            courses1M={courses1M}
+            courses2M={courses2M}
+            globalData={globalData}
+            formativeRegistrations={formativeRegistrations}
+            formativeEvaluations={formativeEvaluations}
+            setFormativeEvaluations={setFormativeEvaluations}
+            getCourseTag={getCourseTag}
+            dynamicGroups={studentGroups}
+            canEdit={currentUserRole === 'admin' || currentUserRole === 'editor'}
           />
         ) : view === 'dashboard-general' ? (
           <DashboardGeneralView
@@ -1031,6 +1168,25 @@ export default function App() {
             setFormativeEvaluations={setFormativeEvaluations}
             getCourseTag={getCourseTag}
             onBackToDashboard={() => setView('dashboard-general')}
+            dynamicGroups={studentGroups}
+          />
+        ) : view === 'acta-globalizacion' ? (
+          <ActaGlobalizacionView
+            key="acta-globalizacion"
+            actas={actas}
+            onSaveActas={persistActas}
+            canEdit={currentUserRole === 'admin' || currentUserRole === 'editor'}
+          />
+        ) : view === 'student-profile' ? (
+          <StudentProfileView
+            key="student-profile"
+            courses1M={courses1M}
+            courses2M={courses2M}
+            globalData={globalData}
+            formativeRegistrations={formativeRegistrations}
+            formativeEvaluations={formativeEvaluations}
+            setFormativeEvaluations={setFormativeEvaluations}
+            getCourseTag={getCourseTag}
             dynamicGroups={studentGroups}
           />
         ) : null}

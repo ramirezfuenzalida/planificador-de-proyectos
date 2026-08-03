@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  BarChart2, Printer, TrendingUp, CheckCircle2, 
-  AlertCircle, XCircle, Users 
+import {
+  BarChart2, Printer, TrendingUp, CheckCircle2,
+  AlertCircle, XCircle, Users
 } from 'lucide-react';
 
 interface ReportsViewProps {
@@ -93,9 +93,9 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <div className="stat-title">No Realizadas</div>
           <div className="stat-value">{globales.noRealizadas}</div>
         </div>
-        <div className="stat-card-premium stat-teal" style={{ background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)', color: 'white' }}>
-          <div className="stat-icon-wrapper" style={{ background: 'rgba(255,255,255,0.2)' }}><TrendingUp size={28} /></div>
-          <div className="stat-title" style={{ opacity: 0.9 }}>% Avance Curricular</div>
+        <div className="stat-card-premium stat-avance">
+          <div className="stat-icon-wrapper"><TrendingUp size={28} /></div>
+          <div className="stat-title">% Avance Curricular</div>
           <div className="stat-value" style={{ fontSize: '2.5rem' }}>{avanceGlobal}%</div>
         </div>
       </div>

@@ -147,11 +147,11 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
               <User size={24} />
             </div>
             <div className="modal-header-info">
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#1e293b', margin: 0, letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#ffffff', margin: 0, letterSpacing: '-0.02em', textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>
                 {student.name}
               </h2>
-              <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', fontWeight: 600, color: '#64748b' }}>
-                Curso: <span style={{ color: '#0d9488' }}>{selectedCourse}</span> • Rol: <span style={{ color: '#0284c7' }}>{student.role}</span> • Grupo: <span style={{ color: '#10B981' }}>Equipo N° {student.groupId}</span>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>
+                Curso: <span style={{ color: '#5eead4', fontWeight: 700 }}>{selectedCourse}</span> • Rol: <span style={{ color: '#7dd3fc', fontWeight: 700 }}>{student.role}</span> • Grupo: <span style={{ color: '#6ee7b7', fontWeight: 700 }}>Equipo N° {student.groupId}</span>
               </p>
             </div>
           </div>
@@ -222,8 +222,8 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
 
             {/* ── CARD SECCIÓN 2: GRÁFICO LINEAL DE PROGRESO ── */}
             <div className="premium-card-section">
-              <h4 className="section-header-modern" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.92rem', fontWeight: 800, color: '#4b5563', marginBottom: '1rem' }}>
-                <TrendingUp size={18} color="#0d9488" />
+              <h4 className="section-header-modern" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.92rem', fontWeight: 800, color: 'rgba(255,255,255,0.92)', marginBottom: '1rem' }}>
+                <TrendingUp size={18} color="#2dd4bf" />
                 Gráfico Lineal de Evolución Temporal (Eje de Hitos)
               </h4>
               
@@ -231,11 +231,11 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                 <div style={{
                   padding: '2rem',
                   textAlign: 'center',
-                  background: '#f8fafc',
+                  background: 'rgba(255,255,255,0.03)',
                   borderRadius: '16px',
-                  color: '#94a3b8',
+                  color: 'rgba(255,255,255,0.6)',
                   fontSize: '0.85rem',
-                  border: '1px dashed #e2e8f0'
+                  border: '1px dashed rgba(255,255,255,0.15)'
                 }}>
                   <AlertTriangle size={24} style={{ margin: '0 auto 8px', opacity: 0.6 }} />
                   No se registran hitos evaluados para trazar el gráfico de evolución.
@@ -265,9 +265,9 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     </defs>
 
                     {/* Líneas de Guía de Eje Y (Gridlines) */}
-                    <line x1="120" y1="35" x2={chartWidth - 30} y2="35" stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
-                    <line x1="120" y1="90" x2={chartWidth - 30} y2="90" stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
-                    <line x1="120" y1="145" x2={chartWidth - 30} y2="145" stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
+                    <line x1="120" y1="35" x2={chartWidth - 30} y2="35" stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" strokeWidth="1" />
+                    <line x1="120" y1="90" x2={chartWidth - 30} y2="90" stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" strokeWidth="1" />
+                    <line x1="120" y1="145" x2={chartWidth - 30} y2="145" stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" strokeWidth="1" />
 
                     {/* Etiquetas Eje Y */}
                     <text x="115" y="40" fill="#10b981" fontSize="10.5" fontWeight="900" textAnchor="end">L (Logrado)</text>
@@ -290,7 +290,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                           <circle cx={p.x} cy={p.y} r="3" fill="#ffffff" />
 
                           {/* Etiqueta del Número de Clase arriba */}
-                          <text x={p.x} y={p.y - 14} fill="#1e293b" fontSize="9" fontWeight="900" textAnchor="middle">
+                          <text x={p.x} y={p.y - 14} fill="#f1f5f9" fontSize="9" fontWeight="900" textAnchor="middle">
                             Clase {p.classId}
                           </text>
 
@@ -308,8 +308,8 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
 
             {/* ── CARD SECCIÓN 3: MURO CRONOLÓGICO DE OBSERVACIONES DOCENTES ── */}
             <div className="premium-card-section">
-              <h4 className="section-header-modern" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.92rem', fontWeight: 800, color: '#4b5563', marginBottom: '1.25rem' }}>
-                <BookOpen size={18} color="#0d9488" />
+              <h4 className="section-header-modern" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.92rem', fontWeight: 800, color: 'rgba(255,255,255,0.92)', marginBottom: '1.25rem' }}>
+                <BookOpen size={18} color="#2dd4bf" />
                 Muro Cronológico de Observaciones Docentes
               </h4>
 
@@ -323,19 +323,21 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
               }}>
                 {/* 1. Comentario Actitudinal / Retroalimentación Global del Alumno */}
                 <div style={{
-                  background: 'linear-gradient(135deg, rgba(13, 148, 136,0.06) 0%, rgba(2, 132, 199,0.06) 100%)',
-                  border: '1px solid rgba(13, 148, 136,0.18)',
+                  background: 'linear-gradient(135deg, rgba(45, 212, 191,0.16) 0%, rgba(56, 189, 248,0.12) 100%)',
+                  border: '1px solid rgba(45, 212, 191,0.3)',
+                  borderLeft: '4px solid #2dd4bf',
                   borderRadius: '16px',
                   padding: '1rem 1.25rem',
-                  position: 'relative'
+                  position: 'relative',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 22px rgba(0,0,0,0.25)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                    <Sparkles size={14} color="#0d9488" />
-                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 800, color: '#0d9488' }}>
+                    <Sparkles size={14} color="#5eead4" />
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 800, color: '#5eead4' }}>
                       RETROALIMENTACIÓN GLOBAL DE APRENDIZAJE
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.9rem', margin: 0, color: '#374151', lineHeight: 1.45, fontWeight: 600 }}>
+                  <p style={{ fontSize: '0.9rem', margin: 0, color: 'rgba(255,255,255,0.9)', lineHeight: 1.45, fontWeight: 600 }}>
                     {student.comment || 'Sin comentarios globales registrados aún por el docente.'}
                   </p>
                 </div>
@@ -359,19 +361,19 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                       <div key={h.classId} className={`observation-card-premium ${statusColor}-accent`}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f766e', background: 'rgba(13, 148, 136,0.08)', padding: '2px 8px', borderRadius: '6px' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#5eead4', background: 'rgba(45, 212, 191,0.14)', border: '1px solid rgba(45,212,191,0.25)', padding: '2px 8px', borderRadius: '6px' }}>
                               Clase N° {h.classId}
                             </span>
                             <span className={`badge-status-pill ${statusColor}`}>
                               {statusLabel}
                             </span>
                           </div>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.55)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <Calendar size={12} /> {h.date}
                           </span>
                         </div>
-                        
-                        <p style={{ fontSize: '0.78rem', margin: '4px 0', color: '#475569', lineHeight: 1.4 }}>
+
+                        <p style={{ fontSize: '0.78rem', margin: '4px 0', color: 'rgba(255,255,255,0.78)', lineHeight: 1.4 }}>
                           <strong>Objetivo / Hito:</strong> {objetivo}
                         </p>
 

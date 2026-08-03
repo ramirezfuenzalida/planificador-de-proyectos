@@ -1699,10 +1699,10 @@ to {
   z-index:9999;
   pointer-events:none;
   justify-content:center;
-  align-items:center;
-  padding-top:18rem;
+  align-items:flex-end;
+  padding:0 1rem calc(2rem + env(safe-area-inset-bottom, 0px));
   display:flex;
-  position:absolute;
+  position:fixed;
   inset:0}
 .glossy-toast {
   -webkit-backdrop-filter:blur(35px);
@@ -2513,6 +2513,43 @@ to {
   background:#3b82f61a}
 .stat-blue .stat-value {
   color:#3b82f6}
+
+/* Tarjeta destacada "% Avance" — emerald premium con relieve y gloss */
+.stat-card-premium.stat-avance {
+  background: linear-gradient(155deg, #34d399 0%, #10b981 45%, #047857 100%) !important;
+  border: 1px solid rgba(255,255,255,0.28) !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    inset 0 -10px 26px rgba(3,52,39,0.55),
+    0 18px 40px rgba(16,185,129,0.42) !important;
+}
+/* Gloss especular superior */
+.stat-card-premium.stat-avance::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 45%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+.stat-card-premium.stat-avance:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.55),
+    inset 0 -10px 26px rgba(3,52,39,0.55),
+    0 26px 54px rgba(16,185,129,0.55) !important;
+}
+.stat-avance .stat-icon-wrapper {
+  background: rgba(255,255,255,0.22) !important;
+  color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+}
+.stat-avance .stat-title { color: rgba(255,255,255,0.92) !important; }
+.stat-avance .stat-value {
+  color: #fff !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
 @media print {
   .sidebar,.back-btn {
   display:none!important}
@@ -3275,22 +3312,37 @@ to {
   box-shadow:0 20px 40px #0000000a}
 .fh-top {
   justify-content:space-between;
-  align-items:flex-start;
+  align-items:center;
   margin-bottom:2rem;
-  display:flex}
+  display:flex;
+  /* Si no caben lado a lado, los controles bajan de línea en vez de
+     encaramarse sobre el título. */
+  flex-wrap:wrap;
+  gap:1rem 1.5rem}
+.fh-title-box {
+  flex:1 1 300px;
+  min-width:0}
 .fh-title-box h1 {
   color:#1e293b;
   align-items:center;
-  gap:1rem;
+  gap:.75rem;
   margin-bottom:.25rem;
-  font-size:2.2rem;
+  /* Escala con el ancho disponible para no desbordar en pantallas medianas. */
+  font-size:clamp(1.5rem, 3.4vw, 2.2rem);
+  line-height:1.15;
   font-weight:900;
   display:flex}
 .fh-title-box p {
   color:#64748b;
   font-weight:500}
 /* Controles del header: que envuelvan en móvil para no cortar el toggle */
-.fh-controls { flex-wrap: wrap; justify-content: flex-end; }
+.fh-controls {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: .75rem;
+  flex-shrink: 0;
+}
 
 .level-toggle-premium {
   background:#e8edf3;
@@ -3920,23 +3972,23 @@ to {
 .sidebar-overlay.open {
   display:block}
 .mobile-nav-header {
-  padding:calc(var(--safe-area-top) + 1rem) 1.5rem 1rem 1.5rem;
+  padding:calc(var(--safe-area-top) + 1.15rem) 1.5rem 1.15rem 1.5rem;
   z-index:100;
   background:#fff;
-  border-bottom:1px solid #fff;
+  border-bottom:1px solid #f1f5f9;
   align-items:center;
   gap:1rem;
   display:flex;
   position:sticky;
   top:0}
 .mobile-menu-btn {
-  width:44px;
-  height:44px;
+  width:46px;
+  height:46px;
   color:var(--primary);
   cursor:pointer;
-  background:#fff;
+  background:#f8fafc;
   border:none;
-  border-radius:12px;
+  border-radius:14px;
   justify-content:center;
   align-items:center;
   display:flex}
@@ -3967,7 +4019,7 @@ body {
   -webkit-print-color-adjust:exact!important;
   print-color-adjust:exact!important;
   font-family:Plus Jakarta Sans,sans-serif!important}
-.sidebar,.export-pdf-btn,.analytics-filters,.nav-menu,.brand-chevron,.top-nav,.reports-header-glass,.back-btn {
+.sidebar,.export-pdf-btn,.nav-menu,.brand-chevron,.top-nav,.back-btn,.mobile-nav-header {
   display:none!important}
 .reports-view-modern {
   background:#fff!important;
@@ -6008,6 +6060,7 @@ to {
 .icon-teal  { color: #c084fc !important; background: rgba(192,132,252,0.12) !important; }
 .icon-amber   { color: #fbbf24 !important; background: rgba(251,191,36,0.12) !important; }
 .icon-pink    { color: #f472b6 !important; background: rgba(244,114,182,0.12) !important; }
+.icon-violet  { color: #a78bfa !important; background: rgba(139,92,246,0.14) !important; }
 
 .sb2-accordion { margin-bottom: 2px; }
 
@@ -6109,18 +6162,18 @@ to {
 .sb2-institution-card:hover { background: rgba(255,255,255,0.08); }
 
 .sb2-inst-logo {
-  width: 36px;
-  height: 36px;
-  background: #fff;
-  border-radius: 9px;
-  padding: 3px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  border: 1.5px solid rgba(251,191,36,0.55);
+  box-shadow: 0 0 0 2px rgba(251,191,36,0.12), 0 3px 12px rgba(0,0,0,0.35);
 }
-.sb2-inst-logo img { width: 100%; height: 100%; object-fit: contain; }
+.sb2-inst-logo img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.02); }
 
 .sb2-inst-info {
   display: flex;
@@ -6240,40 +6293,63 @@ to {
   to { opacity: 1; }
 }
 
-/* Ficha del Alumno - Contenedor Principal Glassmorphic */
+/* ═══════════════════════════════════════════════════════════
+   FICHA DEL ALUMNO — Rediseño Cósmico con Relieve Pintado
+   ═══════════════════════════════════════════════════════════ */
+
+/* Contenedor Principal — Cristal Cósmico Profundo */
 .student-dashboard-modal {
-  background: rgba(255, 255, 255, 0.72) !important;
-  backdrop-filter: blur(35px) !important;
-  -webkit-backdrop-filter: blur(35px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  position: relative;
+  background:
+    radial-gradient(120% 90% at 15% -10%, rgba(124, 58, 237, 0.28) 0%, transparent 55%),
+    radial-gradient(120% 90% at 100% 0%, rgba(6, 182, 212, 0.20) 0%, transparent 50%),
+    linear-gradient(165deg, rgba(26, 18, 54, 0.94) 0%, rgba(12, 9, 32, 0.97) 55%, rgba(8, 6, 22, 0.98) 100%) !important;
+  backdrop-filter: blur(40px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 28px !important;
-  box-shadow: 0 35px 80px rgba(15, 23, 42, 0.18), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  box-shadow:
+    0 40px 90px rgba(5, 3, 20, 0.6),
+    0 0 0 1px rgba(124, 58, 237, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
   overflow: hidden !important;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
-/* Cabecera del Modal con Efecto de Cristal Esmerilado */
+/* Cabecera del Modal — Cristal Esmerilado Oscuro */
 .student-modal-header {
-  background: rgba(255, 255, 255, 0.35) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   padding-right: 75px !important; /* Espacio de protección para el botón cerrar */
 }
 
-/* Secciones de Tarjeta Internas Translúcidas */
+/* Secciones de Tarjeta Internas — Panel Vidrio Oscuro con Relieve */
 .student-dashboard-modal .premium-card-section {
-  background: rgba(255, 255, 255, 0.45) !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  border-radius: 20px !important;
-  padding: 1.25rem !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.01) !important;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 22px !important;
+  padding: 1.35rem !important;
+  box-shadow:
+    0 18px 40px rgba(5, 3, 20, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
   margin-bottom: 0 !important; /* Manejado por el stack vertical */
+}
+
+/* Botón cerrar sobre fondo oscuro */
+.student-dashboard-modal .modal-close-btn-pro {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #e9e2ff !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+.student-dashboard-modal .modal-close-btn-pro:hover {
+  background: rgba(239, 68, 68, 0.9) !important;
+  color: #fff !important;
 }
 
 /* Grid de Métricas */
@@ -6281,104 +6357,91 @@ to {
   margin-top: 1rem;
 }
 
-/* Tarjetas de Métricas Individuales */
+/* Tarjetas de Métricas — Pintadas y con Relieve Real */
 .stat-card-item {
-  background: rgba(255, 255, 255, 0.6) !important;
-  border: 1px solid rgba(226, 232, 240, 0.8) !important;
-  border-radius: 16px;
-  padding: 0.85rem 1rem;
+  position: relative;
+  border: none !important;
+  border-radius: 18px;
+  padding: 0.95rem 1.05rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 0.3rem;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
+}
+/* Brillo especular superior (gloss) sobre cada tarjeta */
+.stat-card-item::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 45%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
 }
 
 .stat-card-item:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.95) !important;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  transform: translateY(-3px);
 }
 
 .stat-card-item .sc-label {
-  font-size: 0.65rem;
+  position: relative;
+  font-size: 0.66rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   font-weight: 800;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .stat-card-item .sc-val {
-  font-size: 1.5rem;
+  position: relative;
+  font-size: 1.6rem;
   font-weight: 900;
   font-family: 'Outfit', sans-serif;
-  color: #1e293b;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  line-height: 1.05;
 }
 
-/* Variantes de Color con Bordes de Acentuación */
-.stat-card-item.purple {
-  border-left: 4px solid #0d9488 !important;
-  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(13, 148, 136, 0.04) 100%) !important;
-}
-.stat-card-item.purple:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(13, 148, 136, 0.06) 100%) !important;
-}
-.stat-card-item.purple .sc-val {
-  color: #0d9488;
-}
+/* — Fórmula de relieve reutilizable por color:
+     luz interior arriba + sombra interior abajo + halo de color proyectado — */
 
-.stat-card-item.green {
-  border-left: 4px solid #10b981 !important;
-  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(16, 185, 129, 0.04) 100%) !important;
+.stat-card-item.purple { /* Clases Totales — Violeta */
+  background: linear-gradient(150deg, #8b5cf6 0%, #6d28d9 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -6px 14px rgba(49,10,101,0.55), 0 12px 26px rgba(109,40,217,0.4) !important;
 }
-.stat-card-item.green:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(16, 185, 129, 0.06) 100%) !important;
-}
-.stat-card-item.green .sc-val {
-  color: #10b981;
-}
+.stat-card-item.purple:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -6px 14px rgba(49,10,101,0.55), 0 18px 36px rgba(109,40,217,0.55) !important; }
 
-.stat-card-item.yellow {
-  border-left: 4px solid #f59e0b !important;
-  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(245, 158, 11, 0.04) 100%) !important;
+.stat-card-item.green { /* Logrados — Esmeralda */
+  background: linear-gradient(150deg, #10b981 0%, #047857 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -6px 14px rgba(3,52,39,0.55), 0 12px 26px rgba(16,185,129,0.4) !important;
 }
-.stat-card-item.yellow:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(245, 158, 11, 0.06) 100%) !important;
-}
-.stat-card-item.yellow .sc-val {
-  color: #d97706;
-}
+.stat-card-item.green:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -6px 14px rgba(3,52,39,0.55), 0 18px 36px rgba(16,185,129,0.55) !important; }
 
-.stat-card-item.red {
-  border-left: 4px solid #ef4444 !important;
-  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(239, 68, 68, 0.04) 100%) !important;
+.stat-card-item.yellow { /* Por Lograr — Ámbar */
+  background: linear-gradient(150deg, #fbbf24 0%, #d97706 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -6px 14px rgba(120,53,15,0.5), 0 12px 26px rgba(245,158,11,0.42) !important;
 }
-.stat-card-item.red:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(239, 68, 68, 0.06) 100%) !important;
-}
-.stat-card-item.red .sc-val {
-  color: #ef4444;
-}
+.stat-card-item.yellow:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 14px rgba(120,53,15,0.5), 0 18px 36px rgba(245,158,11,0.55) !important; }
 
-.stat-card-item.proposed {
-  border-left: 4px solid #0284c7 !important;
-  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(2, 132, 199, 0.04) 100%) !important;
+.stat-card-item.red { /* No Logrados — Rojo */
+  background: linear-gradient(150deg, #f43f5e 0%, #b91c1c 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.42), inset 0 -6px 14px rgba(74,12,12,0.55), 0 12px 26px rgba(239,68,68,0.42) !important;
 }
-.stat-card-item.proposed:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(2, 132, 199, 0.06) 100%) !important;
-}
-.stat-card-item.proposed .sc-val {
-  color: #0284c7;
-}
+.stat-card-item.red:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.48), inset 0 -6px 14px rgba(74,12,12,0.55), 0 18px 36px rgba(239,68,68,0.55) !important; }
 
-.stat-card-item.grade {
-  border-left: 4px solid #06b6d4 !important;
-  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(6, 182, 212, 0.04) 100%) !important;
+.stat-card-item.proposed { /* Nota Propuesta — Cielo */
+  background: linear-gradient(150deg, #38bdf8 0%, #0369a1 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -6px 14px rgba(8,47,73,0.55), 0 12px 26px rgba(14,165,233,0.4) !important;
 }
-.stat-card-item.grade:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(6, 182, 212, 0.06) 100%) !important;
+.stat-card-item.proposed:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -6px 14px rgba(8,47,73,0.55), 0 18px 36px rgba(14,165,233,0.55) !important; }
+
+.stat-card-item.grade { /* Calificación — Cian */
+  background: linear-gradient(150deg, #22d3ee 0%, #0e7490 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -6px 14px rgba(8,51,68,0.55), 0 12px 26px rgba(6,182,212,0.4) !important;
 }
+.stat-card-item.grade:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -6px 14px rgba(8,51,68,0.55), 0 18px 36px rgba(6,182,212,0.55) !important; }
+.stat-card-item.grade .sc-val { color: #ffffff !important; }
 
 /* Botón de Exportación PDF */
 .export-pdf-btn {
@@ -6394,14 +6457,14 @@ to {
   transform: translateY(0) !important;
 }
 
-/* Contenedor del Gráfico de Evolución */
+/* Contenedor del Gráfico de Evolución — Vidrio Oscuro Hundido */
 .student-dashboard-modal .horizontal-chart-scroll-wrapper {
-  background: rgba(248, 250, 252, 0.5) !important;
-  border: 1px solid rgba(226, 232, 240, 0.7) !important;
-  backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px) !important;
+  background: linear-gradient(180deg, rgba(9, 7, 24, 0.55) 0%, rgba(20, 14, 44, 0.45) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
   border-radius: 20px !important;
-  box-shadow: inset 0 2px 8px rgba(15, 23, 42, 0.02) !important;
+  box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05) !important;
   padding: 1.25rem 0 !important;
 }
 
@@ -6417,49 +6480,56 @@ to {
   box-sizing: border-box !important;
 }
 
-/* Variantes de Acento con Código de Color de Logro */
+/* Variantes de Acento — Base oscura teñida con borde de color y relieve */
+.student-dashboard-modal .observation-card-premium {
+  border-left-width: 4px !important;
+  border-left-style: solid !important;
+}
 .student-dashboard-modal .observation-card-premium.green-accent {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(16, 185, 129, 0.04) 100%) !important;
-  border: 1px solid rgba(16, 185, 129, 0.22) !important;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(6, 33, 27, 0.55) 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.28) !important;
+  border-left: 4px solid #10e39a !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 22px rgba(0,0,0,0.28) !important;
 }
 .student-dashboard-modal .observation-card-premium.green-accent:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(16, 185, 129, 0.06) 100%) !important;
-  border-color: rgba(16, 185, 129, 0.45) !important;
+  border-left-color: #34ffb0 !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 12px 30px rgba(16, 185, 129, 0.28) !important;
 }
 
 .student-dashboard-modal .observation-card-premium.yellow-accent {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(245, 158, 11, 0.04) 100%) !important;
-  border: 1px solid rgba(245, 158, 11, 0.22) !important;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(41, 25, 4, 0.55) 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.28) !important;
+  border-left: 4px solid #ffc31a !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 22px rgba(0,0,0,0.28) !important;
 }
 .student-dashboard-modal .observation-card-premium.yellow-accent:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(245, 158, 11, 0.06) 100%) !important;
-  border-color: rgba(245, 158, 11, 0.45) !important;
+  border-left-color: #ffd45c !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 12px 30px rgba(245, 158, 11, 0.28) !important;
 }
 
 .student-dashboard-modal .observation-card-premium.red-accent {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(239, 68, 68, 0.04) 100%) !important;
-  border: 1px solid rgba(239, 68, 68, 0.22) !important;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(41, 8, 8, 0.6) 100%) !important;
+  border: 1px solid rgba(239, 68, 68, 0.28) !important;
+  border-left: 4px solid #ff4757 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 22px rgba(0,0,0,0.28) !important;
 }
 .student-dashboard-modal .observation-card-premium.red-accent:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(239, 68, 68, 0.06) 100%) !important;
-  border-color: rgba(239, 68, 68, 0.45) !important;
+  border-left-color: #ff6b78 !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 12px 30px rgba(239, 68, 68, 0.28) !important;
 }
 
 .student-dashboard-modal .observation-card-premium.none-accent {
-  background: rgba(255, 255, 255, 0.45) !important;
-  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-left: 4px solid rgba(148, 163, 184, 0.6) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 22px rgba(0,0,0,0.25) !important;
 }
 .student-dashboard-modal .observation-card-premium.none-accent:hover {
-  background: rgba(255, 255, 255, 0.8) !important;
-  border-color: rgba(203, 213, 225, 1) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(148, 163, 184, 0.06) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 30px rgba(0,0,0,0.35) !important;
 }
 
 /* Pastillas de Estado a Color en Cabecera de Fichas (badge-status-pill) */
@@ -6475,45 +6545,49 @@ to {
 }
 
 .student-dashboard-modal .badge-status-pill.green {
-  color: #047857 !important;
-  background: rgba(16, 185, 129, 0.12) !important;
-  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  color: #052e1c !important;
+  background: #10e39a !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 0 12px rgba(16, 227, 154, 0.55) !important;
 }
 
 .student-dashboard-modal .badge-status-pill.yellow {
-  color: #b45309 !important;
-  background: rgba(245, 158, 11, 0.12) !important;
-  border: 1px solid rgba(245, 158, 11, 0.2) !important;
+  color: #3a2402 !important;
+  background: #ffc31a !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 0 12px rgba(255, 195, 26, 0.55) !important;
 }
 
 .student-dashboard-modal .badge-status-pill.red {
-  color: #b91c1c !important;
-  background: rgba(239, 68, 68, 0.12) !important;
-  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+  color: #fff !important;
+  background: #ff4757 !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 0 12px rgba(255, 71, 87, 0.6) !important;
 }
 
 .student-dashboard-modal .badge-status-pill.none {
-  color: #475569 !important;
-  background: rgba(148, 163, 184, 0.12) !important;
-  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  color: #e2e8f0 !important;
+  background: rgba(148, 163, 184, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
 }
 
 /* Contenido de Bitácora con división formal traslúcida */
 .student-dashboard-modal .observation-bitacora-content {
   margin-top: 4px !important;
   padding-top: 6px !important;
-  border-top: 1px dashed rgba(226, 232, 240, 0.9) !important;
+  border-top: 1px dashed rgba(255, 255, 255, 0.18) !important;
   font-size: 0.82rem !important;
   line-height: 1.45 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 .student-dashboard-modal .observation-card-premium.green-accent .observation-bitacora-content {
-  border-top-color: rgba(16, 185, 129, 0.15) !important;
+  border-top-color: rgba(16, 227, 154, 0.28) !important;
 }
 .student-dashboard-modal .observation-card-premium.yellow-accent .observation-bitacora-content {
-  border-top-color: rgba(245, 158, 11, 0.15) !important;
+  border-top-color: rgba(255, 195, 26, 0.28) !important;
 }
 .student-dashboard-modal .observation-card-premium.red-accent .observation-bitacora-content {
-  border-top-color: rgba(239, 68, 68, 0.15) !important;
+  border-top-color: rgba(255, 71, 87, 0.28) !important;
 }
 
 /* Custom Scrollbars Premium */
@@ -6567,7 +6641,7 @@ to {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 12px !important;
-    background: rgba(255, 255, 255, 0.4) !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
   }
 
   /* Desactivar el scroll y límites internos de la sección inferior */
@@ -6669,11 +6743,129 @@ to {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
+/* En modo overlay (≤1024, iPad/móvil) la barra lateral oculta NO debe proyectar
+   su sombra ni su borde derecho sobre el borde izquierdo de la pantalla
+   (eso creaba una franja oscura). Solo se ven al abrirla. */
+@media (max-width: 1024px) {
+  .sidebar:not(.open) {
+    box-shadow: none !important;
+    border-right: none !important;
+  }
+  /* En iPad (≤1200px) el body tenía padding:1rem, y el fondo oscuro del body
+     asomaba como un MARCO/borde negro alrededor de la app (arriba y esquinas).
+     A tamaño tablet/móvil la app debe ir de borde a borde. */
+  body { padding: 0 !important; }
+}
+
 @media (max-width: 768px) {
   .main-board { overflow-x: hidden !important; }
-  .main-board [class*="grid"]:not([class*="dv-"]),
-  .main-board [style*="grid-template-columns"]:not([class*="dv-"]) {
+  /* Colapsa a 1 columna los grids genéricos apretados, pero NO el calendario
+     (sc-*, que necesita sus 7 columnas) ni las portadas cósmicas (dv-*). */
+  .main-board [class*="grid"]:not([class*="dv-"]):not([class*="sc-"]):not([class*="cal"]),
+  .main-board [style*="grid-template-columns"]:not([class*="dv-"]):not([class*="sc-"]):not([class*="cal"]) {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
+
+/* ── IMPRESIÓN DEL REPORTE (arreglo definitivo) ──
+   El contenedor de transición de vistas (AnimatePresence) y el tablero tenían
+   height:100%/overflow/flex en línea que recortaban el contenido al imprimir.
+   Aquí forzamos que todo el árbol fluya en altura automática y a todo el ancho. */
+@media print {
+  html, body, #root, .app-window, .main-board {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+    background: #fff !important;
+  }
+  /* El wrapper animado de la vista (motion.div con estilos en línea) */
+  .main-board > div {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    width: 100% !important;
+  }
+  .mobile-nav-header { display: none !important; }
+  /* Tarjetas con color: forzar impresión de fondos */
+  .reports-view-modern, .reports-view-modern * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .stats-grid-glass {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .stat-card-premium { break-inside: avoid !important; }
+  .reports-table { width: 100% !important; }
+
+  /* Encabezado visible y limpio al imprimir (título + subtítulo + filtros) */
+  .reports-header-glass {
+    display: block !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 16px 20px !important;
+    margin-bottom: 18px !important;
+  }
+  .reports-header-glass h1 { color: #0f172a !important; }
+  .reports-header-top, .reports-header-title-box { display: block !important; }
+
+  /* Filtros de analítica: se muestran como su valor seleccionado, sin caja gris */
+  .analytics-filters {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+  }
+  .analytics-select {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    padding: 4px 10px !important;
+    border-radius: 8px !important;
+  }
+
+  /* En impresión ocultamos los gráficos gráficos (dependen de fondos/gradientes
+     que Safari omite) y mostramos la versión de texto+bordes de color. */
+  .charts-container { display: none !important; }
+  .analytics-print-charts { display: block !important; }
+
+  /* Tabla de docentes: bordes y texto (siempre imprimen, también en Safari) */
+  .reports-table, .reports-table th, .reports-table td {
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+  .reports-table th { background: #f1f5f9 !important; }
+}
+
+/* Bloque de gráficos SOLO para impresión (oculto en pantalla) */
+.analytics-print-charts { display: none; }
+.analytics-print-charts .apc-title {
+  font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.05rem;
+  color: #0f172a; margin: 4px 0 14px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0;
+}
+.analytics-print-charts .apc-row {
+  display: flex; align-items: center; gap: 10px; padding: 7px 0;
+  border-bottom: 1px dashed #e2e8f0; font-size: 0.95rem;
+}
+.analytics-print-charts .apc-chip {
+  width: 16px; height: 16px; border-radius: 4px; border: 3px solid; flex-shrink: 0;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.analytics-print-charts .apc-label { color: #334155; font-weight: 600; }
+.analytics-print-charts .apc-dots { flex: 1; border-bottom: 1px dotted #cbd5e1; height: 1px; }
+.analytics-print-charts .apc-val { font-weight: 800; white-space: nowrap; }
+.analytics-print-charts .apc-foot {
+  margin-top: 12px; font-size: 0.85rem; color: #475569; font-weight: 700;
+}
+
 

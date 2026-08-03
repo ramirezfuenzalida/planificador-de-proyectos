@@ -14,12 +14,11 @@ import {
   BookOpen, 
   ClipboardList, 
   Palette, 
-  MessageSquare, 
+  MessageSquare,
   ClipboardCheck,
-  Users,
-  Info
+  Users
 } from 'lucide-react';
-import { ensureHttps } from '../utils/materials';
+import { ensureHttps, pptViewerUrl } from '../utils/materials';
 
 interface ClassModalProps {
   selectedClass: any;
@@ -136,31 +135,35 @@ const ClassModal: React.FC<ClassModalProps> = ({
                   <div className="execution-row-pro">
                     <div className="execution-box">
                       <span className="execution-label">Docente en Aula:</span>
-                      <span className="execution-value">
-                        {selectedClass.rawDocente || 'Sin asignar'}
-                      </span>
+                      <span className="execution-value">{selectedClass.rawDocente || 'Sin asignar'}</span>
                     </div>
                     <div className="execution-box secondary">
                       <span className="execution-label">Responsable del Diseño:</span>
                       <span className="execution-value">{selectedClass.responsable || 'Equipo Pedagógico'}</span>
                     </div>
                   </div>
+                  {selectedClass.etapa && (
+                    <div className="hardware-info-pro">
+                      <LayoutGrid size={16} />
+                      <span><strong>Etapa de proyecto:</strong> {selectedClass.etapa}</span>
+                    </div>
+                  )}
+                  {selectedClass.aulaInvertida && (
+                    <div className="hardware-info-pro">
+                      <BookOpen size={16} />
+                      <span><strong>Aula invertida:</strong> {selectedClass.aulaInvertida}</span>
+                    </div>
+                  )}
                   {selectedClass.hardware && (
                     <div className="hardware-info-pro">
                       <MonitorPlay size={16} />
-                      <span><strong>Requerimiento Hardware:</strong> {selectedClass.hardware}</span>
-                    </div>
-                  )}
-                  {selectedClass.notes && (
-                    <div className="notes-info-pro">
-                      <Info size={16} />
-                      <span><strong>Notas Admin:</strong> {selectedClass.notes}</span>
+                      <span><strong>Solicitudes Informática:</strong> {selectedClass.hardware}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Materiales */}
-                {(selectedClass.canvaLink || selectedClass.pptLink || selectedClass.sitesLink) && (
+                {(selectedClass.canvaLink || selectedClass.pptLink || selectedClass.sitesLink || selectedClass.otherLink) && (
                   <div className="premium-card-section">
                     <h4 className="section-header-modern"><LayoutGrid size={18} color="#0d9488" /> Materiales Pedagógicos</h4>
                     <div className="materials-grid-pro">
@@ -170,13 +173,18 @@ const ClassModal: React.FC<ClassModalProps> = ({
                         </a>
                       )}
                       {selectedClass.pptLink && (
-                        <a href={ensureHttps(selectedClass.pptLink)} target="_blank" rel="noopener noreferrer" className="material-btn-pro canva-style ppt-variant">
-                          <LayoutGrid size={20} /> Ver Presentación PPTX
+                        <a href={pptViewerUrl(selectedClass.pptLink)} target="_blank" rel="noopener noreferrer" className="material-btn-pro canva-style ppt-variant">
+                          <LayoutGrid size={20} /> Ver Presentación
                         </a>
                       )}
                       {selectedClass.sitesLink && (
                         <a href={ensureHttps(selectedClass.sitesLink)} target="_blank" rel="noopener noreferrer" className="material-btn-pro canva-style sites-variant">
                           <Globe size={20} /> Google Sites
+                        </a>
+                      )}
+                      {selectedClass.otherLink && (
+                        <a href={ensureHttps(selectedClass.otherLink)} target="_blank" rel="noopener noreferrer" className="material-btn-pro canva-style sites-variant">
+                          <Globe size={20} /> Abrir Material
                         </a>
                       )}
                     </div>

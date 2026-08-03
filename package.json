@@ -1,7 +1,7 @@
 {
   "name": "seguimiento-lbc",
   "private": true,
-  "version": "1.2.05",
+  "version": "1.2.06",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,7 +21,8 @@
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.477.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

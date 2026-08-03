@@ -106,6 +106,8 @@ export default function AdminPanelView({
     { id: 'formative-evaluation', label: '🏆 Evaluación Formativa (Rúbricas y Notas)' },
     { id: 'dashboard-general', label: '📊 Dashboard Ejecutivo General' },
     { id: 'student-risk-radar', label: '🔴 Radar de Alerta Temprana & Bitácora' },
+    { id: 'student-profile', label: '👤 Estudiantes (Ficha y Seguimiento individual)' },
+    { id: 'acta-globalizacion', label: '📝 Acta de Globalización (Reuniones)' },
   ];
 
   const handleAddTeacher = async (e: React.FormEvent) => {

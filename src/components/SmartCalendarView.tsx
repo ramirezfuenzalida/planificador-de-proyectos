@@ -1035,15 +1035,18 @@ export default function SmartCalendarView({
             font-size: 1.4rem;
           }
           .sc-grid-card, .sc-agenda-card {
-            padding: 16px;
+            padding: 12px;
             border-radius: 20px;
           }
+          .sc-grid-days { gap: 5px; }
           .sc-day-cell {
             border-radius: 12px;
+            aspect-ratio: 1;
           }
           .sc-day-number {
             font-size: 0.85rem;
           }
+          .sc-weekday { font-size: 0.6rem; }
         }
       `}</style>
 

@@ -27,6 +27,7 @@ export const SINGLE_DOC_KEYS = [
   'teacherRoles',
   'menuPermissions',
   'projectsConfig',
+  'actasGlobalizacion',
 ] as const;
 
 /** Destino de las claves que no coinciden con ningún curso conocido. */

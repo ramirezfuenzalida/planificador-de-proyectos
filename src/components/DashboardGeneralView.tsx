@@ -134,7 +134,9 @@ export default function DashboardGeneralView({
         let name = `Estudiante ${idx + 1}`;
         let role = ['Coordinador', 'Investigador', 'Mediador', 'Secretario'][idx];
 
-        if (groupInfo[idx]) {
+        // Real = tiene nombre del Sheets. Los placeholder no entran en cálculos.
+        const isReal = !!(groupInfo[idx] && groupInfo[idx].name && String(groupInfo[idx].name).trim());
+        if (isReal) {
           name = groupInfo[idx].name;
           role = groupInfo[idx].role;
         }
@@ -159,6 +161,7 @@ export default function DashboardGeneralView({
           studentId: sid,
           name,
           role,
+          isReal,
           history,
           proposed,
           grade: currentEval.grade ? parseFloat(currentEval.grade) : null,
@@ -176,8 +179,11 @@ export default function DashboardGeneralView({
     availableCourses.forEach(c => processStudentsForCourse(c));
   }
 
-  // Alumnos filtrados por los controles de selección
+  // Alumnos filtrados por los controles de selección.
+  // Se excluyen los cupos placeholder ("Estudiante N" sin nombre del Sheets)
+  // para no distorsionar promedios ni % de rendimiento.
   const filteredStudents = allStudentsList.filter(s => {
+    if (!s.isReal) return false;
     if (levelFilter !== 'All' && s.level !== levelFilter) return false;
     if (courseFilter !== 'All' && s.course !== courseFilter) return false;
     return true;
@@ -239,7 +245,7 @@ export default function DashboardGeneralView({
 
   // Agrupación por cursos para la vista comparativa general
   const courseSummaries = availableCourses.map(course => {
-    const studentsInCourse = allStudentsList.filter(s => s.course === course);
+    const studentsInCourse = allStudentsList.filter(s => s.course === course && s.isReal);
     const graded = studentsInCourse.filter(s => s.grade !== null);
     const avg = graded.length > 0 
       ? graded.reduce((sum, s) => sum + (s.grade || 0), 0) / graded.length 

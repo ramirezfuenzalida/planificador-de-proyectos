@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  BarChart2, PieChart, Printer, TrendingUp, CheckCircle2, 
-  AlertCircle, XCircle, Users, BookOpen, MessageSquare 
+import {
+  BarChart2, PieChart, Printer, TrendingUp, CheckCircle2,
+  AlertCircle, XCircle, Users, BookOpen, MessageSquare
 } from 'lucide-react';
 import { 
   getTrimester, getMonthString, parseGoogleDate 
@@ -310,6 +310,40 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               </div>
 
               {chartsUI}
+
+              {/* Versión SOLO para impresión de los gráficos: usa texto y bordes de
+                  color (que Safari sí imprime), en vez de fondos/gradientes que Safari
+                  suele omitir. En pantalla queda oculta. */}
+              {aggregatedStats.total > 0 && (() => {
+                const r = aggregatedStats.realizadas;
+                const i = aggregatedStats.incompletas;
+                const n = aggregatedStats.noRealizadas;
+                const p = aggregatedStats.total - (r + i + n);
+                const filas = [
+                  { label: 'Completadas', val: r, color: '#059669' },
+                  { label: 'En Proceso', val: i, color: '#d97706' },
+                  { label: 'No Realizadas', val: n, color: '#dc2626' },
+                  { label: 'Por Registrar', val: p, color: '#64748b' },
+                ];
+                return (
+                  <div className="analytics-print-charts">
+                    <div className="apc-title">
+                      Panorama de Realización — Adherencia global: {getSafePercentage(r)}%
+                    </div>
+                    {filas.map((f) => (
+                      <div className="apc-row" key={f.label}>
+                        <span className="apc-chip" style={{ borderColor: f.color, background: f.color }} />
+                        <span className="apc-label">{f.label}</span>
+                        <span className="apc-dots" />
+                        <span className="apc-val" style={{ color: f.color }}>
+                          {f.val} clase{f.val === 1 ? '' : 's'} ({getSafePercentage(f.val)}%)
+                        </span>
+                      </div>
+                    ))}
+                    <div className="apc-foot">Total de clases del período: {aggregatedStats.total}</div>
+                  </div>
+                );
+              })()}
 
               <div className="reports-details-card" style={{ marginTop: '2rem' }}>
                 <div className="section-title-premium">

@@ -25,7 +25,8 @@ interface FormativeTrackingViewProps {
   initialLevel?: '1M' | '2M';
   initialCourse?: string;
   dynamicGroups: Record<string, any>;
-  onSyncGroups: (groups: Record<string, any>) => void;
+  onRefresh: () => void;
+  isRefreshing?: boolean;
 }
 
 // Mapeo oficial de estados de evaluación formativa y calificación
@@ -71,7 +72,8 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   initialLevel,
   initialCourse,
   dynamicGroups,
-  onSyncGroups
+  onRefresh,
+  isRefreshing
 }) => {
   const [selectedLevel, setSelectedLevel] = useState<'1M' | '2M'>(
     initialLevel || (initialCourse ? (initialCourse.startsWith('1') ? '1M' : '2M') : '1M')
@@ -79,116 +81,9 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
   const [selectedCourse, setSelectedCourse] = useState<string>(initialCourse || '');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-
-  const handleSyncSheets = async () => {
-    setIsSyncing(true);
-    setToastMessage('Sincronizando con Google Sheets...');
-    try {
-      // 1. Fetch 2° Medios
-      const res2M = await fetch("https://script.google.com/macros/s/AKfycbxsU0jJkLQelASMAcZSOcxqTA3tdlQgfEMzF4ML74XML6AgknTPyXrrKy_varObxIYI/exec");
-      const data2M = await res2M.json();
-
-      // 2. Fetch 1° Medios (Se ejecutará cuando reemplaces la URL abajo)
-      const url1M = "https://script.google.com/macros/s/AKfycbxjWki_l8MX8rD1hNF6fQWT5E4xe43a520c6x0iAS4A0MRfw1LUKROjtdb1fGN27SxG/exec";
-      let data1M: any = null;
-      if (url1M.startsWith("https://script.google.com")) {
-        try {
-          const res1M = await fetch(url1M);
-          data1M = await res1M.json();
-        } catch (e) {
-          console.warn("No se pudo obtener data de 1° Medios", e);
-        }
-      }
-      
-      const newGroups: Record<string, any> = {};
-
-      const processSheet = (sheetData: any, coursesMap: Record<string, number[]>, levelText: string) => {
-        if (!sheetData) return;
-        for (const [course, cols] of Object.entries(coursesMap)) {
-          let currentGroup = null;
-          let groupMembers: any[] = [];
-          
-          for (let row of sheetData) {
-            let val = String(row[cols[0]] || '').trim();
-            let roleVal = String(row[cols[1]] || '').trim();
-            
-            if (val.startsWith("EQUIPO N°") || val.startsWith("EQUIPO Nº") || val.startsWith("EQUIPO N")) {
-              if (currentGroup !== null) {
-                while (groupMembers.length < 4) groupMembers.push({name: '', role: ''});
-                const forcedRoles = ["Coordinador", "Investigador", "Mediador", "Secretario"];
-                for (let i=0; i<4; i++) {
-                  groupMembers[i].role = forcedRoles[i];
-                  if (!groupMembers[i].name || groupMembers[i].name.toLowerCase() === 'nan') {
-                    groupMembers[i].name = `Estudiante ${i+1}`;
-                  }
-                }
-                newGroups[`${course}-G${currentGroup}`] = groupMembers;
-              }
-              const numStr = val.replace(/EQUIPO N[°º]?/g, "").trim();
-              currentGroup = parseInt(numStr) || null;
-              groupMembers = [];
-            } else if (currentGroup !== null && (val || roleVal)) {
-              if (!val.toUpperCase().includes(levelText)) {
-                groupMembers.push({ name: val, role: roleVal });
-              }
-            }
-          }
-          if (currentGroup !== null) {
-            while (groupMembers.length < 4) groupMembers.push({name: '', role: ''});
-            const forcedRoles = ["Coordinador", "Investigador", "Mediador", "Secretario"];
-            for (let i=0; i<4; i++) {
-              groupMembers[i].role = forcedRoles[i];
-              if (!groupMembers[i].name || groupMembers[i].name.toLowerCase() === 'nan') {
-                groupMembers[i].name = `Estudiante ${i+1}`;
-              }
-            }
-            newGroups[`${course}-G${currentGroup}`] = groupMembers;
-          }
-        }
-      };
-
-      // Procesar 2° Medios
-      const coursesMap2M = { "2MA": [0, 2], "2MB": [4, 6], "2MC": [8, 10], "2MD": [12, 14] };
-      if (data2M && data2M['TEAM BUILDING 2 MEDIOS']) {
-        processSheet(data2M['TEAM BUILDING 2 MEDIOS'], coursesMap2M, "SEGUNDO MEDIO");
-      }
-
-      // Procesar 1° Medios
-      const coursesMap1M = { "1MA": [0, 2], "1MB": [4, 6], "1MC": [8, 10], "1MD": [12, 14] };
-      if (data1M && data1M['TEAM BUILDING 1 MEDIOS']) {
-        processSheet(data1M['TEAM BUILDING 1 MEDIOS'], coursesMap1M, "PRIMER MEDIO");
-      }
-
-      // Rellenar grupos vacíos para todos los cursos de 1° y 2° Medios
-      const allCoursesMap = { ...coursesMap1M, ...coursesMap2M };
-      for (const course of Object.keys(allCoursesMap)) {
-        for (let i=1; i<=10; i++) {
-          const key = `${course}-G${i}`;
-          if (!newGroups[key]) {
-            newGroups[key] = ["Coordinador", "Investigador", "Mediador", "Secretario"].map((r, idx) => ({
-              name: `Estudiante ${idx+1}`,
-              role: r
-            }));
-          }
-        }
-      }
-
-      onSyncGroups(newGroups);
-      setToastMessage('Sincronización Completada con Éxito');
-      setTimeout(() => setToastMessage(null), 3000);
-    } catch (e) {
-      console.error(e);
-      setToastMessage('Error al sincronizar datos. Inténtalo más tarde.');
-      setTimeout(() => setToastMessage(null), 3000);
-    } finally {
-      setIsSyncing(false);
-      // Remove focus from button so it doesn't appear stuck on mobile
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
-      }
-    }
-  };
+  // (Se eliminó handleSyncSheets: sincronizaba desde URLs fijas de Apps Script del
+  //  proyecto STEAM y borraba los estudiantes reales del proyecto activo. El sync
+  //  correcto es "Actualizar Planilla" de la barra lateral.)
 
   const courses = selectedLevel === '1M' ? courses1M : courses2M;
   const levelClasses = selectedLevel === '1M' ? globalData.pm : globalData.sm;
@@ -291,31 +186,39 @@ const FormativeTrackingView: React.FC<FormativeTrackingViewProps> = ({
             <h1><Telescope size={32} color="#0d9488" /> Seguimiento Formativo</h1>
             <p>Gestión de hitos y evaluación continua.</p>
           </div>
-          <div className="fh-controls" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <button 
+          {/* El espaciado y el ajuste de línea los define .fh-controls en el CSS. */}
+          <div className="fh-controls" style={{ display: 'flex' }}>
+            {/* Mismo botón de antes, pero ahora ejecuta el refresco CORRECTO
+                (planilla/pestañas configuradas del proyecto activo), no las URLs
+                fijas antiguas que borraban los nombres reales. */}
+            <button
               className="save-revision-btn-premium"
-              style={{ 
-                padding: '0.5rem 1rem', 
-                height: 'auto', 
+              style={{
+                // Mismo alto y radio que el toggle de nivel para que la fila
+                // de controles quede pareja (el toggle mide .35+.6+.6+.35rem).
+                padding: '0.95rem 1.4rem',
+                height: 'auto',
                 minHeight: 'auto',
-                display: 'flex', 
-                alignItems: 'center', 
+                display: 'flex',
+                alignItems: 'center',
                 gap: '8px',
-                borderRadius: '12px',
+                borderRadius: '14px',
                 background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
                 color: 'white',
                 border: 'none',
-                fontWeight: 600,
+                fontWeight: 800,
                 fontSize: '0.9rem',
-                cursor: 'pointer',
-                opacity: isSyncing ? 0.7 : 1,
-                boxShadow: '0 4px 15px rgba(13, 148, 136, 0.3)'
+                lineHeight: 1,
+                whiteSpace: 'nowrap',
+                cursor: isRefreshing ? 'not-allowed' : 'pointer',
+                opacity: isRefreshing ? 0.7 : 1,
+                boxShadow: '0 6px 16px rgba(13, 148, 136, 0.35)'
               }}
-              onClick={handleSyncSheets}
-              disabled={isSyncing}
+              onClick={onRefresh}
+              disabled={isRefreshing}
             >
-              <RefreshCw size={16} className={isSyncing ? "spin-icon" : ""} />
-              {isSyncing ? 'Actualizando...' : 'Actualizar Sheets'}
+              <RefreshCw size={16} className={isRefreshing ? "spin-icon" : ""} />
+              {isRefreshing ? 'Actualizando...' : 'Actualizar Grupos'}
             </button>
             <div className="level-toggle-premium">
               <button 
